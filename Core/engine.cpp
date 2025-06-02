@@ -13,6 +13,7 @@ namespace GLStudy {
     CreateWindow(width_, height_, "OpenGL Study");
     InitGLAD();
 
+    // updates the current screen size based on the callback
     glfwSetFramebufferSizeCallback(window_, SizeCallback);
 
     while (!glfwWindowShouldClose(window_)) {
@@ -31,6 +32,12 @@ namespace GLStudy {
   }
 
   void Engine::Shutdown() {
+  }
+
+  void Engine::PushLayer(Layer *layer)
+  {
+    layer_stack_.PushLayer(layer);
+    layer->OnAttach();
   }
 
   void Engine::InitGLFW() {
@@ -67,7 +74,6 @@ namespace GLStudy {
 
     if (state_ != EngineStates::RUNNING)
       return;
-
 
   }
 }

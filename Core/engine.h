@@ -3,6 +3,7 @@
 #include <glm.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "Core/Layer/LayerStack.h"
 
 
 namespace GLStudy {
@@ -25,6 +26,8 @@ namespace GLStudy {
 
     void Shutdown();
 
+    void PushLayer(Layer *layer);
+
   private:
     GLFWwindow *window_;
     int width_ = 800, height_ = 600;
@@ -38,5 +41,7 @@ namespace GLStudy {
     void Update();
 
     EngineStates state_ = EngineStates::PAUSED;
+
+    LayerStack layer_stack_;
   };
 }
