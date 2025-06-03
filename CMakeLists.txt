@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(ThirdParty/glfw)
 add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
+add_subdirectory(ThirdParty/entt)
 
 add_executable(openglStudy
         Program/main.cpp
@@ -33,6 +34,7 @@ target_link_libraries(openglStudy PUBLIC
         glm
         glad
         glfw
+        Entt
 )
 
 add_custom_command(
