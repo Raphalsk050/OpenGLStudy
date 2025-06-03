@@ -16,6 +16,11 @@ namespace GLStudy {
     // updates the current screen size based on the callback
     glfwSetFramebufferSizeCallback(window_, SizeCallback);
 
+    // Attach layers that were pushed before setup
+    for (Layer *layer : layer_stack_) {
+      layer->OnAttach();
+    }
+
     while (!glfwWindowShouldClose(window_)) {
       Update();
     }
@@ -37,7 +42,10 @@ namespace GLStudy {
   void Engine::PushLayer(Layer *layer)
   {
     layer_stack_.PushLayer(layer);
-    layer->OnAttach();
+    // If the engine is already initialized, immediately attach the layer
+    if (window_ != nullptr) {
+      layer->OnAttach();
+    }
   }
 
   void Engine::InitGLFW() {
