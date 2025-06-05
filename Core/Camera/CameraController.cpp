@@ -1,4 +1,5 @@
 #include "CameraController.h"
+#include "../Scene/EntityHandle.h"
 #include <algorithm>
 #include <cmath>
 

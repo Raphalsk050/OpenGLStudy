@@ -6,7 +6,10 @@
 #include "../Input/Input.h"
 #include "../Input/KeyCodes.h"
 #include "../Input/MouseCodes.h"
-#include "../Scene/EntityHandle.h"
+
+namespace GLStudy {
+    class EntityHandle;
+}
 #include <glm.hpp>
 
 namespace GLStudy {
