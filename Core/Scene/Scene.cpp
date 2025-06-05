@@ -39,7 +39,19 @@ void Scene::Render(Renderer* renderer) {
         auto& cc = camera_view.get<CameraComponent>(entity);
         if (!cc.primary)
             continue;
-        glm::mat4 view = glm::inverse(GetWorldMatrix(entity));
+        const auto& tr = camera_view.get<Transform>(entity);
+        glm::mat4 view;
+        if (registry_.all_of<CameraControllerComponent>(entity)) {
+            const auto& ctrl = registry_.get<CameraControllerComponent>(entity);
+            glm::vec3 front{
+                cos(glm::radians(ctrl.yaw)) * cos(glm::radians(ctrl.pitch)),
+                sin(glm::radians(ctrl.pitch)),
+                sin(glm::radians(ctrl.yaw)) * cos(glm::radians(ctrl.pitch))};
+            front = glm::normalize(front);
+            view = glm::lookAt(tr.position, tr.position + front, glm::vec3(0.0f, 1.0f, 0.0f));
+        } else {
+            view = glm::inverse(GetWorldMatrix(entity));
+        }
         view_projection = cc.camera.GetProjection() * view;
         break;
     }

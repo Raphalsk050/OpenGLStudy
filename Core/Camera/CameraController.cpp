@@ -1,6 +1,9 @@
 #include "CameraController.h"
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/quaternion.hpp>
+#include <gtx/euler_angles.hpp>
 #include "Core/Scene/Components.h"
 
 namespace GLStudy {
@@ -107,7 +110,11 @@ void CameraControllerSystem::OnUpdate(Scene& scene, Timestep ts) {
         if (cc.down)     position -= up * velocity;
 
         tr.position = position;
-        tr.rotation = glm::vec3(glm::radians(cc.pitch), glm::radians(cc.yaw), 0.0f);
+
+        // build orientation matrix applying yaw then pitch
+        glm::mat4 rotMat = glm::yawPitchRoll(glm::radians(cc.yaw), glm::radians(cc.pitch), 0.0f);
+        glm::quat orient = glm::quat_cast(rotMat);
+        tr.rotation = glm::eulerAngles(orient);
     }
 }
 
