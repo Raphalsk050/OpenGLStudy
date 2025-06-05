@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "EntityHandle.h"
 #include "Core/Graphics/Renderer.h"
+#include "Core/Camera/CameraController.h"
 #include <glad/glad.h>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
@@ -13,6 +14,22 @@ EntityHandle Scene::CreateEntity(const std::string& name) {
     registry_.emplace<Transform>(e);
     registry_.emplace<TagComponent>(e, TagComponent{name});
     return handle;
+}
+
+void Scene::OnUpdate(Timestep ts) {
+    CameraControllerSystem::OnUpdate(*this, ts);
+}
+
+void Scene::OnEvent(Event& e) {
+    CameraControllerSystem::OnEvent(*this, e);
+}
+
+void Scene::OnViewportResize(float width, float height) {
+    auto view = registry_.view<CameraComponent>();
+    for (auto entity : view) {
+        auto& cc = view.get<CameraComponent>(entity);
+        cc.camera.SetViewportSize(width, height);
+    }
 }
 
 void Scene::Render(Renderer* renderer) {

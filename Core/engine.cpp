@@ -24,6 +24,8 @@ namespace GLStudy
         InitGLAD();
         renderer_->Init();
 
+        scene_->OnViewportResize(width_, height_);
+
         InitCallbacks();
 
         initialization_state_ = EngineInitializationStates::INITIALIZED;
@@ -116,6 +118,7 @@ namespace GLStudy
         if (state_ != EngineStates::RUNNING)
             return;
 
+        scene_->OnUpdate(ts);
         UpdateLayers(ts);
     }
 
@@ -135,8 +138,11 @@ namespace GLStudy
             width_ = e.GetWidth();
             height_ = e.GetHeight();
             glViewport(0, 0, width_, height_);
+            scene_->OnViewportResize(width_, height_);
             return false;
         });
+
+        scene_->OnEvent(event);
 
         for (auto it = layer_stack_.rbegin(); it != layer_stack_.rend(); ++it)
         {

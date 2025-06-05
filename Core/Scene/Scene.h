@@ -2,6 +2,8 @@
 #include <entt.hpp>
 #include <string>
 #include "Components.h"
+#include "Core/TimeStep.h"
+#include "Core/Events/Event.h"
 
 namespace GLStudy {
     class EntityHandle;
@@ -11,6 +13,10 @@ namespace GLStudy {
     public:
         Scene() = default;
         EntityHandle CreateEntity(const std::string& name = "Entity");
+
+        void OnUpdate(Timestep ts);
+        void OnEvent(Event& e);
+        void OnViewportResize(float width, float height);
 
         void Render(Renderer* renderer);
 

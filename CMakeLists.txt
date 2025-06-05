@@ -38,6 +38,8 @@ add_executable(openglStudy
         Core/Camera/Camera.h
         Core/Camera/SceneCamera.h
         Core/Camera/SceneCamera.cpp
+        Core/Camera/CameraController.h
+        Core/Camera/CameraController.cpp
         Core/Camera/EditorCamera.h
         Core/Camera/EditorCamera.cpp
         Core/Config.h
