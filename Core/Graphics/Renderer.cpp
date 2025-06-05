@@ -8,32 +8,43 @@ namespace GLStudy {
     void Renderer::Init() {
         shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/simple_shader.vert", "Assets/Shaders/simple_shader.frag");
 
-        // default VAO/VBO setup will happen per draw call
         glUseProgram(shader_prog_);
-        mvp_location_ = glGetUniformLocation(shader_prog_, "u_MVP");
-        color_location_ = glGetUniformLocation(shader_prog_, "u_Color");
-    }
+        view_proj_location_ = glGetUniformLocation(shader_prog_, "u_ViewProjection");
 
-    void Renderer::DrawTriangle(const glm::mat4& model, const glm::vec4& color, const glm::vec3 vertices[3]) {
-        static const unsigned int indices[3] = {0, 1, 2};
-
-        VertexArray va;
-        va.Bind();
-        VertexBuffer vb(vertices, sizeof(glm::vec3) * 3);
-        IndexBuffer ib(indices, 3);
+        // Setup triangle buffers once
+        static const glm::vec3 tri_vertices[3] = {
+            {-0.5f, -0.5f, 0.0f},
+            { 0.5f, -0.5f, 0.0f},
+            { 0.0f,  0.5f, 0.0f}
+        };
+        static const unsigned int tri_indices[3] = {0, 1, 2};
+        triangle_vao_ = std::make_unique<VertexArray>();
+        triangle_vao_->Bind();
+        triangle_vbo_ = std::make_unique<VertexBuffer>(tri_vertices, sizeof(tri_vertices));
+        triangle_ibo_ = std::make_unique<IndexBuffer>(tri_indices, 3);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
         glEnableVertexAttribArray(0);
 
-        glUseProgram(shader_prog_);
-        glm::mat4 mvp = view_projection_ * model;
-        glUniformMatrix4fv(mvp_location_, 1, GL_FALSE, glm::value_ptr(mvp));
-        glUniform4fv(color_location_, 1, glm::value_ptr(color));
+        triangle_instance_vbo_ = std::make_unique<VertexBuffer>(nullptr, sizeof(InstanceData) * 1000, GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, model));
+        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4)));
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4) * 2));
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4) * 3));
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, color));
+        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
+        glEnableVertexAttribArray(3);
+        glEnableVertexAttribArray(4);
+        glEnableVertexAttribArray(5);
+        glVertexAttribDivisor(1, 1);
+        glVertexAttribDivisor(2, 1);
+        glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        triangle_vao_->Unbind();
 
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
-    }
-
-    void Renderer::DrawCube(const glm::mat4& model, const glm::vec4& color) {
-        const glm::vec3 vertices[] = {
+        // Setup cube buffers once
+        static const glm::vec3 cube_vertices[] = {
             {-0.5f, -0.5f, -0.5f},
             { 0.5f, -0.5f, -0.5f},
             { 0.5f,  0.5f, -0.5f},
@@ -44,7 +55,7 @@ namespace GLStudy {
             {-0.5f,  0.5f,  0.5f}
         };
 
-        const unsigned int indices[] = {
+        static const unsigned int cube_indices[] = {
             0,1,2, 2,3,0,
             4,5,6, 6,7,4,
             0,4,7, 7,3,0,
@@ -52,19 +63,56 @@ namespace GLStudy {
             3,2,6, 6,7,3,
             0,1,5, 5,4,0
         };
-
-        VertexArray va;
-        va.Bind();
-        VertexBuffer vb(vertices, sizeof(vertices));
-        IndexBuffer ib(indices, 36);
+        cube_vao_ = std::make_unique<VertexArray>();
+        cube_vao_->Bind();
+        cube_vbo_ = std::make_unique<VertexBuffer>(cube_vertices, sizeof(cube_vertices));
+        cube_ibo_ = std::make_unique<IndexBuffer>(cube_indices, 36);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
         glEnableVertexAttribArray(0);
 
-        glUseProgram(shader_prog_);
-        glm::mat4 mvp = view_projection_ * model;
-        glUniformMatrix4fv(mvp_location_, 1, GL_FALSE, glm::value_ptr(mvp));
-        glUniform4fv(color_location_, 1, glm::value_ptr(color));
+        cube_instance_vbo_ = std::make_unique<VertexBuffer>(nullptr, sizeof(InstanceData) * 1000, GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, model));
+        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4)));
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4) * 2));
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4) * 3));
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, color));
+        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
+        glEnableVertexAttribArray(3);
+        glEnableVertexAttribArray(4);
+        glEnableVertexAttribArray(5);
+        glVertexAttribDivisor(1, 1);
+        glVertexAttribDivisor(2, 1);
+        glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        cube_vao_->Unbind();
+    }
 
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+    void Renderer::DrawTriangle(const glm::mat4& model, const glm::vec4& color) {
+        triangle_instances_.push_back({model, color});
+    }
+
+    void Renderer::DrawCube(const glm::mat4& model, const glm::vec4& color) {
+        cube_instances_.push_back({model, color});
+    }
+
+    void Renderer::Flush() {
+        glUseProgram(shader_prog_);
+        glUniformMatrix4fv(view_proj_location_, 1, GL_FALSE, glm::value_ptr(view_projection_));
+
+        if (!triangle_instances_.empty()) {
+            triangle_vao_->Bind();
+            triangle_instance_vbo_->SetData(triangle_instances_.data(), triangle_instances_.size() * sizeof(InstanceData));
+            glDrawElementsInstanced(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr, triangle_instances_.size());
+            triangle_instances_.clear();
+        }
+
+        if (!cube_instances_.empty()) {
+            cube_vao_->Bind();
+            cube_instance_vbo_->SetData(cube_instances_.data(), cube_instances_.size() * sizeof(InstanceData));
+            glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr, cube_instances_.size());
+            cube_instances_.clear();
+        }
     }
 }
