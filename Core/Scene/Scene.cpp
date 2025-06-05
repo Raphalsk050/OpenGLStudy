@@ -58,20 +58,12 @@ void Scene::Render(Renderer* renderer) {
     renderer->BeginScene(view_projection);
 
     auto view = registry_.view<Transform, RendererComponent>();
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     for (auto entity : view) {
         auto& rc = view.get<RendererComponent>(entity);
-
-        if (rc.depth_test)
-            glEnable(GL_DEPTH_TEST);
-        else
-            glDisable(GL_DEPTH_TEST);
-
-        if (rc.double_sided || !rc.culling)
-            glDisable(GL_CULL_FACE);
-        else {
-            glEnable(GL_CULL_FACE);
-            glCullFace(rc.cull_face);
-        }
 
         switch (rc.mesh) {
         case MeshType::Cube:
