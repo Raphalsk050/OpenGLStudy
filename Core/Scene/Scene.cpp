@@ -59,12 +59,24 @@ void Scene::OnUpdate(Timestep ts)
             sin(tr.rotation.y) * cos(tr.rotation.x)
         };
         forward = glm::normalize(forward);
-        glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0.0f, 1.0f, 0.0f)));
-        glm::vec3 up = glm::normalize(glm::cross(right, forward));
+
+        // Movement should always be parallel to the ground plane when
+        // strafing or moving forward/backward.  Use a flattened forward
+        // vector to derive the right direction and to move on the XZ plane
+        // similar to a first person controller.
+        glm::vec3 flat_forward = forward;
+        flat_forward.y = 0.0f;
+        flat_forward = glm::length(flat_forward) > 0.0f
+            ? glm::normalize(flat_forward)
+            : glm::vec3(0.0f, 0.0f, -1.0f);
+
+        glm::vec3 right = glm::normalize(
+            glm::cross(flat_forward, glm::vec3(0.0f, 1.0f, 0.0f)));
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
         float velocity = ctrl.move_speed * ts.GetSeconds();
-        if (Input::IsKeyPressed(Key::W)) tr.position += forward * velocity;
-        if (Input::IsKeyPressed(Key::S)) tr.position -= forward * velocity;
+        if (Input::IsKeyPressed(Key::W)) tr.position += flat_forward * velocity;
+        if (Input::IsKeyPressed(Key::S)) tr.position -= flat_forward * velocity;
         if (Input::IsKeyPressed(Key::A)) tr.position -= right * velocity;
         if (Input::IsKeyPressed(Key::D)) tr.position += right * velocity;
         if (Input::IsKeyPressed(Key::Q)) tr.position += up * velocity;
