@@ -23,7 +23,8 @@ namespace GLStudy
     private:
         Engine* engine_;
         Scene& scene_;
-        EntityHandle entity_;
+        EntityHandle cube_;
+        EntityHandle cube_2_;
         EntityHandle camera_;
         std::unordered_map<KeyCode, bool> last_key_state_map_;
 

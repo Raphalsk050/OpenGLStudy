@@ -12,19 +12,27 @@ namespace GLStudy
     void ProgramLayer::OnAttach()
     {
         Layer::OnAttach();
-        entity_ = scene_.CreateEntity();
-        entity_.AddComponent<RendererComponent>(MeshType::Cube);
+        cube_ = scene_.CreateEntity();
+
+        RendererComponent renderer_component_spec{
+            .mesh = MeshType::Cube,
+            .color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+        };
+        cube_.AddComponent<RendererComponent>(renderer_component_spec);
 
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();
         camera_.AddComponent<CameraControllerComponent>();
+        camera_.SetPosition({0.0f, 0.0f, 0.0f});
 
-        camera_.SetPosition({0.0f, 0.0f, 3.0f});
+        cube_2_ = scene_.CreateEntity();
 
-        EntityHandle child = scene_.CreateEntity();
-        child.AddComponent<RendererComponent>();
-        child.SetPosition({1.2f, 0.0f, 0.0f});
-        child.SetParent(entity_);
+        renderer_component_spec.mesh = MeshType::Cube;
+        renderer_component_spec.color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+
+        cube_2_.AddComponent<RendererComponent>(renderer_component_spec);
+        cube_2_.SetPosition({1.2f, 0.0f, 0.0f});
+        cube_2_.SetParent(cube_);
     }
 
     void ProgramLayer::OnDetach()
@@ -35,10 +43,10 @@ namespace GLStudy
     void ProgramLayer::OnUpdate(Timestep ts)
     {
         Layer::OnUpdate(ts);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         float angle = Time::GetTime();
-        entity_.SetRotation(glm::vec3(0.0f, 0.0f, sin(angle)));
+        cube_.SetRotation(glm::vec3(0.0f, 0.0f, sin(angle)));
+        cube_2_.SetRotation(glm::vec3(0.0f, 0.0f, sin(angle)));
     }
 
     void ProgramLayer::OnImGuiRender()
