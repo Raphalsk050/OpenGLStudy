@@ -10,6 +10,12 @@ namespace GLStudy {
     public:
         Renderer() = default;
         void Init();
+
+        void BeginScene(const glm::mat4& view_projection)
+        {
+            view_projection_ = view_projection;
+        }
+
         void DrawTriangle(const glm::mat4& model, const glm::vec4& color,
                           const glm::vec3 vertices[3]);
         void DrawTriangle(const glm::mat4& model, const glm::vec4& color)
@@ -23,5 +29,6 @@ namespace GLStudy {
         unsigned int shader_prog_ = 0;
         int mvp_location_ = -1;
         int color_location_ = -1;
+        glm::mat4 view_projection_{1.0f};
     };
 }
