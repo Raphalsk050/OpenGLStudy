@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "EntityHandle.h"
 #include "Core/Graphics/Renderer.h"
+#include "Core/Camera/CameraController.h"
 #include <glad/glad.h>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
@@ -15,6 +16,22 @@ EntityHandle Scene::CreateEntity(const std::string& name) {
     return handle;
 }
 
+void Scene::OnUpdate(Timestep ts) {
+    CameraControllerSystem::OnUpdate(*this, ts);
+}
+
+void Scene::OnEvent(Event& e) {
+    CameraControllerSystem::OnEvent(*this, e);
+}
+
+void Scene::OnViewportResize(float width, float height) {
+    auto view = registry_.view<CameraComponent>();
+    for (auto entity : view) {
+        auto& cc = view.get<CameraComponent>(entity);
+        cc.camera.SetViewportSize(width, height);
+    }
+}
+
 void Scene::Render(Renderer* renderer) {
     glm::mat4 view_projection(1.0f);
     auto camera_view = registry_.view<Transform, CameraComponent>();
@@ -22,7 +39,19 @@ void Scene::Render(Renderer* renderer) {
         auto& cc = camera_view.get<CameraComponent>(entity);
         if (!cc.primary)
             continue;
-        glm::mat4 view = glm::inverse(GetWorldMatrix(entity));
+        const auto& tr = camera_view.get<Transform>(entity);
+        glm::mat4 view;
+        if (registry_.all_of<CameraControllerComponent>(entity)) {
+            const auto& ctrl = registry_.get<CameraControllerComponent>(entity);
+            glm::vec3 front{
+                cos(glm::radians(ctrl.yaw)) * cos(glm::radians(ctrl.pitch)),
+                sin(glm::radians(ctrl.pitch)),
+                sin(glm::radians(ctrl.yaw)) * cos(glm::radians(ctrl.pitch))};
+            front = glm::normalize(front);
+            view = glm::lookAt(tr.position, tr.position + front, glm::vec3(0.0f, 1.0f, 0.0f));
+        } else {
+            view = glm::inverse(GetWorldMatrix(entity));
+        }
         view_projection = cc.camera.GetProjection() * view;
         break;
     }

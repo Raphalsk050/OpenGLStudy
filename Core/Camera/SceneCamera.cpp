@@ -2,6 +2,10 @@
 
 namespace GLStudy {
 
+SceneCamera::SceneCamera() {
+    RecalculateProjection();
+}
+
 void SceneCamera::SetPerspective(float fov, float near_clip, float far_clip) {
     projection_type_ = ProjectionType::Perspective;
     fov_ = fov;
