@@ -4,6 +4,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <entt.hpp>
 #include "glad/glad.h"
+#include "../Camera/SceneCamera.h"
 
 namespace GLStudy {
     struct TagComponent {
@@ -46,5 +47,11 @@ namespace GLStudy {
         bool culling{true};
         GLenum cull_face{GL_BACK};
         bool double_sided{false};
+    };
+
+    struct CameraComponent
+    {
+        SceneCamera camera{};
+        bool primary{true};
     };
 }

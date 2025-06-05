@@ -35,6 +35,11 @@ add_executable(openglStudy
         Core/Graphics/IndexBuffer.cpp
         Core/Graphics/Renderer.h
         Core/Graphics/Renderer.cpp
+        Core/Camera/Camera.h
+        Core/Camera/SceneCamera.h
+        Core/Camera/SceneCamera.cpp
+        Core/Camera/EditorCamera.h
+        Core/Camera/EditorCamera.cpp
 )
 
 target_include_directories(openglStudy PUBLIC

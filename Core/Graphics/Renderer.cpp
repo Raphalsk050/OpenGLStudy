@@ -25,7 +25,7 @@ namespace GLStudy {
         glEnableVertexAttribArray(0);
 
         glUseProgram(shader_prog_);
-        glm::mat4 mvp = model;
+        glm::mat4 mvp = view_projection_ * model;
         glUniformMatrix4fv(mvp_location_, 1, GL_FALSE, glm::value_ptr(mvp));
         glUniform4fv(color_location_, 1, glm::value_ptr(color));
 
@@ -61,7 +61,7 @@ namespace GLStudy {
         glEnableVertexAttribArray(0);
 
         glUseProgram(shader_prog_);
-        glm::mat4 mvp = model;
+        glm::mat4 mvp = view_projection_ * model;
         glUniformMatrix4fv(mvp_location_, 1, GL_FALSE, glm::value_ptr(mvp));
         glUniform4fv(color_location_, 1, glm::value_ptr(color));
 

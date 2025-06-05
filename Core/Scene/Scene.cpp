@@ -16,6 +16,18 @@ EntityHandle Scene::CreateEntity(const std::string& name) {
 }
 
 void Scene::Render(Renderer* renderer) {
+    glm::mat4 view_projection(1.0f);
+    auto camera_view = registry_.view<Transform, CameraComponent>();
+    for (auto entity : camera_view) {
+        auto& cc = camera_view.get<CameraComponent>(entity);
+        if (!cc.primary)
+            continue;
+        glm::mat4 view = glm::inverse(GetWorldMatrix(entity));
+        view_projection = cc.camera.GetProjection() * view;
+        break;
+    }
+    renderer->BeginScene(view_projection);
+
     auto view = registry_.view<Transform, RendererComponent>();
     for (auto entity : view) {
         auto& rc = view.get<RendererComponent>(entity);
