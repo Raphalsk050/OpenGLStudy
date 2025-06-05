@@ -1,5 +1,6 @@
 #include "ProgramLayer.h"
 #include <glm.hpp>
+#include <gtc/random.hpp>
 #include "Core/Events/WindowApplicationEvent.h"
 
 namespace GLStudy
@@ -16,19 +17,24 @@ namespace GLStudy
 
         RendererComponent renderer_component_spec{
             .mesh = MeshType::Cube,
-            .color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+            .color = glm::vec4(1.0f, 1.0f,1.0f, 1.0f)
+
         };
 
-        int amount = 10;
+        int amount = 5;
 
         for (int i = 0 ; i < amount ; i++)
         {
             for (int j = 0 ; j < amount ; j++)
             {
-                cube_ = scene_.CreateEntity();
-                cube_.AddComponent<RendererComponent>(renderer_component_spec);
-                cube_.SetPosition(glm::vec3(i, 0.0f, j));
-                cube_.SetScale(glm::vec3(0.5f));
+                for (int k = 0 ; k < amount ; k++)
+                {
+                    cube_ = scene_.CreateEntity();
+                    //renderer_component_spec.color = glm::vec4(glm::linearRand(0.0f,1.0f), glm::linearRand(0.0f,1.0f), glm::linearRand(0.0f,1.0f), 1.0f);
+                    cube_.AddComponent<RendererComponent>(renderer_component_spec);
+                    cube_.SetPosition(glm::vec3(i, k, j));
+                    cube_.SetScale(glm::vec3(0.5f));
+                }
             }
         }
 
@@ -46,6 +52,7 @@ namespace GLStudy
     void ProgramLayer::OnUpdate(Timestep ts)
     {
         Layer::OnUpdate(ts);
+        cube_.SetRotation(glm::vec3(0.0f, 0.0f, Time::GetTime()));
     }
 
     void ProgramLayer::OnImGuiRender()

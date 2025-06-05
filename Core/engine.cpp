@@ -127,7 +127,7 @@ namespace GLStudy
         for (Layer* layer : layer_stack_)
         {
             layer->OnUpdate(ts);
-            std::cout << ts << std::endl;
+            ;;std::cout << ts << std::endl;
         }
     }
 
