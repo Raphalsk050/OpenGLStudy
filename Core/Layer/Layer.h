@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <string>
 #include "Core/TimeStep.h"
 
@@ -13,6 +14,7 @@ namespace GLStudy
 
         virtual void OnAttach()
         {
+            std::cout << "Layer " << debug_name_ <<" attached" << std::endl;
         }
 
         virtual void OnDetach()
@@ -21,6 +23,7 @@ namespace GLStudy
 
         virtual void OnUpdate(Timestep ts)
         {
+            std::cout << "Layer " << debug_name_ <<" updated" << std::endl;
         }
 
         virtual void OnImGuiRender()

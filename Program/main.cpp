@@ -5,12 +5,8 @@ int main() {
   GLStudy::Engine* engine = new GLStudy::Engine();
 
   // layers
-  auto* layer = new GLStudy::ProgramLayer();
-  engine->PushLayer(layer);
-
+  auto* program_layer = new GLStudy::ProgramLayer();
+  engine->PushLayer(program_layer);
   engine->Setup();
-
-  //engine->Pause();
-
   return 0;
 }

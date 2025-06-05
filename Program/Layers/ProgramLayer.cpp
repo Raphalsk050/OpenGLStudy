@@ -1,11 +1,15 @@
 #include "ProgramLayer.h"
 
+#include <iostream>
+#include <__ostream/basic_ostream.h>
+
 #include "Core/Shader/Shader.h"
 
 namespace GLStudy
 {
     ProgramLayer::ProgramLayer()
     {
+        debug_name_ = "ProgramLayer";
     }
 
     void ProgramLayer::OnAttach()
