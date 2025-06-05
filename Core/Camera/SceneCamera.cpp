@@ -2,6 +2,16 @@
 
 namespace GLStudy {
 
+SceneCamera::SceneCamera(ProjectionType type)
+    : projection_type_(type)
+{
+    fov_ = 60.0f;
+    near_clip_ = 0.03f;
+    far_clip_ = 1000.0f;
+    aspect_ratio_ = 1.0f;
+    RecalculateProjection();
+}
+
 void SceneCamera::SetPerspective(float fov, float near_clip, float far_clip) {
     projection_type_ = ProjectionType::Perspective;
     fov_ = fov;

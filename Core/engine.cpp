@@ -2,6 +2,7 @@
 #include "Core/Events/WindowApplicationEvent.h"
 #include "Core/Events/KeyEvent.h"
 #include "Core/Events/MouseEvent.h"
+#include "Scene/Components.h"
 
 namespace GLStudy
 {
@@ -135,6 +136,9 @@ namespace GLStudy
             width_ = e.GetWidth();
             height_ = e.GetHeight();
             glViewport(0, 0, width_, height_);
+            scene_->registry_.view<CameraComponent>().each([this](auto entity, CameraComponent& cc) {
+                cc.camera.SetViewportSize(width_, height_);
+            });
             return false;
         });
 

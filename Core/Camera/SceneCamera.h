@@ -11,7 +11,7 @@ namespace GLStudy {
 
     class SceneCamera : public Camera {
     public:
-        SceneCamera() = default;
+        explicit SceneCamera(ProjectionType type = ProjectionType::Perspective);
 
         void SetPerspective(float fov, float near_clip, float far_clip);
         void SetOrthographic(float size, float near_clip, float far_clip);

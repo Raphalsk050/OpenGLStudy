@@ -3,6 +3,7 @@
 #include "Core/engine.h"
 #include "Core/Scene/Scene.h"
 #include "Core/Camera/SceneCamera.h"
+#include "Core/Camera/CameraController.h"
 #include "Core/Events/KeyEvent.h"
 
 namespace GLStudy

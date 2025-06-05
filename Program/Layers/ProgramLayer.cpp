@@ -1,5 +1,6 @@
 #include "ProgramLayer.h"
 #include <glm.hpp>
+#include <GLFW/glfw3.h>
 #include "Core/Events/WindowApplicationEvent.h"
 
 namespace GLStudy
@@ -15,10 +16,15 @@ namespace GLStudy
         entity_ = scene_.CreateEntity();
         entity_.AddComponent<RendererComponent>(MeshType::Cube);
 
-        camera_ = scene_.CreateEntity("MainCamera");
-        auto camera_component = camera_.AddComponent<CameraComponent>();
+    camera_ = scene_.CreateEntity("MainCamera");
+    auto camera_component = camera_.AddComponent<CameraComponent>();
+    camera_.AddComponent<CameraControllerComponent>();
 
-        camera_.SetPosition({0.0f, 0.0f, 0.0f});
+    int w, h;
+    glfwGetFramebufferSize(engine_->GetWindow(), &w, &h);
+    camera_component.camera.SetViewportSize(static_cast<float>(w), static_cast<float>(h));
+
+    camera_.SetPosition({0.0f, 0.0f, 0.0f});
 
         EntityHandle child = scene_.CreateEntity();
         child.AddComponent<RendererComponent>();
@@ -36,14 +42,11 @@ namespace GLStudy
         Layer::OnUpdate(ts);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        float angle = Time::GetTime();
-        entity_.SetRotation(glm::vec3(0.0f, 0.0f, sin(angle)));
-        camera_.GetComponent<CameraComponent>().camera.SetPerspective(90, 0.03f, 1000.0f);
+    float angle = Time::GetTime();
+    entity_.SetRotation(glm::vec3(0.0f, 0.0f, sin(angle)));
 
-        float radius = 5.0f;
-        glm::vec3 cam_pos{0.0f, 0.0f, (sin(angle)+1.0) * radius};
-        camera_.SetPosition(cam_pos);
-        //camera_.SetRotation(glm::vec3(0.0f, -angle, 0.0f));
+    auto& controller = camera_.GetComponent<CameraControllerComponent>().controller;
+    controller.OnUpdate(camera_, ts);
     }
 
     void ProgramLayer::OnImGuiRender()
@@ -142,8 +145,10 @@ namespace GLStudy
     void ProgramLayer::OnEvent(Event& e)
     {
         Layer::OnEvent(e);
-        EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<KeyPressedEvent>(FENGINE_BIND_EVENT_FN(OnKeyPressed));
-        dispatcher.Dispatch<KeyReleasedEvent>(FENGINE_BIND_EVENT_FN(OnKeyReleased));
-    }
+    EventDispatcher dispatcher(e);
+    dispatcher.Dispatch<KeyPressedEvent>(FENGINE_BIND_EVENT_FN(OnKeyPressed));
+    dispatcher.Dispatch<KeyReleasedEvent>(FENGINE_BIND_EVENT_FN(OnKeyReleased));
+    auto& controller = camera_.GetComponent<CameraControllerComponent>().controller;
+    controller.OnEvent(e);
+}
 } // GLStudy

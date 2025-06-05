@@ -5,6 +5,7 @@
 #include <entt.hpp>
 #include "glad/glad.h"
 #include "../Camera/SceneCamera.h"
+#include "../Camera/CameraController.h"
 
 namespace GLStudy {
     struct TagComponent {
@@ -49,9 +50,14 @@ namespace GLStudy {
         bool double_sided{false};
     };
 
-    struct CameraComponent
-    {
-        SceneCamera camera{};
-        bool primary{true};
-    };
+struct CameraComponent
+{
+    SceneCamera camera{};
+    bool primary{true};
+};
+
+struct CameraControllerComponent
+{
+    CameraController controller{};
+};
 }
