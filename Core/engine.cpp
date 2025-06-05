@@ -22,6 +22,15 @@ namespace GLStudy
         CreateWindow(width_, height_, "OpenGL Study");
         Input::Init(window_);
         InitGLAD();
+
+        const GLubyte* renderer = glGetString(GL_RENDERER);
+        const GLubyte* vendor   = glGetString(GL_VENDOR);
+        const GLubyte* version  = glGetString(GL_VERSION);
+
+        std::cout << "Vendor:   " << vendor   << std::endl;
+        std::cout << "Renderer: " << renderer << std::endl;
+        std::cout << "Version:  " << version  << std::endl;
+
         renderer_->Init();
 
         scene_->OnViewportResize(width_, height_);
@@ -84,7 +93,7 @@ namespace GLStudy
         }
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     }
 
@@ -107,6 +116,7 @@ namespace GLStudy
         }
         glfwMakeContextCurrent(window);
         window_ = window;
+
         return window;
     }
 

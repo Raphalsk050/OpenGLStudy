@@ -34,7 +34,7 @@ void Scene::OnViewportResize(float width, float height) {
 
 void Scene::Render(Renderer* renderer) {
     glm::mat4 view_projection(1.0f);
-
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     auto camera_view = registry_.view<Transform, CameraComponent>();
@@ -64,8 +64,9 @@ void Scene::Render(Renderer* renderer) {
 
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     //glEnable(GL_CULL_FACE);
-    //glCullFace(GL_BACK);
     //glFrontFace(GL_CCW);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

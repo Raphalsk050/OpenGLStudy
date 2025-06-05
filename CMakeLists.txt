@@ -67,6 +67,36 @@ target_link_libraries(openglStudy PUBLIC
         Entt
 )
 
+set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_DEBUG} -pg")
+set(CMAKE_EXE_LINKER_FLAGS_PROFILE "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg")
+
+if (WIN32 AND MINGW)
+    # 1) Descobre a pasta “bin” onde está o g++.exe do MinGW que o CLion está usando
+    get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" PATH)
+    # Agora MINGW_BIN_DIR costuma ser algo como:
+    #   C:/Users/rapha/AppData/Local/Programs/CLion/bin/mingw/bin
+
+    # 2) Lista das DLLs que queremos copiar
+    set(RUNTIME_DLLS
+            libwinpthread-1.dll
+            libstdc++-6.dll
+            libgcc_s_seh-1.dll
+    )
+
+    foreach(_dll ${RUNTIME_DLLS})
+        if (EXISTS "${MINGW_BIN_DIR}/${_dll}")
+            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${MINGW_BIN_DIR}/${_dll}"
+                    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/${_dll}"
+                    COMMENT "Copiando ${_dll} para a pasta do executável"
+            )
+        else()
+            message(WARNING "Não encontrou ${_dll} em ${MINGW_BIN_DIR}; verifique o caminho ou copie-a manualmente")
+        endif()
+    endforeach()
+endif()
+
 add_custom_command(
         TARGET openglStudy POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
