@@ -10,6 +10,7 @@ namespace GLStudy
         ~VertexBuffer();
         void Bind() const;
         void Unbind() const;
+        void SetData(const void* data, unsigned int size) const;
 
     private:
         unsigned int renderer_id_ = 0;

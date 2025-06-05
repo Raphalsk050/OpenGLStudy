@@ -24,7 +24,7 @@ namespace GLStudy
 
         virtual void OnUpdate(Timestep ts)
         {
-            std::cout << "Layer " << debug_name_ <<" updated" << std::endl;
+            //std::cout << "Layer " << debug_name_ <<" updated" << std::endl;
         }
 
         virtual void OnImGuiRender()

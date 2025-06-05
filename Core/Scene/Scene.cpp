@@ -82,6 +82,7 @@ void Scene::Render(Renderer* renderer) {
             break;
         }
     }
+    renderer->Flush();
 }
 
 glm::mat4 Scene::GetWorldMatrix(entt::entity entity) const {

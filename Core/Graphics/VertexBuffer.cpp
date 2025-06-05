@@ -22,4 +22,10 @@ namespace GLStudy {
     {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+
+    void VertexBuffer::SetData(const void* data, unsigned int size) const
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, renderer_id_);
+        glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
+    }
 } // GLStudy
