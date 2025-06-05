@@ -1,6 +1,13 @@
 #include "SceneCamera.h"
+#include <gtc/matrix_transform.hpp>
 
 namespace GLStudy {
+
+SceneCamera::SceneCamera(ProjectionType type, float fov, float near_clip, float far_clip)
+    : projection_type_(type), fov_(fov), near_clip_(near_clip), far_clip_(far_clip)
+{
+    RecalculateProjection();
+}
 
 void SceneCamera::SetPerspective(float fov, float near_clip, float far_clip) {
     projection_type_ = ProjectionType::Perspective;

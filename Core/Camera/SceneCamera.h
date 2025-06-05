@@ -11,7 +11,10 @@ namespace GLStudy {
 
     class SceneCamera : public Camera {
     public:
-        SceneCamera() = default;
+        SceneCamera(ProjectionType type = ProjectionType::Perspective,
+                    float fov = 60.0f,
+                    float near_clip = 0.03f,
+                    float far_clip = 1000.0f);
 
         void SetPerspective(float fov, float near_clip, float far_clip);
         void SetOrthographic(float size, float near_clip, float far_clip);
@@ -25,9 +28,9 @@ namespace GLStudy {
     private:
         ProjectionType projection_type_ = ProjectionType::Perspective;
         float aspect_ratio_ = 1.0f;
-        float fov_ = 45.0f;
+        float fov_ = 60.0f;
         float orthographic_size_ = 10.0f;
-        float near_clip_ = 0.1f;
+        float near_clip_ = 0.03f;
         float far_clip_ = 1000.0f;
 
         void RecalculateProjection();

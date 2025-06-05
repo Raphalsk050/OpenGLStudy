@@ -26,6 +26,8 @@ namespace GLStudy
 
         InitCallbacks();
 
+        scene_->OnViewportResize(width_, height_);
+
         initialization_state_ = EngineInitializationStates::INITIALIZED;
 
         // Attach layers that were pushed before setup
@@ -117,6 +119,7 @@ namespace GLStudy
             return;
 
         UpdateLayers(ts);
+        scene_->OnUpdate(ts);
     }
 
     void Engine::UpdateLayers(Timestep ts)
@@ -135,6 +138,7 @@ namespace GLStudy
             width_ = e.GetWidth();
             height_ = e.GetHeight();
             glViewport(0, 0, width_, height_);
+            scene_->OnViewportResize(width_, height_);
             return false;
         });
 

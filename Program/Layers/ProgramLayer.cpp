@@ -17,6 +17,7 @@ namespace GLStudy
 
         camera_ = scene_.CreateEntity("MainCamera");
         auto camera_component = camera_.AddComponent<CameraComponent>();
+        camera_.AddComponent<CameraControllerComponent>();
 
         camera_.SetPosition({0.0f, 0.0f, 0.0f});
 
@@ -38,12 +39,6 @@ namespace GLStudy
 
         float angle = Time::GetTime();
         entity_.SetRotation(glm::vec3(0.0f, 0.0f, sin(angle)));
-        camera_.GetComponent<CameraComponent>().camera.SetPerspective(90, 0.03f, 1000.0f);
-
-        float radius = 5.0f;
-        glm::vec3 cam_pos{0.0f, 0.0f, (sin(angle)+1.0) * radius};
-        camera_.SetPosition(cam_pos);
-        //camera_.SetRotation(glm::vec3(0.0f, -angle, 0.0f));
     }
 
     void ProgramLayer::OnImGuiRender()

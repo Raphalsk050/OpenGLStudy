@@ -54,4 +54,12 @@ namespace GLStudy {
         SceneCamera camera{};
         bool primary{true};
     };
+
+    struct CameraControllerComponent
+    {
+        float move_speed{5.0f};
+        float look_sensitivity{0.002f};
+        bool first_mouse{true};
+        glm::vec2 last_mouse_position{0.0f, 0.0f};
+    };
 }
