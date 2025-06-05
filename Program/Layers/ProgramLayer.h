@@ -1,12 +1,14 @@
 #pragma once
 #include "Core/Layer/Layer.h"
+#include "Core/engine.h"
+#include "Core/Scene/Scene.h"
 
 namespace GLStudy
 {
     class ProgramLayer : public Layer
     {
     public:
-        ProgramLayer();
+        ProgramLayer(Engine* engine);
         ~ProgramLayer() = default;
         void OnAttach() override;
         void OnDetach() override;
@@ -14,6 +16,8 @@ namespace GLStudy
         void OnImGuiRender() override;
 
     private:
-        unsigned int vbo_, vao_, shader_prog_;
+        Engine* engine_;
+        Scene scene_;
+        EntityHandle entity_;
     };
 } // GLStudy

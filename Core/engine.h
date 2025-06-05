@@ -1,11 +1,13 @@
 #pragma once
 #include <iostream>
+#include <memory>
 #include <glm.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "Time.h"
 #include "Core/Layer/LayerStack.h"
+#include "Core/Graphics/Renderer.h"
 
 
 namespace GLStudy
@@ -39,6 +41,8 @@ namespace GLStudy
 
         void PushLayer(Layer* layer);
 
+        Renderer* GetRenderer() const { return renderer_.get(); }
+
     private:
         GLFWwindow* window_;
         int width_ = 800, height_ = 600;
@@ -46,6 +50,7 @@ namespace GLStudy
         Timestep timestep_;
         Time time_;
         float last_frame_time_ = 0.0f;
+        std::unique_ptr<Renderer> renderer_;
 
         void InitGLFW();
 

@@ -9,6 +9,7 @@ namespace GLStudy
 
     Engine::Engine(): window_(nullptr)
     {
+        renderer_ = std::make_unique<Renderer>();
     }
 
     void Engine::Setup()
@@ -16,6 +17,7 @@ namespace GLStudy
         InitGLFW();
         CreateWindow(width_, height_, "OpenGL Study");
         InitGLAD();
+        renderer_->Init();
 
         // updates the current screen size based on the callback
         glfwSetFramebufferSizeCallback(window_, SizeCallback);

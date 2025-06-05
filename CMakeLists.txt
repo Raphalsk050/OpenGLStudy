@@ -22,6 +22,19 @@ add_executable(openglStudy
         Core/Layer/LayerStack.cpp
         Core/Shader/Shader.h
         Core/Shader/Shader.cpp
+        Core/Scene/Components.h
+        Core/Scene/EntityHandle.h
+        Core/Scene/EntityHandle.cpp
+        Core/Scene/Scene.h
+        Core/Scene/Scene.cpp
+        Core/Graphics/VertexBuffer.h
+        Core/Graphics/VertexBuffer.cpp
+        Core/Graphics/VertexArray.h
+        Core/Graphics/VertexArray.cpp
+        Core/Graphics/IndexBuffer.h
+        Core/Graphics/IndexBuffer.cpp
+        Core/Graphics/Renderer.h
+        Core/Graphics/Renderer.cpp
 )
 
 target_include_directories(openglStudy PUBLIC
