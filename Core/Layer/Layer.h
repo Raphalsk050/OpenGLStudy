@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include "Core/TimeStep.h"
+#include "Core/Events/Event.h"
 
 
 namespace GLStudy
@@ -27,6 +28,10 @@ namespace GLStudy
         }
 
         virtual void OnImGuiRender()
+        {
+        }
+
+        virtual void OnEvent(Event&)
         {
         }
 

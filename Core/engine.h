@@ -9,6 +9,8 @@
 #include "Core/Layer/LayerStack.h"
 #include "Core/Graphics/Renderer.h"
 #include "Scene/Scene.h"
+#include "Core/Input/Input.h"
+#include "Core/Events/Event.h"
 
 
 namespace GLStudy
@@ -34,6 +36,8 @@ namespace GLStudy
 
         void Setup();
 
+        void OnEvent(Event& event);
+
         void Pause();
 
         void Resume();
@@ -45,6 +49,8 @@ namespace GLStudy
         Renderer* GetRenderer() const { return renderer_.get(); }
 
         Scene* GetScene() const { return scene_; }
+
+        GLFWwindow* GetWindow() const { return window_; }
 
     private:
         GLFWwindow* window_;
@@ -72,5 +78,6 @@ namespace GLStudy
         EngineInitializationStates initialization_state_ = EngineInitializationStates::INITIALIZING;
 
         void UpdateLayers(Timestep ts);
+        void InitCallbacks();
     };
 }

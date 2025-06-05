@@ -40,6 +40,16 @@ add_executable(openglStudy
         Core/Camera/SceneCamera.cpp
         Core/Camera/EditorCamera.h
         Core/Camera/EditorCamera.cpp
+        Core/Config.h
+        Core/Input/Input.h
+        Core/Input/Input.cpp
+        Core/Input/KeyCodes.h
+        Core/Input/MouseCodes.h
+        Core/Events/Event.h
+        Core/Events/Event.cpp
+        Core/Events/KeyEvent.h
+        Core/Events/MouseEvent.h
+        Core/Events/WindowApplicationEvent.h
 )
 
 target_include_directories(openglStudy PUBLIC

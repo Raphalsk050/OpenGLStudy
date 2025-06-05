@@ -1,8 +1,11 @@
 #include "engine.h"
+#include "Core/Events/WindowApplicationEvent.h"
+#include "Core/Events/KeyEvent.h"
+#include "Core/Events/MouseEvent.h"
 
 namespace GLStudy
 {
-    void SizeCallback(GLFWwindow* window, int width, int height)
+    static void SizeCallback(GLFWwindow* window, int width, int height)
     {
         glViewport(0, 0, width, height);
     }
@@ -17,11 +20,11 @@ namespace GLStudy
     {
         InitGLFW();
         CreateWindow(width_, height_, "OpenGL Study");
+        Input::Init(window_);
         InitGLAD();
         renderer_->Init();
 
-        // updates the current screen size based on the callback
-        glfwSetFramebufferSizeCallback(window_, SizeCallback);
+        InitCallbacks();
 
         initialization_state_ = EngineInitializationStates::INITIALIZED;
 
@@ -123,5 +126,81 @@ namespace GLStudy
             layer->OnUpdate(ts);
             std::cout << ts << std::endl;
         }
+    }
+
+    void Engine::OnEvent(Event& event)
+    {
+        EventDispatcher dispatcher(event);
+        dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) {
+            width_ = e.GetWidth();
+            height_ = e.GetHeight();
+            glViewport(0, 0, width_, height_);
+            return false;
+        });
+
+        for (auto it = layer_stack_.rbegin(); it != layer_stack_.rend(); ++it)
+        {
+            (*it)->OnEvent(event);
+            if (event.Handled)
+                break;
+        }
+    }
+
+    void Engine::InitCallbacks()
+    {
+        glfwSetWindowUserPointer(window_, this);
+
+        glfwSetFramebufferSizeCallback(window_, [](GLFWwindow* win, int w, int h) {
+            Engine* eng = static_cast<Engine*>(glfwGetWindowUserPointer(win));
+            WindowResizeEvent ev(w, h);
+            eng->OnEvent(ev);
+        });
+
+        glfwSetKeyCallback(window_, [](GLFWwindow* win, int key, int scancode, int action, int mods) {
+            Engine* eng = static_cast<Engine*>(glfwGetWindowUserPointer(win));
+            switch (action) {
+            case GLFW_PRESS:
+            {
+                KeyPressedEvent e(key, false);
+                eng->OnEvent(e);
+                break;
+            }
+            case GLFW_RELEASE:
+            {
+                KeyReleasedEvent e(key);
+                eng->OnEvent(e);
+                break;
+            }
+            case GLFW_REPEAT:
+            {
+                KeyPressedEvent e(key, true);
+                eng->OnEvent(e);
+                break;
+            }
+            }
+        });
+
+        glfwSetMouseButtonCallback(window_, [](GLFWwindow* win, int button, int action, int mods) {
+            Engine* eng = static_cast<Engine*>(glfwGetWindowUserPointer(win));
+            if (action == GLFW_PRESS) {
+                MouseButtonPressedEvent e(button);
+                eng->OnEvent(e);
+            } else if (action == GLFW_RELEASE) {
+                MouseButtonReleasedEvent e(button);
+                eng->OnEvent(e);
+            }
+        });
+
+        glfwSetCursorPosCallback(window_, [](GLFWwindow* win, double xpos, double ypos) {
+            Engine* eng = static_cast<Engine*>(glfwGetWindowUserPointer(win));
+            MouseMovedEvent e(static_cast<float>(xpos), static_cast<float>(ypos));
+            eng->OnEvent(e);
+        });
+
+        glfwSetScrollCallback(window_, [](GLFWwindow* win, double xoff, double yoff) {
+            Engine* eng = static_cast<Engine*>(glfwGetWindowUserPointer(win));
+            MouseScrolledEvent e(static_cast<float>(xoff), static_cast<float>(yoff));
+            eng->OnEvent(e);
+        });
     }
 }

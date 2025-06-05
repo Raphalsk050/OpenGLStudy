@@ -1,5 +1,6 @@
 #include "ProgramLayer.h"
 #include <glm.hpp>
+#include "Core/Events/WindowApplicationEvent.h"
 
 namespace GLStudy
 {
@@ -48,5 +49,101 @@ namespace GLStudy
     void ProgramLayer::OnImGuiRender()
     {
         Layer::OnImGuiRender();
+    }
+
+
+    bool ProgramLayer::OnKeyPressed(KeyPressedEvent& e)
+    {
+        bool pressed = (e.IsRepeat() || !e.IsRepeat());
+        auto KeyCode = e.GetKeyCode();
+
+        if (!last_key_state_map_.contains(KeyCode))
+            last_key_state_map_[KeyCode] = false;
+
+
+        switch (KeyCode)
+        {
+        case Key::Space:
+            {
+                if (!last_key_state_map_[KeyCode])
+                {
+                    wireframe_enabled_ = !wireframe_enabled_;
+                    last_key_state_map_[KeyCode] = true;
+                }
+
+                break;
+            }
+
+        case Key::Tab:
+            {
+                if (!last_key_state_map_[KeyCode])
+                {
+                    camera_movement_enabled_ = !camera_movement_enabled_;
+                    last_key_state_map_[KeyCode] = true;
+                    auto window = engine_->GetWindow();
+                    if (camera_movement_enabled_)
+                    {
+                        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                    }
+                    else
+                    {
+                        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                    }
+                }
+
+                break;
+            }
+
+        /*case Key::I:
+            {
+                if (!last_key_state_map_[KeyCode])
+                {
+                    auto_instancing_enabled_ = !auto_instancing_enabled_;
+                    Renderer3D::EnableAutoInstancing(auto_instancing_enabled_);
+                    last_key_state_map_[KeyCode] = true;
+                }
+
+                break;
+            }*/
+        }
+
+        return false;
+    }
+
+    bool ProgramLayer::OnKeyReleased(KeyReleasedEvent& e)
+    {
+        auto KeyCode = e.GetKeyCode();
+
+        switch (KeyCode)
+        {
+        case Key::Space:
+            {
+                last_key_state_map_[KeyCode] = false;
+                break;
+            }
+
+        case Key::Tab:
+            {
+                last_key_state_map_[KeyCode] = false;
+                break;
+            }
+
+        case Key::I:
+            {
+                last_key_state_map_[KeyCode] = false;
+                break;
+            }
+        }
+
+
+        return false;
+    }
+
+    void ProgramLayer::OnEvent(Event& e)
+    {
+        Layer::OnEvent(e);
+        EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<KeyPressedEvent>(FENGINE_BIND_EVENT_FN(OnKeyPressed));
+        dispatcher.Dispatch<KeyReleasedEvent>(FENGINE_BIND_EVENT_FN(OnKeyReleased));
     }
 } // GLStudy
