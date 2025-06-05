@@ -17,7 +17,7 @@ namespace GLStudy
 
     private:
         Engine* engine_;
-        Scene scene_;
+        Scene& scene_;
         EntityHandle entity_;
     };
 } // GLStudy

@@ -10,6 +10,7 @@ namespace GLStudy
     Engine::Engine(): window_(nullptr)
     {
         renderer_ = std::make_unique<Renderer>();
+        scene_ = new Scene();
     }
 
     void Engine::Setup()
@@ -40,6 +41,7 @@ namespace GLStudy
             last_frame_time_ = time;
 
             Update(timestep_);
+            scene_->Render(GetRenderer());
         }
     }
 

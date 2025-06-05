@@ -2,7 +2,7 @@
 #include "VertexBuffer.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
-#include <glm/gtc/type_ptr.hpp>
+#include <gtc/type_ptr.hpp>
 
 namespace GLStudy {
     void Renderer::Init() {

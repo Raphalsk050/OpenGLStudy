@@ -8,6 +8,7 @@
 #include "Time.h"
 #include "Core/Layer/LayerStack.h"
 #include "Core/Graphics/Renderer.h"
+#include "Scene/Scene.h"
 
 
 namespace GLStudy
@@ -43,6 +44,8 @@ namespace GLStudy
 
         Renderer* GetRenderer() const { return renderer_.get(); }
 
+        Scene* GetScene() const { return scene_; }
+
     private:
         GLFWwindow* window_;
         int width_ = 800, height_ = 600;
@@ -51,6 +54,11 @@ namespace GLStudy
         Time time_;
         float last_frame_time_ = 0.0f;
         std::unique_ptr<Renderer> renderer_;
+
+        // currently, the engine will have only one scene
+        // TODO(rafael): in the future, the idea is to hold multiple scenes and the user can decide
+        // to switch to a new scene or to add multiple scene layers, like unity does.
+        Scene* scene_;
 
         void InitGLFW();
 

@@ -2,7 +2,7 @@
 #include <memory>
 #include "glad/glad.h"
 #include "Core/Shader/Shader.h"
-#include <glm/glm.hpp>
+#include <glm.hpp>
 #include "Core/Scene/Components.h"
 
 namespace GLStudy {

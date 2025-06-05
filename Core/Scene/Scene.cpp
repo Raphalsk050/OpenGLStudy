@@ -2,8 +2,8 @@
 #include "EntityHandle.h"
 #include "Core/Graphics/Renderer.h"
 #include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 
 namespace GLStudy {
 

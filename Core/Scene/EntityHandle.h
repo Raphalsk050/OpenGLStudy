@@ -1,7 +1,7 @@
 #pragma once
-#include <entt/entt.hpp>
+#include <entt.hpp>
 #include <vector>
-#include <glm/glm.hpp>
+#include <glm.hpp>
 #include <type_traits>
 #include "Components.h"
 
