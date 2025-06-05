@@ -12,5 +12,8 @@ namespace GLStudy
         void OnDetach() override;
         void OnUpdate(Timestep ts) override;
         void OnImGuiRender() override;
+
+    private:
+        unsigned int vbo_, vao_, shader_prog_;
     };
 } // GLStudy
