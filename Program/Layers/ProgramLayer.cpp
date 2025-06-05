@@ -18,21 +18,24 @@ namespace GLStudy
             .mesh = MeshType::Cube,
             .color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
         };
-        cube_.AddComponent<RendererComponent>(renderer_component_spec);
+
+        int amount = 10;
+
+        for (int i = 0 ; i < amount ; i++)
+        {
+            for (int j = 0 ; j < amount ; j++)
+            {
+                cube_ = scene_.CreateEntity();
+                cube_.AddComponent<RendererComponent>(renderer_component_spec);
+                cube_.SetPosition(glm::vec3(i, 0.0f, j));
+                cube_.SetScale(glm::vec3(0.5f));
+            }
+        }
 
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();
         camera_.AddComponent<CameraControllerComponent>();
-        camera_.SetPosition({0.0f, 0.0f, 0.0f});
-
-        cube_2_ = scene_.CreateEntity();
-
-        renderer_component_spec.mesh = MeshType::Cube;
-        renderer_component_spec.color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
-
-        cube_2_.AddComponent<RendererComponent>(renderer_component_spec);
-        cube_2_.SetPosition({1.2f, 0.0f, 0.0f});
-        cube_2_.SetParent(cube_);
+        camera_.SetPosition({0.0f, 0.0f, 5.0f});
     }
 
     void ProgramLayer::OnDetach()
@@ -43,10 +46,6 @@ namespace GLStudy
     void ProgramLayer::OnUpdate(Timestep ts)
     {
         Layer::OnUpdate(ts);
-
-        float angle = Time::GetTime();
-        cube_.SetRotation(glm::vec3(0.0f, 0.0f, sin(angle)));
-        cube_2_.SetRotation(glm::vec3(0.0f, 0.0f, sin(angle)));
     }
 
     void ProgramLayer::OnImGuiRender()
