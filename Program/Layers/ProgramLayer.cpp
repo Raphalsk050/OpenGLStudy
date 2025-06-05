@@ -1,7 +1,6 @@
 #include "ProgramLayer.h"
 
 #include <iostream>
-#include <__ostream/basic_ostream.h>
 
 #include "Core/Shader/Shader.h"
 
@@ -22,17 +21,19 @@ namespace GLStudy
             0.5f, -0.5f, 0.0f,
             0.0f, 0.5f, 0.0f
         };
-        // 2. create the vertex buffer object
-
+        // 2. create the vertex array object
         glGenVertexArrays(1, &vao_);
         glBindVertexArray(vao_);
+
+        // 3. create the vertex buffer object
         glGenBuffers(1, &vbo_);
         glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 
-        // 3. copy the data to inside the created buffer
+        // 4. copy the data to inside the created buffer
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+        glBindVertexArray(vao_);
         glUseProgram(shader_prog_);
     }
 
@@ -44,8 +45,7 @@ namespace GLStudy
     void ProgramLayer::OnUpdate(Timestep ts)
     {
         Layer::OnUpdate(ts);
-        glUseProgram(shader_prog_);
-        glBindVertexArray(vao_);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 
