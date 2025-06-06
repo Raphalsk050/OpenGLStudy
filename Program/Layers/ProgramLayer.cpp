@@ -49,7 +49,7 @@ namespace GLStudy
                                                           .intensity = 1.0f, .direction = glm::vec3(-0.5f, -0.5f, 0.0f)});
         light.SetPosition({0.0f, 2.0f, 2.0f});
 
-        /*cube_2_ = scene_.CreateEntity();
+        cube_2_ = scene_.CreateEntity();
         cube_2_.AddComponent<RendererComponent>(renderer_component_spec);
         cube_2_.SetScale(glm::vec3(0.5f));
 
@@ -58,9 +58,11 @@ namespace GLStudy
         cube_.AddComponent<RendererComponent>(renderer_component_spec);
 
         // TODO(rafael): when setting the parent give the possibility to maintain the previous world position
-        cube_.SetScale(glm::vec3(0.5f));
-        cube_2_.SetParent(cube_);
-        cube_2_.SetPosition({1.0f, 0.0f, 0.0f});*/
+        cube_.SetScale(glm::vec3(4.0f));
+        cube_2_.SetPosition({5, 0.0f, 0.0f});
+        cube_.SetPosition({0.0f, 5.0f, 30.0f});
+        cube_2_.SetParent(cube_, false);
+
     }
 
     void ProgramLayer::OnDetach()
@@ -71,8 +73,8 @@ namespace GLStudy
     void ProgramLayer::OnUpdate(Timestep ts)
     {
         Layer::OnUpdate(ts);
-        /*cube_.SetRotation(glm::vec3(0.0f, 0.0f, Time::GetTime()));
-        cube_2_.SetRotation(glm::vec3(0.0f, 0.0f, Time::GetTime() * 2.0));*/
+        cube_.SetRotation(glm::vec3(0.0f, 0.0f, Time::GetTime()));
+        cube_2_.SetRotation(glm::vec3(0.0f, 0.0f, Time::GetTime() * 2.0));
     }
 
     void ProgramLayer::OnImGuiRender()

@@ -24,7 +24,7 @@ namespace GLStudy {
         template<typename T>
         T& GetComponent();
 
-        void SetParent(EntityHandle parent);
+        void SetParent(EntityHandle parent, bool keep_world_position = false);
         std::vector<EntityHandle> GetChildren() const;
 
         void SetPosition(const glm::vec3& position);
