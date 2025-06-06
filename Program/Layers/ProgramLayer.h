@@ -5,6 +5,7 @@
 #include "Core/Camera/SceneCamera.h"
 #include "Core/Camera/CameraController.h"
 #include "Core/Events/KeyEvent.h"
+#include "Core/Scene/Components.h"
 #include <unordered_map>
 
 namespace GLStudy

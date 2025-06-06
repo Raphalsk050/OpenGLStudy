@@ -15,9 +15,24 @@ namespace GLStudy {
         Renderer() = default;
         void Init();
 
-        void BeginScene(const glm::mat4& view_projection)
+        struct LightData {
+            LightType type;
+            glm::vec3 position;
+            glm::vec3 direction;
+            glm::vec3 color;
+            float intensity;
+            float range;
+            float inner_cutoff;
+            float outer_cutoff;
+        };
+
+        void BeginScene(const glm::mat4& view_projection,
+                        const glm::vec3& cam_pos,
+                        const std::vector<LightData>& lights)
         {
             view_projection_ = view_projection;
+            camera_pos_ = cam_pos;
+            lights_ = lights;
         }
 
         void DrawTriangle(const glm::mat4& model, const glm::vec4& color);
@@ -44,5 +59,10 @@ namespace GLStudy {
         std::unique_ptr<IndexBuffer> cube_ibo_;
         std::unique_ptr<VertexBuffer> cube_instance_vbo_;
         std::vector<InstanceData> cube_instances_;
+
+        glm::vec3 camera_pos_{0.0f};
+        std::vector<LightData> lights_;
+        int cam_pos_location_ = -1;
+        int num_lights_location_ = -1;
     };
 }

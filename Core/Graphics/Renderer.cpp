@@ -3,13 +3,16 @@
 #include "VertexArray.h"
 #include "IndexBuffer.h"
 #include <gtc/type_ptr.hpp>
+#include <string>
 
 namespace GLStudy {
     void Renderer::Init() {
-        shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/simple_shader.vert", "Assets/Shaders/simple_shader.frag");
+        shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/pbr_shader.vert", "Assets/Shaders/pbr_shader.frag");
 
         glUseProgram(shader_prog_);
         view_proj_location_ = glGetUniformLocation(shader_prog_, "u_ViewProjection");
+        cam_pos_location_ = glGetUniformLocation(shader_prog_, "u_CamPos");
+        num_lights_location_ = glGetUniformLocation(shader_prog_, "u_NumLights");
 
         struct Vertex {
             glm::vec3 position;
@@ -146,6 +149,13 @@ namespace GLStudy {
     void Renderer::Flush() {
         glUseProgram(shader_prog_);
         glUniformMatrix4fv(view_proj_location_, 1, GL_FALSE, glm::value_ptr(view_projection_));
+        glUniform3fv(cam_pos_location_, 1, glm::value_ptr(camera_pos_));
+        glUniform1i(num_lights_location_, static_cast<int>(lights_.size()));
+        for (size_t i = 0; i < lights_.size() && i < 4; ++i) {
+            std::string base = "u_Lights[" + std::to_string(i) + "]";
+            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".position").c_str()), 1, glm::value_ptr(lights_[i].position));
+            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".color").c_str()), 1, glm::value_ptr(lights_[i].color));
+        }
 
         if (!triangle_instances_.empty()) {
             triangle_vao_->Bind();
