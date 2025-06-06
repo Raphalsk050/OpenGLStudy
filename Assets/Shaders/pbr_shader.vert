@@ -7,10 +7,12 @@ layout(location = 4) in mat4 aModelTransform;
 layout(location = 8) in vec4 aColor;
 
 uniform mat4 u_ViewProjection;
+uniform mat4 u_LightSpaceMatrix;
 
 out vec3 vPos;
 out vec3 vNormal;
 out vec4 vColor;
+out vec4 vFragPosLightSpace;
 
 void main()
 {
@@ -18,5 +20,6 @@ void main()
     vPos = worldPos.xyz;
     vNormal = mat3(transpose(inverse(aModelTransform))) * aNormal;
     vColor = aColor;
+    vFragPosLightSpace = u_LightSpaceMatrix * worldPos;
     gl_Position = u_ViewProjection * worldPos;
 }

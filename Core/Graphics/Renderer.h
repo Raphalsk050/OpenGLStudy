@@ -3,11 +3,13 @@
 #include "glad/glad.h"
 #include "Core/Shader/Shader.h"
 #include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 #include <vector>
 #include "Core/Scene/Components.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "ShadowMap.h"
 
 namespace GLStudy {
     class Renderer {
@@ -33,6 +35,16 @@ namespace GLStudy {
             view_projection_ = view_projection;
             camera_pos_ = cam_pos;
             lights_ = lights;
+            has_shadow_light_ = false;
+            for (const auto& l : lights_) {
+                if (l.type == LightType::Directional) {
+                    glm::mat4 lightProj = glm::ortho(-25.0f, 25.0f, -25.0f, 25.0f, 0.1f, 100.0f);
+                    glm::mat4 lightView = glm::lookAt(l.position, l.position + l.direction, glm::vec3(0.0f, 1.0f, 0.0f));
+                    shadow_map_->SetLightSpaceMatrix(lightProj * lightView);
+                    has_shadow_light_ = true;
+                    break;
+                }
+            }
         }
 
         void DrawTriangle(const glm::mat4& model, const glm::vec4& color);
@@ -46,6 +58,8 @@ namespace GLStudy {
 
         unsigned int shader_prog_ = 0;
         int view_proj_location_ = -1;
+        int light_space_location_ = -1;
+        int shadow_map_location_ = -1;
         glm::mat4 view_projection_{1.0f};
 
         std::unique_ptr<VertexArray> triangle_vao_;
@@ -64,5 +78,9 @@ namespace GLStudy {
         std::vector<LightData> lights_;
         int cam_pos_location_ = -1;
         int num_lights_location_ = -1;
+        std::unique_ptr<ShadowMap> shadow_map_;
+        unsigned int depth_shader_prog_ = 0;
+        int depth_light_space_loc_ = -1;
+        bool has_shadow_light_ = false;
     };
 }

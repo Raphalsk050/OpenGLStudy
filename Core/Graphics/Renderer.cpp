@@ -13,6 +13,16 @@ namespace GLStudy {
         view_proj_location_ = glGetUniformLocation(shader_prog_, "u_ViewProjection");
         cam_pos_location_ = glGetUniformLocation(shader_prog_, "u_CamPos");
         num_lights_location_ = glGetUniformLocation(shader_prog_, "u_NumLights");
+        light_space_location_ = glGetUniformLocation(shader_prog_, "u_LightSpaceMatrix");
+        shadow_map_location_ = glGetUniformLocation(shader_prog_, "u_ShadowMap");
+
+        depth_shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/shadow_depth.vert", "Assets/Shaders/shadow_depth.frag");
+        glUseProgram(depth_shader_prog_);
+        depth_light_space_loc_ = glGetUniformLocation(depth_shader_prog_, "u_LightSpaceMatrix");
+        glUseProgram(0);
+
+        shadow_map_ = std::make_unique<ShadowMap>();
+        shadow_map_->Init();
 
         struct Vertex {
             glm::vec3 position;
@@ -142,15 +152,38 @@ namespace GLStudy {
         triangle_instances_.push_back({model, color});
     }
 
-    void Renderer::DrawCube(const glm::mat4& model, const glm::vec4& color) {
-        cube_instances_.push_back({model, color});
-    }
+void Renderer::DrawCube(const glm::mat4& model, const glm::vec4& color) {
+    cube_instances_.push_back({model, color});
+}
+
 
     void Renderer::Flush() {
+        if (has_shadow_light_) {
+            shadow_map_->BindFramebuffer();
+            glUseProgram(depth_shader_prog_);
+            glUniformMatrix4fv(depth_light_space_loc_, 1, GL_FALSE, glm::value_ptr(shadow_map_->GetLightSpaceMatrix()));
+            if (!triangle_instances_.empty()) {
+                triangle_vao_->Bind();
+                triangle_instance_vbo_->SetData(triangle_instances_.data(), triangle_instances_.size() * sizeof(InstanceData));
+                glDrawElementsInstanced(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr, triangle_instances_.size());
+            }
+            if (!cube_instances_.empty()) {
+                cube_vao_->Bind();
+                cube_instance_vbo_->SetData(cube_instances_.data(), cube_instances_.size() * sizeof(InstanceData));
+                glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr, cube_instances_.size());
+            }
+            shadow_map_->UnbindFramebuffer();
+        }
+
         glUseProgram(shader_prog_);
         glUniformMatrix4fv(view_proj_location_, 1, GL_FALSE, glm::value_ptr(view_projection_));
         glUniform3fv(cam_pos_location_, 1, glm::value_ptr(camera_pos_));
         glUniform1i(num_lights_location_, static_cast<int>(lights_.size()));
+        glUniformMatrix4fv(light_space_location_, 1, GL_FALSE, glm::value_ptr(shadow_map_->GetLightSpaceMatrix()));
+        glActiveTexture(GL_TEXTURE0);
+        if (has_shadow_light_)
+            glBindTexture(GL_TEXTURE_2D, shadow_map_->GetDepthMap());
+        glUniform1i(shadow_map_location_, 0);
         for (size_t i = 0; i < lights_.size() && i < 4; ++i) {
             std::string base = "u_Lights[" + std::to_string(i) + "]";
             glUniform1i(glGetUniformLocation(shader_prog_, (base + ".type").c_str()), static_cast<int>(lights_[i].type));

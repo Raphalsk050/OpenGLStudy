@@ -2,6 +2,7 @@
 in vec3 vPos;
 in vec3 vNormal;
 in vec4 vColor;
+in vec4 vFragPosLightSpace;
 
 out vec4 FragColor;
 
@@ -20,8 +21,22 @@ struct Light {
 uniform int u_NumLights;
 uniform Light u_Lights[MAX_LIGHTS];
 uniform vec3 u_CamPos;
+uniform sampler2D u_ShadowMap;
 
 const float PI = 3.14159265359;
+
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5;
+    float closestDepth = texture(u_ShadowMap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+    float bias = 0.005;
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    if(projCoords.z > 1.0)
+        shadow = 0.0;
+    return shadow;
+}
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
@@ -66,6 +81,8 @@ void main()
     vec3 V = normalize(u_CamPos - vPos);
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
+    float shadow = ShadowCalculation(vFragPosLightSpace);
+
     vec3 Lo = vec3(0.0);
     for(int i = 0; i < u_NumLights; ++i)
     {
@@ -105,7 +122,7 @@ void main()
         kD *= 1.0 - metallic;
 
         float NdotL = max(dot(N, L), 0.0);
-        Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+        Lo += (kD * albedo / PI + specular) * radiance * NdotL * (1.0 - shadow);
     }
     vec3 ambient = vec3(0.03) * albedo;
     vec3 color = ambient + Lo;
