@@ -54,7 +54,6 @@ namespace GLStudy {
         SceneCamera camera{};
         bool primary{true};
     };
-}
 
     enum class LightType {
         Directional = 0,

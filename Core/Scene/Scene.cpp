@@ -72,8 +72,8 @@ void Scene::Render(Renderer* renderer) {
         data.color = lt.color;
         data.intensity = lt.intensity;
         data.range = lt.range;
-        data.inner_cutoff = lt.inner_cutoff;
-        data.outer_cutoff = lt.outer_cutoff;
+        data.inner_cutoff = glm::cos(glm::radians(lt.inner_cutoff));
+        data.outer_cutoff = glm::cos(glm::radians(lt.outer_cutoff));
         lights.push_back(data);
     }
     renderer->BeginScene(view_projection, cam_pos, lights);

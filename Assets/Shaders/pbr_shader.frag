@@ -5,14 +5,20 @@ in vec4 vColor;
 
 out vec4 FragColor;
 
-struct PointLight {
+struct Light {
+    int type;
     vec3 position;
+    vec3 direction;
     vec3 color;
+    float intensity;
+    float range;
+    float innerCutoff;
+    float outerCutoff;
 };
 
 #define MAX_LIGHTS 4
 uniform int u_NumLights;
-uniform PointLight u_Lights[MAX_LIGHTS];
+uniform Light u_Lights[MAX_LIGHTS];
 uniform vec3 u_CamPos;
 
 const float PI = 3.14159265359;
@@ -63,11 +69,28 @@ void main()
     vec3 Lo = vec3(0.0);
     for(int i = 0; i < u_NumLights; ++i)
     {
-        vec3 L = normalize(u_Lights[i].position - vPos);
+        vec3 L;
+        float attenuation = 1.0;
+        if(u_Lights[i].type == 0)
+        {
+            L = normalize(-u_Lights[i].direction);
+        }
+        else
+        {
+            vec3 toLight = u_Lights[i].position - vPos;
+            L = normalize(toLight);
+            float dist = length(toLight);
+            attenuation = 1.0 / (dist * dist);
+            if(u_Lights[i].type == 2)
+            {
+                float theta = dot(L, normalize(-u_Lights[i].direction));
+                float epsilon = u_Lights[i].innerCutoff - u_Lights[i].outerCutoff;
+                float intensity = clamp((theta - u_Lights[i].outerCutoff) / epsilon, 0.0, 1.0);
+                attenuation *= intensity;
+            }
+        }
         vec3 H = normalize(V + L);
-        float distance = length(u_Lights[i].position - vPos);
-        float attenuation = 1.0 / (distance * distance);
-        vec3 radiance = u_Lights[i].color * attenuation;
+        vec3 radiance = u_Lights[i].color * u_Lights[i].intensity * attenuation;
 
         float NDF = DistributionGGX(N, H, roughness);
         float G = GeometrySmith(N, V, L, roughness);

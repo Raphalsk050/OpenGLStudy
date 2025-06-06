@@ -153,8 +153,14 @@ namespace GLStudy {
         glUniform1i(num_lights_location_, static_cast<int>(lights_.size()));
         for (size_t i = 0; i < lights_.size() && i < 4; ++i) {
             std::string base = "u_Lights[" + std::to_string(i) + "]";
+            glUniform1i(glGetUniformLocation(shader_prog_, (base + ".type").c_str()), static_cast<int>(lights_[i].type));
             glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".position").c_str()), 1, glm::value_ptr(lights_[i].position));
+            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".direction").c_str()), 1, glm::value_ptr(lights_[i].direction));
             glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".color").c_str()), 1, glm::value_ptr(lights_[i].color));
+            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".intensity").c_str()), lights_[i].intensity);
+            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".range").c_str()), lights_[i].range);
+            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".innerCutoff").c_str()), lights_[i].inner_cutoff);
+            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".outerCutoff").c_str()), lights_[i].outer_cutoff);
         }
 
         if (!triangle_instances_.empty()) {
