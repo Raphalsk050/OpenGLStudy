@@ -43,6 +43,12 @@ namespace GLStudy
         camera_.AddComponent<CameraControllerComponent>();
         camera_.SetPosition({0.0f, 0.0f, 5.0f});
 
+        EntityHandle light = scene_.CreateEntity("Light");
+        light.AddComponent<LightComponent>(LightComponent{.type = LightType::Point,
+                                                          .color = glm::vec3(1.0f, 1.0f, 1.0f),
+                                                          .intensity = 1.0f});
+        light.SetPosition({0.0f, 2.0f, 2.0f});
+
         /*cube_2_ = scene_.CreateEntity();
         cube_2_.AddComponent<RendererComponent>(renderer_component_spec);
         cube_2_.SetScale(glm::vec3(0.5f));

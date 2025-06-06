@@ -34,6 +34,7 @@ void Scene::OnViewportResize(float width, float height) {
 
 void Scene::Render(Renderer* renderer) {
     glm::mat4 view_projection(1.0f);
+    glm::vec3 cam_pos{0.0f};
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -56,9 +57,26 @@ void Scene::Render(Renderer* renderer) {
             view = glm::inverse(GetWorldMatrix(entity));
         }
         view_projection = cc.camera.GetProjection() * view;
+        cam_pos = tr.position;
         break;
     }
-    renderer->BeginScene(view_projection);
+    std::vector<Renderer::LightData> lights;
+    auto light_view = registry_.view<Transform, LightComponent>();
+    for (auto entity : light_view) {
+        const auto& lt = light_view.get<LightComponent>(entity);
+        const auto& tr = light_view.get<Transform>(entity);
+        Renderer::LightData data{};
+        data.type = lt.type;
+        data.position = tr.position;
+        data.direction = lt.direction;
+        data.color = lt.color;
+        data.intensity = lt.intensity;
+        data.range = lt.range;
+        data.inner_cutoff = glm::cos(glm::radians(lt.inner_cutoff));
+        data.outer_cutoff = glm::cos(glm::radians(lt.outer_cutoff));
+        lights.push_back(data);
+    }
+    renderer->BeginScene(view_projection, cam_pos, lights);
 
     auto view = registry_.view<Transform, RendererComponent>();
 

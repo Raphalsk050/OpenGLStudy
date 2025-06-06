@@ -1,12 +1,33 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.11)
 project(openglStudy)
 
 set(CMAKE_CXX_STANDARD 20)
+
+include(FetchContent)
 
 add_subdirectory(ThirdParty/glfw)
 add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
+
+# Bullet Physics (core modules only)
+set(BULLET_ROOT "" CACHE PATH "Path to local Bullet source")
+if(BULLET_ROOT STREQUAL "")
+    include(FetchContent)
+    FetchContent_Declare(
+            bullet
+            GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
+            GIT_TAG        master
+    )
+    set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+    set(INSTALL_LIBS OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(bullet)
+else()
+    add_subdirectory(${BULLET_ROOT} bullet)
+endif()
 
 add_executable(openglStudy
         Program/main.cpp
@@ -65,6 +86,9 @@ target_link_libraries(openglStudy PUBLIC
         glad
         glfw
         Entt
+        BulletDynamics
+        BulletCollision
+        LinearMath
 )
 
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_DEBUG} -pg")
