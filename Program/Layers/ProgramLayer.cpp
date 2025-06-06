@@ -27,14 +27,14 @@ namespace GLStudy
         {
             for (int j = 0 ; j < amount ; j++)
             {
-                for (int k = 0 ; k < amount ; k++)
-                {
+                //for (int k = 0 ; k < amount ; k++)
+                //{
                     cube_ = scene_.CreateEntity();
                     renderer_component_spec.color = glm::vec4(glm::linearRand(0.0f,1.0f), glm::linearRand(0.0f,1.0f), glm::linearRand(0.0f,1.0f), 1.0f);
                     cube_.AddComponent<RendererComponent>(renderer_component_spec);
-                    cube_.SetPosition(glm::vec3(i, k, j));
-                    cube_.SetScale(glm::vec3(0.5f));
-                }
+                    cube_.SetPosition(glm::vec3(i, 0.0f, j));
+                    cube_.SetScale(glm::vec3(1.0f));
+                //}
             }
         }
 
@@ -44,9 +44,9 @@ namespace GLStudy
         camera_.SetPosition({0.0f, 0.0f, 5.0f});
 
         EntityHandle light = scene_.CreateEntity("Light");
-        light.AddComponent<LightComponent>(LightComponent{.type = LightType::Point,
+        light.AddComponent<LightComponent>(LightComponent{.type = LightType::Directional,
                                                           .color = glm::vec3(1.0f, 1.0f, 1.0f),
-                                                          .intensity = 1.0f});
+                                                          .intensity = 1.0f, .direction = glm::vec3(-0.5f, -0.5f, 0.0f)});
         light.SetPosition({0.0f, 2.0f, 2.0f});
 
         /*cube_2_ = scene_.CreateEntity();

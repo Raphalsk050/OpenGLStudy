@@ -9,25 +9,14 @@ add_subdirectory(ThirdParty/glfw)
 add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
+add_subdirectory(ThirdParty/bullet)
 
-# Bullet Physics (core modules only)
-set(BULLET_ROOT "" CACHE PATH "Path to local Bullet source")
-if(BULLET_ROOT STREQUAL "")
-    include(FetchContent)
-    FetchContent_Declare(
-            bullet
-            GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
-            GIT_TAG        master
-    )
-    set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
-    set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
-    set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
-    set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
-    set(INSTALL_LIBS OFF CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(bullet)
-else()
-    add_subdirectory(${BULLET_ROOT} bullet)
-endif()
+# bullet properties
+set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+set(INSTALL_LIBS OFF CACHE BOOL "" FORCE)
 
 add_executable(openglStudy
         Program/main.cpp
@@ -94,13 +83,10 @@ target_link_libraries(openglStudy PUBLIC
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_DEBUG} -pg")
 set(CMAKE_EXE_LINKER_FLAGS_PROFILE "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg")
 
+# this is to copy the windows dlls to make the program work
 if (WIN32 AND MINGW)
-    # 1) Descobre a pasta “bin” onde está o g++.exe do MinGW que o CLion está usando
     get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" PATH)
-    # Agora MINGW_BIN_DIR costuma ser algo como:
-    #   C:/Users/rapha/AppData/Local/Programs/CLion/bin/mingw/bin
 
-    # 2) Lista das DLLs que queremos copiar
     set(RUNTIME_DLLS
             libwinpthread-1.dll
             libstdc++-6.dll
