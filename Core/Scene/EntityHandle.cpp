@@ -10,10 +10,16 @@ bool EntityHandle::Valid() const {
     return scene_ && scene_->registry_.valid(handle_);
 }
 
-void EntityHandle::SetParent(EntityHandle parent) {
+void EntityHandle::SetParent(EntityHandle parent, bool keep_world_position) {
     auto& tr = GetComponent<Transform>();
     entt::entity new_parent = parent ? parent.handle_ : entt::null;
     if (tr.parent == new_parent) return;
+
+    glm::vec3 world_pos{0.0f};
+    if (keep_world_position) {
+        glm::mat4 world = scene_->GetWorldMatrix(handle_);
+        world_pos = glm::vec3(world[3]);
+    }
 
     if (tr.parent != entt::null) {
         auto& parent_tr = scene_->registry_.get<Transform>(tr.parent);
@@ -34,6 +40,12 @@ void EntityHandle::SetParent(EntityHandle parent) {
             scene_->registry_.get<Transform>(parent_tr.first_child).prev_sibling = handle_;
         tr.next_sibling = parent_tr.first_child;
         parent_tr.first_child = handle_;
+    }
+
+    if (keep_world_position) {
+        glm::mat4 parent_world = new_parent != entt::null ? scene_->GetWorldMatrix(new_parent) : glm::mat4(1.0f);
+        glm::vec4 local = glm::inverse(parent_world) * glm::vec4(world_pos, 1.0f);
+        tr.position = glm::vec3(local);
     }
 }
 
