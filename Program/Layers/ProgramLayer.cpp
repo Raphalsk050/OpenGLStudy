@@ -21,20 +21,20 @@ namespace GLStudy
 
         };
 
-        int amount = 10;
+        int amount = 5;
 
         for (int i = 0 ; i < amount ; i++)
         {
             for (int j = 0 ; j < amount ; j++)
             {
-                //for (int k = 0 ; k < amount ; k++)
-                //{
+                for (int k = 0 ; k < amount ; k++)
+                {
                     cube_ = scene_.CreateEntity();
                     renderer_component_spec.color = glm::vec4(glm::linearRand(0.0f,1.0f), glm::linearRand(0.0f,1.0f), glm::linearRand(0.0f,1.0f), 1.0f);
                     cube_.AddComponent<RendererComponent>(renderer_component_spec);
-                    cube_.SetPosition(glm::vec3(i - amount/2.0f, 0.0f, j - amount/2.0f));
-                    cube_.SetScale(glm::vec3(1.0f));
-                //}
+                    cube_.SetPosition(glm::vec3(i - amount/2.0f, k - amount/2.0f, j - amount/2.0f));
+                    cube_.SetScale(glm::vec3(0.5f));
+                }
             }
         }
 
@@ -44,9 +44,9 @@ namespace GLStudy
         camera_.SetPosition({0.0f, 0.0f, 5.0f});
 
         light_ = scene_.CreateEntity("Light");
-        light_.AddComponent<LightComponent>(LightComponent{.type = LightType::Point,
+        light_.AddComponent<LightComponent>(LightComponent{.type = LightType::Directional,
                                                           .color = glm::vec3(1.0f, 1.0f, 1.0f),
-                                                          .intensity = 10.0f});
+                                                          .intensity = 1.0f,.direction = glm::vec3(-1.0f, -1.0f, 0.0f)});
 
         light_2_ = scene_.CreateEntity("Light_2");
         light_2_.AddComponent<LightComponent>(LightComponent{.type = LightType::Point,

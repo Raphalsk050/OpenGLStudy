@@ -60,8 +60,8 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 void main()
 {
     vec3 albedo = vColor.rgb;
-    float metallic = 0.0;
-    float roughness = 0.5;
+    float metallic = 0.8;
+    float roughness = 0.3;
     vec3 N = normalize(vNormal);
     vec3 V = normalize(u_CamPos - vPos);
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
