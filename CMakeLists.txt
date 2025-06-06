@@ -3,20 +3,24 @@ project(openglStudy)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include(FetchContent)
+set(USE_BULLET OFF)
+
+
 
 add_subdirectory(ThirdParty/glfw)
 add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
-add_subdirectory(ThirdParty/bullet)
 
-# bullet properties
-set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
-set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
-set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
-set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
-set(INSTALL_LIBS OFF CACHE BOOL "" FORCE)
+if(USE_BULLET)
+    # bullet properties
+    set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+    set(INSTALL_LIBS OFF CACHE BOOL "" FORCE)
+    add_subdirectory(ThirdParty/bullet)
+endif ()
 
 add_executable(openglStudy
         Program/main.cpp
@@ -75,10 +79,15 @@ target_link_libraries(openglStudy PUBLIC
         glad
         glfw
         Entt
-        BulletDynamics
-        BulletCollision
-        LinearMath
 )
+
+if(USE_BULLET)
+    target_link_libraries(openglStudy PUBLIC
+            BulletDynamics
+            BulletCollision
+            LinearMath
+    )
+endif ()
 
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_DEBUG} -pg")
 set(CMAKE_EXE_LINKER_FLAGS_PROFILE "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg")
