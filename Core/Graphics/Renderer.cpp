@@ -14,6 +14,10 @@ namespace GLStudy {
         cam_pos_location_ = glGetUniformLocation(shader_prog_, "u_CamPos");
         num_lights_location_ = glGetUniformLocation(shader_prog_, "u_NumLights");
 
+        occlusion_shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/occlusion_shader.vert", "Assets/Shaders/occlusion_shader.frag");
+        glUseProgram(occlusion_shader_prog_);
+        occlusion_mvp_location_ = glGetUniformLocation(occlusion_shader_prog_, "u_MVP");
+
         struct Vertex {
             glm::vec3 position;
             glm::vec3 normal;
@@ -144,6 +148,32 @@ namespace GLStudy {
 
     void Renderer::DrawCube(const glm::mat4& model, const glm::vec4& color) {
         cube_instances_.push_back({model, color});
+    }
+
+    bool Renderer::PerformOcclusionQuery(const glm::mat4& model, MeshType mesh, unsigned int query) {
+        glUseProgram(occlusion_shader_prog_);
+        glm::mat4 mvp = view_projection_ * model;
+        glUniformMatrix4fv(occlusion_mvp_location_, 1, GL_FALSE, glm::value_ptr(mvp));
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        glDepthMask(GL_FALSE);
+        glBeginQuery(GL_ANY_SAMPLES_PASSED, query);
+        switch (mesh) {
+        case MeshType::Cube:
+            cube_vao_->Bind();
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+            break;
+        case MeshType::Triangle:
+        default:
+            triangle_vao_->Bind();
+            glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+            break;
+        }
+        glEndQuery(GL_ANY_SAMPLES_PASSED);
+        glDepthMask(GL_TRUE);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        GLuint visible = 0;
+        glGetQueryObjectuiv(query, GL_QUERY_RESULT, &visible);
+        return visible != 0;
     }
 
     void Renderer::Flush() {

@@ -70,5 +70,10 @@ namespace GLStudy {
         float inner_cutoff{12.5f};
         float outer_cutoff{17.5f};
     };
+
+    struct OcclusionComponent {
+        GLuint query{0};
+        bool visible{true};
+    };
 } // namespace GLStudy
 

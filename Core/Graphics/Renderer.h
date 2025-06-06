@@ -37,6 +37,7 @@ namespace GLStudy {
 
         void DrawTriangle(const glm::mat4& model, const glm::vec4& color);
         void DrawCube(const glm::mat4& model, const glm::vec4& color);
+        bool PerformOcclusionQuery(const glm::mat4& model, MeshType mesh, unsigned int query);
         void Flush();
     private:
         struct InstanceData {
@@ -64,5 +65,8 @@ namespace GLStudy {
         std::vector<LightData> lights_;
         int cam_pos_location_ = -1;
         int num_lights_location_ = -1;
+
+        unsigned int occlusion_shader_prog_ = 0;
+        int occlusion_mvp_location_ = -1;
     };
 }

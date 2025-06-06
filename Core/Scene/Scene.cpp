@@ -90,14 +90,25 @@ void Scene::Render(Renderer* renderer) {
 
     for (auto entity : view) {
         auto& rc = view.get<RendererComponent>(entity);
+        glm::mat4 model = GetWorldMatrix(entity);
+        OcclusionComponent* oc = nullptr;
+        if (!registry_.all_of<OcclusionComponent>(entity)) {
+            oc = &registry_.emplace<OcclusionComponent>(entity);
+            glGenQueries(1, &oc->query);
+        } else {
+            oc = &registry_.get<OcclusionComponent>(entity);
+        }
+        oc->visible = renderer->PerformOcclusionQuery(model, rc.mesh, oc->query);
+        if (!oc->visible)
+            continue;
 
         switch (rc.mesh) {
         case MeshType::Cube:
-            renderer->DrawCube(GetWorldMatrix(entity), rc.color);
+            renderer->DrawCube(model, rc.color);
             break;
         case MeshType::Triangle:
         default:
-            renderer->DrawTriangle(GetWorldMatrix(entity), rc.color);
+            renderer->DrawTriangle(model, rc.color);
             break;
         }
     }
