@@ -26,6 +26,8 @@ namespace GLStudy
         Scene& scene_;
         EntityHandle cube_;
         EntityHandle cube_2_;
+        EntityHandle light_;
+        EntityHandle light_2_;
         EntityHandle camera_;
         std::unordered_map<KeyCode, bool> last_key_state_map_;
 

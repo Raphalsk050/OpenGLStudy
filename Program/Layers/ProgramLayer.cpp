@@ -32,7 +32,7 @@ namespace GLStudy
                     cube_ = scene_.CreateEntity();
                     renderer_component_spec.color = glm::vec4(glm::linearRand(0.0f,1.0f), glm::linearRand(0.0f,1.0f), glm::linearRand(0.0f,1.0f), 1.0f);
                     cube_.AddComponent<RendererComponent>(renderer_component_spec);
-                    cube_.SetPosition(glm::vec3(i, 0.0f, j));
+                    cube_.SetPosition(glm::vec3(i - amount/2.0f, 0.0f, j - amount/2.0f));
                     cube_.SetScale(glm::vec3(1.0f));
                 //}
             }
@@ -43,26 +43,16 @@ namespace GLStudy
         camera_.AddComponent<CameraControllerComponent>();
         camera_.SetPosition({0.0f, 0.0f, 5.0f});
 
-        EntityHandle light = scene_.CreateEntity("Light");
-        light.AddComponent<LightComponent>(LightComponent{.type = LightType::Directional,
+        light_ = scene_.CreateEntity("Light");
+        light_.AddComponent<LightComponent>(LightComponent{.type = LightType::Point,
                                                           .color = glm::vec3(1.0f, 1.0f, 1.0f),
-                                                          .intensity = 1.0f, .direction = glm::vec3(-0.5f, -0.5f, 0.0f)});
-        light.SetPosition({0.0f, 2.0f, 2.0f});
+                                                          .intensity = 10.0f});
 
-        cube_2_ = scene_.CreateEntity();
-        cube_2_.AddComponent<RendererComponent>(renderer_component_spec);
-        cube_2_.SetScale(glm::vec3(0.5f));
-
-        cube_ = scene_.CreateEntity();
-        renderer_component_spec.mesh = MeshType::Cube;
-        cube_.AddComponent<RendererComponent>(renderer_component_spec);
-
-        // TODO(rafael): when setting the parent give the possibility to maintain the previous world position
-        cube_.SetScale(glm::vec3(4.0f));
-        cube_2_.SetPosition({5, 0.0f, 0.0f});
-        cube_.SetPosition({0.0f, 5.0f, 30.0f});
-        cube_2_.SetParent(cube_, false);
-
+        light_2_ = scene_.CreateEntity("Light_2");
+        light_2_.AddComponent<LightComponent>(LightComponent{.type = LightType::Point,
+                                                          .color = glm::vec3(1.0f, 0.0f,0.0f),
+                                                          .intensity = 10.0f});
+        light_2_.SetPosition({0.0f, 0.0f,0.0f});
     }
 
     void ProgramLayer::OnDetach()
@@ -73,8 +63,10 @@ namespace GLStudy
     void ProgramLayer::OnUpdate(Timestep ts)
     {
         Layer::OnUpdate(ts);
-        cube_.SetRotation(glm::vec3(0.0f, 0.0f, Time::GetTime()));
-        cube_2_.SetRotation(glm::vec3(0.0f, 0.0f, Time::GetTime() * 2.0));
+        /*cube_.SetRotation(glm::vec3(0.0f, 0.0f, Time::GetTime()));
+        cube_2_.SetRotation(glm::vec3(0.0f, 0.0f, Time::GetTime() * 2.0));*/
+        light_.SetPosition(glm::vec3(sin(Time::GetTime()), 1.0f, cos(Time::GetTime())));
+        light_2_.SetPosition(glm::vec3(sin(Time::GetTime() * 2.0f), 1.0f, cos(Time::GetTime() * 2.0f)));
     }
 
     void ProgramLayer::OnImGuiRender()
