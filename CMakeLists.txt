@@ -47,6 +47,11 @@ add_executable(openglStudy
         Core/Graphics/VertexArray.cpp
         Core/Graphics/IndexBuffer.h
         Core/Graphics/IndexBuffer.cpp
+        Core/Graphics/Texture2D.h
+        Core/Graphics/Texture2D.cpp
+        Core/Graphics/Material.h
+        Core/Graphics/Model.h
+        Core/Graphics/Model.cpp
         Core/Graphics/Renderer.h
         Core/Graphics/Renderer.cpp
         Core/Camera/Camera.h
@@ -72,6 +77,8 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/glfw/include
         ThirdParty/glad/include
         ThirdParty/glm
+        ThirdParty/assimp/include
+        ThirdParty/stb
 )
 
 target_link_libraries(openglStudy PUBLIC
@@ -79,6 +86,7 @@ target_link_libraries(openglStudy PUBLIC
         glad
         glfw
         Entt
+        assimp
 )
 
 if(USE_BULLET)

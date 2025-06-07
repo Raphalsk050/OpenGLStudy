@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <memory>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <entt.hpp>
@@ -43,6 +44,8 @@ namespace GLStudy {
     {
         MeshType mesh{MeshType::Triangle};
         glm::vec4 color{1.0f};
+        std::string model_path{};
+        std::shared_ptr<class Model> model{nullptr};
         bool depth_test{true};
         bool culling{true};
         GLenum cull_face{GL_BACK};

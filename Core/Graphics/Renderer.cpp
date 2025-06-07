@@ -2,6 +2,7 @@
 #include "VertexBuffer.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
+#include "Model.h"
 #include <gtc/type_ptr.hpp>
 #include <string>
 
@@ -13,6 +14,8 @@ namespace GLStudy {
         view_proj_location_ = glGetUniformLocation(shader_prog_, "u_ViewProjection");
         cam_pos_location_ = glGetUniformLocation(shader_prog_, "u_CamPos");
         num_lights_location_ = glGetUniformLocation(shader_prog_, "u_NumLights");
+        model_location_ = glGetUniformLocation(shader_prog_, "u_Model");
+        use_instance_location_ = glGetUniformLocation(shader_prog_, "u_UseInstance");
 
         struct Vertex {
             glm::vec3 position;
@@ -146,6 +149,19 @@ namespace GLStudy {
         cube_instances_.push_back({model, color});
     }
 
+    void Renderer::DrawModel(const Model& model, const glm::mat4& transform) {
+        glUseProgram(shader_prog_);
+        glUniformMatrix4fv(view_proj_location_, 1, GL_FALSE, glm::value_ptr(view_projection_));
+        glUniform3fv(cam_pos_location_, 1, glm::value_ptr(camera_pos_));
+        glUniform1i(use_instance_location_, 0);
+        glUniformMatrix4fv(model_location_, 1, GL_FALSE, glm::value_ptr(transform));
+        for (const auto& mesh : model.GetMeshes()) {
+            mesh.vao->Bind();
+            glUniform4fv(glGetUniformLocation(shader_prog_, "u_Color"), 1, glm::value_ptr(glm::vec4(mesh.material.albedo, 1.0f)));
+            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, nullptr);
+        }
+    }
+
     void Renderer::Flush() {
         glUseProgram(shader_prog_);
         glUniformMatrix4fv(view_proj_location_, 1, GL_FALSE, glm::value_ptr(view_projection_));
@@ -165,6 +181,8 @@ namespace GLStudy {
 
         if (!triangle_instances_.empty()) {
             triangle_vao_->Bind();
+            glUniform1i(use_instance_location_, 1);
+            glUniformMatrix4fv(model_location_, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
             triangle_instance_vbo_->SetData(triangle_instances_.data(), triangle_instances_.size() * sizeof(InstanceData));
             glDrawElementsInstanced(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr, triangle_instances_.size());
             triangle_instances_.clear();
@@ -172,6 +190,8 @@ namespace GLStudy {
 
         if (!cube_instances_.empty()) {
             cube_vao_->Bind();
+            glUniform1i(use_instance_location_, 1);
+            glUniformMatrix4fv(model_location_, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
             cube_instance_vbo_->SetData(cube_instances_.data(), cube_instances_.size() * sizeof(InstanceData));
             glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr, cube_instances_.size());
             cube_instances_.clear();
