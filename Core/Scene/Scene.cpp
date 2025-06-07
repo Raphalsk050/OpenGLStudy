@@ -90,16 +90,7 @@ void Scene::Render(Renderer* renderer) {
 
     for (auto entity : view) {
         auto& rc = view.get<RendererComponent>(entity);
-
-        switch (rc.mesh) {
-        case MeshType::Cube:
-            renderer->DrawCube(GetWorldMatrix(entity), rc.color);
-            break;
-        case MeshType::Triangle:
-        default:
-            renderer->DrawTriangle(GetWorldMatrix(entity), rc.color);
-            break;
-        }
+        renderer->DrawMesh(rc.mesh, GetWorldMatrix(entity), rc.color, rc.mesh_path);
     }
     renderer->Flush();
 }
