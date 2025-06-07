@@ -3,15 +3,23 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <cstdlib>
 
 namespace GLStudy {
 
-static GLuint LoadMatTex(aiMaterial* mat, aiTextureType type, const std::string& dir) {
+static GLuint LoadMatTex(aiMaterial* mat, aiTextureType type, const std::string& dir, const aiScene* scene) {
     if(mat->GetTextureCount(type) > 0) {
         aiString str;
         mat->GetTexture(type, 0, &str);
-        std::string path = dir + "/" + std::string(str.C_Str());
-        return Texture::LoadTexture2D(path);
+        std::string texPath = str.C_Str();
+        if(!texPath.empty() && texPath[0] == '*') {
+            int index = std::atoi(texPath.c_str()+1);
+            if(scene && index < (int)scene->mNumTextures)
+                return Texture::LoadTextureFromAssimp(scene->mTextures[index]);
+        } else {
+            std::string path = dir + "/" + texPath;
+            return Texture::LoadTexture2D(path);
+        }
     }
     return 0;
 }
@@ -34,19 +42,30 @@ Model::Model(const std::string& path) {
         aiMat->Get(AI_MATKEY_OPACITY, opacity);
         mat.opaque = opacity >= 1.0f;
         mat.transparent = opacity < 1.0f;
-        mat.albedo_texture = LoadMatTex(aiMat, aiTextureType_BASE_COLOR, directory_);
-        if(!mat.albedo_texture) mat.albedo_texture = LoadMatTex(aiMat, aiTextureType_DIFFUSE, directory_);
+        aiColor3D base(1.0f,1.0f,1.0f);
+        if(aiMat->Get(AI_MATKEY_BASE_COLOR, base) != AI_SUCCESS)
+            aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, base);
+        mat.albedo_color = {base.r, base.g, base.b};
+
+        mat.albedo_texture = LoadMatTex(aiMat, aiTextureType_BASE_COLOR, directory_, scene);
+        if(!mat.albedo_texture) mat.albedo_texture = LoadMatTex(aiMat, aiTextureType_DIFFUSE, directory_, scene);
         mat.has_albedo = mat.albedo_texture != 0;
-        mat.normal_texture = LoadMatTex(aiMat, aiTextureType_NORMALS, directory_);
+        mat.normal_texture = LoadMatTex(aiMat, aiTextureType_NORMALS, directory_, scene);
         mat.has_normal = mat.normal_texture != 0;
-        mat.specular_texture = LoadMatTex(aiMat, aiTextureType_SPECULAR, directory_);
+        mat.specular_texture = LoadMatTex(aiMat, aiTextureType_SPECULAR, directory_, scene);
         mat.has_specular = mat.specular_texture != 0;
-        mat.ao_texture = LoadMatTex(aiMat, aiTextureType_AMBIENT_OCCLUSION, directory_);
+        mat.ao_texture = LoadMatTex(aiMat, aiTextureType_AMBIENT_OCCLUSION, directory_, scene);
         mat.has_ao = mat.ao_texture != 0;
-        mat.roughness_texture = LoadMatTex(aiMat, aiTextureType_DIFFUSE_ROUGHNESS, directory_);
+        mat.roughness_texture = LoadMatTex(aiMat, aiTextureType_DIFFUSE_ROUGHNESS, directory_, scene);
         mat.has_roughness = mat.roughness_texture != 0;
-        mat.emissive_texture = LoadMatTex(aiMat, aiTextureType_EMISSIVE, directory_);
+        mat.emissive_texture = LoadMatTex(aiMat, aiTextureType_EMISSIVE, directory_, scene);
         mat.has_emissive = mat.emissive_texture != 0;
+
+        aiColor3D emissive(0.f,0.f,0.f);
+        if(aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive) == AI_SUCCESS)
+            mat.emissive_color = {emissive.r, emissive.g, emissive.b};
+        aiMat->Get(AI_MATKEY_METALLIC_FACTOR, mat.metallic);
+        aiMat->Get(AI_MATKEY_ROUGHNESS_FACTOR, mat.roughness);
         materials_.push_back(mat);
     }
     ProcessNode(scene->mRootNode, scene);

@@ -1,5 +1,6 @@
 #pragma once
 #include "glad/glad.h"
+#include <glm.hpp>
 
 namespace GLStudy {
 
@@ -12,6 +13,11 @@ struct Material {
     MaterialShading shading = MaterialShading::Lit;
     bool opaque = true;
     bool transparent = false;
+
+    glm::vec3 albedo_color{1.0f};
+    glm::vec3 emissive_color{0.0f};
+    float metallic = 0.0f;
+    float roughness = 1.0f;
 
     GLuint albedo_texture = 0;
     GLuint normal_texture = 0;

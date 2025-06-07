@@ -29,6 +29,11 @@ uniform bool u_UseAOMap;
 uniform bool u_UseRoughnessMap;
 uniform bool u_UseEmissiveMap;
 
+uniform vec3 u_AlbedoColor;
+uniform float u_Metallic;
+uniform float u_Roughness;
+uniform vec3 u_EmissiveColor;
+
 uniform sampler2D u_AlbedoMap;
 uniform sampler2D u_NormalMap;
 uniform sampler2D u_SpecularMap;
@@ -74,11 +79,13 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 
 void main()
 {
-    vec3 albedo = vColor.rgb;
+    vec3 albedo = u_AlbedoColor * vColor.rgb;
     if(u_UseAlbedoMap)
-        albedo = texture(u_AlbedoMap, vTexCoord).rgb;
-    float metallic = 0.8;
-    float roughness = 0.3;
+        albedo *= texture(u_AlbedoMap, vTexCoord).rgb;
+    float metallic = u_Metallic;
+    if(u_UseSpecularMap)
+        metallic = texture(u_SpecularMap, vTexCoord).r;
+    float roughness = u_Roughness;
     if(u_UseRoughnessMap)
         roughness = texture(u_RoughnessMap, vTexCoord).r;
     vec3 N = normalize(vNormal);
@@ -138,9 +145,9 @@ void main()
         float NdotL = max(dot(N, L), 0.0);
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
-    vec3 emissive = vec3(0.0);
+    vec3 emissive = u_EmissiveColor;
     if(u_UseEmissiveMap)
-        emissive = texture(u_EmissiveMap, vTexCoord).rgb;
+        emissive += texture(u_EmissiveMap, vTexCoord).rgb;
     float ao = 1.0;
     if(u_UseAOMap)
         ao = texture(u_AOMap, vTexCoord).r;

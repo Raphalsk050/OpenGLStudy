@@ -180,6 +180,10 @@ void Renderer::DrawModel(const Model& model, const glm::mat4& transform) {
             }
         }
         glUniformMatrix4fv(glGetUniformLocation(shader, "u_Model"), 1, GL_FALSE, glm::value_ptr(transform));
+        glUniform3fv(glGetUniformLocation(shader, "u_AlbedoColor"), 1, glm::value_ptr(mat.albedo_color));
+        glUniform1f(glGetUniformLocation(shader, "u_Metallic"), mat.metallic);
+        glUniform1f(glGetUniformLocation(shader, "u_Roughness"), mat.roughness);
+        glUniform3fv(glGetUniformLocation(shader, "u_EmissiveColor"), 1, glm::value_ptr(mat.emissive_color));
 
         int slot = 0;
         glUniform1i(glGetUniformLocation(shader, "u_UseAlbedoMap"), mat.has_albedo);
@@ -240,6 +244,17 @@ void Renderer::DrawModel(const Model& model, const glm::mat4& transform) {
             glUniform1f(glGetUniformLocation(pbr_shader_prog_, (base + ".innerCutoff").c_str()), lights_[i].inner_cutoff);
             glUniform1f(glGetUniformLocation(pbr_shader_prog_, (base + ".outerCutoff").c_str()), lights_[i].outer_cutoff);
         }
+
+        glUniform3f(glGetUniformLocation(pbr_shader_prog_, "u_AlbedoColor"), 1.0f, 1.0f, 1.0f);
+        glUniform1f(glGetUniformLocation(pbr_shader_prog_, "u_Metallic"), 0.0f);
+        glUniform1f(glGetUniformLocation(pbr_shader_prog_, "u_Roughness"), 1.0f);
+        glUniform3f(glGetUniformLocation(pbr_shader_prog_, "u_EmissiveColor"), 0.0f, 0.0f, 0.0f);
+        glUniform1i(glGetUniformLocation(pbr_shader_prog_, "u_UseAlbedoMap"), 0);
+        glUniform1i(glGetUniformLocation(pbr_shader_prog_, "u_UseNormalMap"), 0);
+        glUniform1i(glGetUniformLocation(pbr_shader_prog_, "u_UseSpecularMap"), 0);
+        glUniform1i(glGetUniformLocation(pbr_shader_prog_, "u_UseAOMap"), 0);
+        glUniform1i(glGetUniformLocation(pbr_shader_prog_, "u_UseRoughnessMap"), 0);
+        glUniform1i(glGetUniformLocation(pbr_shader_prog_, "u_UseEmissiveMap"), 0);
 
         if (!triangle_instances_.empty()) {
             triangle_vao_->Bind();
