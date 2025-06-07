@@ -4,10 +4,12 @@
 #include "Core/Shader/Shader.h"
 #include <glm.hpp>
 #include <vector>
+#include <unordered_map>
 #include "Core/Scene/Components.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "ModelLoader.h"
 
 namespace GLStudy {
     class Renderer {
@@ -28,15 +30,12 @@ namespace GLStudy {
 
         void BeginScene(const glm::mat4& view_projection,
                         const glm::vec3& cam_pos,
-                        const std::vector<LightData>& lights)
-        {
-            view_projection_ = view_projection;
-            camera_pos_ = cam_pos;
-            lights_ = lights;
-        }
+                        const std::vector<LightData>& lights);
 
-        void DrawTriangle(const glm::mat4& model, const glm::vec4& color);
-        void DrawCube(const glm::mat4& model, const glm::vec4& color);
+        void DrawMesh(MeshType type,
+                      const glm::mat4& model,
+                      const glm::vec4& color,
+                      const std::string& path = "");
         void Flush();
     private:
         struct InstanceData {
@@ -44,21 +43,26 @@ namespace GLStudy {
             glm::vec4 color;
         };
 
+        struct MeshRenderData {
+            std::unique_ptr<VertexArray> vao;
+            std::unique_ptr<VertexBuffer> vbo;
+            std::unique_ptr<IndexBuffer> ibo;
+            std::unique_ptr<VertexBuffer> instance_vbo;
+            std::vector<InstanceData> instances;
+            unsigned int index_count = 0;
+        };
+
+        MeshRenderData& GetOrCreateMeshData(const std::string& key,
+                                            const std::vector<VertexData>& vertices = {},
+                                            const std::vector<unsigned int>& indices = {});
+
+        void InitDefaultMeshes();
+
         unsigned int shader_prog_ = 0;
         int view_proj_location_ = -1;
         glm::mat4 view_projection_{1.0f};
 
-        std::unique_ptr<VertexArray> triangle_vao_;
-        std::unique_ptr<VertexBuffer> triangle_vbo_;
-        std::unique_ptr<IndexBuffer> triangle_ibo_;
-        std::unique_ptr<VertexBuffer> triangle_instance_vbo_;
-        std::vector<InstanceData> triangle_instances_;
-
-        std::unique_ptr<VertexArray> cube_vao_;
-        std::unique_ptr<VertexBuffer> cube_vbo_;
-        std::unique_ptr<IndexBuffer> cube_ibo_;
-        std::unique_ptr<VertexBuffer> cube_instance_vbo_;
-        std::vector<InstanceData> cube_instances_;
+        std::unordered_map<std::string, MeshRenderData> meshes_;
 
         glm::vec3 camera_pos_{0.0f};
         std::vector<LightData> lights_;

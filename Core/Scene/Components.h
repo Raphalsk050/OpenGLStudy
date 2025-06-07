@@ -36,12 +36,16 @@ namespace GLStudy {
     {
         Triangle = 0,
         Cube = 1,
-        Model = 2
+        Sphere = 2,
+        Capsule = 3,
+        Plane = 4,
+        Model = 5
     };
 
     struct RendererComponent
     {
         MeshType mesh{MeshType::Triangle};
+        std::string mesh_path{}; // used when mesh == MeshType::Model
         glm::vec4 color{1.0f};
         bool depth_test{true};
         bool culling{true};
