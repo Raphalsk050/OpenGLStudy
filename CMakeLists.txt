@@ -11,6 +11,9 @@ add_subdirectory(ThirdParty/glfw)
 add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
+# Disable heavy optional targets for Assimp to speed up the build
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
 add_subdirectory(ThirdParty/assimp)
 
 if(USE_BULLET)
