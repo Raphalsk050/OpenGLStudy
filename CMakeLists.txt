@@ -11,6 +11,7 @@ add_subdirectory(ThirdParty/glfw)
 add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
+add_subdirectory(ThirdParty/assimp)
 
 if(USE_BULLET)
     # bullet properties
@@ -72,6 +73,8 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/glfw/include
         ThirdParty/glad/include
         ThirdParty/glm
+        ThirdParty/assimp/include
+        ThirdParty/stb
 )
 
 target_link_libraries(openglStudy PUBLIC
@@ -79,6 +82,7 @@ target_link_libraries(openglStudy PUBLIC
         glad
         glfw
         Entt
+        assimp
 )
 
 if(USE_BULLET)
