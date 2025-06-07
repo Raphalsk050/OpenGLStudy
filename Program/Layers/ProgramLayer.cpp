@@ -38,6 +38,13 @@ namespace GLStudy
             }
         }
 
+        auto model_entity = scene_.CreateEntity("Model");
+        RendererComponent model_rc{};
+        model_rc.mesh = MeshType::Model;
+        model_rc.model_path = "Assets/Models/cube.obj";
+        model_entity.AddComponent<RendererComponent>(model_rc);
+        model_entity.SetPosition({0.0f, 0.0f, -2.0f});
+
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();
         camera_.AddComponent<CameraControllerComponent>();

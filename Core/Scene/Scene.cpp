@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "EntityHandle.h"
 #include "Core/Graphics/Renderer.h"
+#include "Core/Graphics/Model.h"
 #include "Core/Camera/CameraController.h"
 #include <glad/glad.h>
 #include <glm.hpp>
@@ -91,9 +92,18 @@ void Scene::Render(Renderer* renderer) {
     for (auto entity : view) {
         auto& rc = view.get<RendererComponent>(entity);
 
+        if (rc.mesh == MeshType::Model && !rc.model && !rc.model_path.empty()) {
+            rc.model = std::make_shared<Model>();
+            rc.model->LoadFromFile(rc.model_path);
+        }
+
         switch (rc.mesh) {
         case MeshType::Cube:
             renderer->DrawCube(GetWorldMatrix(entity), rc.color);
+            break;
+        case MeshType::Model:
+            if (rc.model)
+                renderer->DrawModel(*rc.model, GetWorldMatrix(entity));
             break;
         case MeshType::Triangle:
         default:

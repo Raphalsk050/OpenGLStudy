@@ -37,6 +37,7 @@ namespace GLStudy {
 
         void DrawTriangle(const glm::mat4& model, const glm::vec4& color);
         void DrawCube(const glm::mat4& model, const glm::vec4& color);
+        void DrawModel(const class Model& model, const glm::mat4& transform);
         void Flush();
     private:
         struct InstanceData {
@@ -64,5 +65,7 @@ namespace GLStudy {
         std::vector<LightData> lights_;
         int cam_pos_location_ = -1;
         int num_lights_location_ = -1;
+        int model_location_ = -1;
+        int use_instance_location_ = -1;
     };
 }
