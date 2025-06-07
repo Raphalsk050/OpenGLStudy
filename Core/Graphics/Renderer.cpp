@@ -2,6 +2,7 @@
 #include "VertexBuffer.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
+#include "Model.h"
 #include <gtc/type_ptr.hpp>
 #include <string>
 
@@ -13,6 +14,8 @@ namespace GLStudy {
         view_proj_location_ = glGetUniformLocation(shader_prog_, "u_ViewProjection");
         cam_pos_location_ = glGetUniformLocation(shader_prog_, "u_CamPos");
         num_lights_location_ = glGetUniformLocation(shader_prog_, "u_NumLights");
+        has_albedo_location_ = glGetUniformLocation(shader_prog_, "u_HasAlbedo");
+        albedo_sampler_location_ = glGetUniformLocation(shader_prog_, "u_Albedo");
 
         struct Vertex {
             glm::vec3 position;
@@ -144,6 +147,41 @@ namespace GLStudy {
 
     void Renderer::DrawCube(const glm::mat4& model, const glm::vec4& color) {
         cube_instances_.push_back({model, color});
+    }
+
+    void Renderer::DrawModel(const Model& model, const glm::mat4& transform) {
+        glUseProgram(shader_prog_);
+        glUniformMatrix4fv(view_proj_location_, 1, GL_FALSE, glm::value_ptr(view_projection_));
+        glUniform3fv(cam_pos_location_, 1, glm::value_ptr(camera_pos_));
+        glUniform1i(num_lights_location_, static_cast<int>(lights_.size()));
+        for (size_t i = 0; i < lights_.size() && i < 4; ++i) {
+            std::string base = "u_Lights[" + std::to_string(i) + "]";
+            glUniform1i(glGetUniformLocation(shader_prog_, (base + ".type").c_str()), static_cast<int>(lights_[i].type));
+            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".position").c_str()), 1, glm::value_ptr(lights_[i].position));
+            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".direction").c_str()), 1, glm::value_ptr(lights_[i].direction));
+            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".color").c_str()), 1, glm::value_ptr(lights_[i].color));
+            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".intensity").c_str()), lights_[i].intensity);
+            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".range").c_str()), lights_[i].range);
+            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".innerCutoff").c_str()), lights_[i].inner_cutoff);
+            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".outerCutoff").c_str()), lights_[i].outer_cutoff);
+        }
+
+        for (const auto& mesh : model.GetMeshes()) {
+            mesh.vao->Bind();
+            glVertexAttrib4fv(4, glm::value_ptr(transform[0]));
+            glVertexAttrib4fv(5, glm::value_ptr(transform[1]));
+            glVertexAttrib4fv(6, glm::value_ptr(transform[2]));
+            glVertexAttrib4fv(7, glm::value_ptr(transform[3]));
+            glVertexAttrib4f(8, 1.0f, 1.0f, 1.0f, 1.0f);
+
+            bool hasAlbedo = mesh.material.albedo != nullptr;
+            glUniform1i(has_albedo_location_, hasAlbedo);
+            if (hasAlbedo) {
+                mesh.material.albedo->Bind(0);
+                glUniform1i(albedo_sampler_location_, 0);
+            }
+            glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, nullptr);
+        }
     }
 
     void Renderer::Flush() {

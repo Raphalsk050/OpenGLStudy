@@ -11,6 +11,10 @@ add_subdirectory(ThirdParty/glfw)
 add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
+# Disable heavy optional targets for Assimp to speed up the build
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+add_subdirectory(ThirdParty/assimp)
 
 if(USE_BULLET)
     # bullet properties
@@ -49,6 +53,11 @@ add_executable(openglStudy
         Core/Graphics/IndexBuffer.cpp
         Core/Graphics/Renderer.h
         Core/Graphics/Renderer.cpp
+        Core/Graphics/Texture2D.h
+        Core/Graphics/Texture2D.cpp
+        Core/Graphics/Material.h
+        Core/Graphics/Model.h
+        Core/Graphics/Model.cpp
         Core/Camera/Camera.h
         Core/Camera/SceneCamera.h
         Core/Camera/SceneCamera.cpp
@@ -72,6 +81,8 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/glfw/include
         ThirdParty/glad/include
         ThirdParty/glm
+        ThirdParty/stb
+        ThirdParty/assimp/include
 )
 
 target_link_libraries(openglStudy PUBLIC
@@ -79,6 +90,7 @@ target_link_libraries(openglStudy PUBLIC
         glad
         glfw
         Entt
+        assimp
 )
 
 if(USE_BULLET)

@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <string>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
@@ -7,6 +8,7 @@
 #include "../Camera/SceneCamera.h"
 
 namespace GLStudy {
+class Model;
     struct TagComponent {
         std::string tag{"Entity"};
     };
@@ -41,6 +43,7 @@ namespace GLStudy {
 
     struct RendererComponent
     {
+        std::shared_ptr<Model> model;
         MeshType mesh{MeshType::Triangle};
         glm::vec4 color{1.0f};
         bool depth_test{true};

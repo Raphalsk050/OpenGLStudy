@@ -95,6 +95,10 @@ void Scene::Render(Renderer* renderer) {
         case MeshType::Cube:
             renderer->DrawCube(GetWorldMatrix(entity), rc.color);
             break;
+        case MeshType::Model:
+            if (rc.model)
+                renderer->DrawModel(*rc.model, GetWorldMatrix(entity));
+            break;
         case MeshType::Triangle:
         default:
             renderer->DrawTriangle(GetWorldMatrix(entity), rc.color);
