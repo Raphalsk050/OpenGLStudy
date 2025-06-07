@@ -13,6 +13,7 @@ namespace GLStudy {
         view_proj_location_ = glGetUniformLocation(shader_prog_, "u_ViewProjection");
         cam_pos_location_ = glGetUniformLocation(shader_prog_, "u_CamPos");
         num_lights_location_ = glGetUniformLocation(shader_prog_, "u_NumLights");
+        model_location_ = glGetUniformLocation(shader_prog_, "u_Model");
 
         struct Vertex {
             glm::vec3 position;
@@ -149,6 +150,7 @@ namespace GLStudy {
     void Renderer::Flush() {
         glUseProgram(shader_prog_);
         glUniformMatrix4fv(view_proj_location_, 1, GL_FALSE, glm::value_ptr(view_projection_));
+        glUniformMatrix4fv(model_location_, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
         glUniform3fv(cam_pos_location_, 1, glm::value_ptr(camera_pos_));
         glUniform1i(num_lights_location_, static_cast<int>(lights_.size()));
         for (size_t i = 0; i < lights_.size() && i < 4; ++i) {

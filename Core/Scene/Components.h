@@ -5,6 +5,8 @@
 #include <entt.hpp>
 #include "glad/glad.h"
 #include "../Camera/SceneCamera.h"
+#include <memory>
+namespace GLStudy { class Model; }
 
 namespace GLStudy {
     struct TagComponent {
@@ -47,6 +49,10 @@ namespace GLStudy {
         bool culling{true};
         GLenum cull_face{GL_BACK};
         bool double_sided{false};
+    };
+
+    struct ModelComponent {
+        std::shared_ptr<Model> model;
     };
 
     struct CameraComponent

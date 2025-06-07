@@ -38,6 +38,7 @@ namespace GLStudy {
         void DrawTriangle(const glm::mat4& model, const glm::vec4& color);
         void DrawCube(const glm::mat4& model, const glm::vec4& color);
         void Flush();
+        unsigned int GetShaderProgram() const { return shader_prog_; }
     private:
         struct InstanceData {
             glm::mat4 model;
@@ -46,6 +47,7 @@ namespace GLStudy {
 
         unsigned int shader_prog_ = 0;
         int view_proj_location_ = -1;
+        int model_location_ = -1;
         glm::mat4 view_projection_{1.0f};
 
         std::unique_ptr<VertexArray> triangle_vao_;
