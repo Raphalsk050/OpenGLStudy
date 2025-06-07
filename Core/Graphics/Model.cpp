@@ -52,11 +52,15 @@ Model::Model(const std::string& path) {
         mat.has_albedo = mat.albedo_texture != 0;
         mat.normal_texture = LoadMatTex(aiMat, aiTextureType_NORMALS, directory_, scene);
         mat.has_normal = mat.normal_texture != 0;
-        mat.specular_texture = LoadMatTex(aiMat, aiTextureType_SPECULAR, directory_, scene);
+        mat.specular_texture = LoadMatTex(aiMat, aiTextureType_METALNESS, directory_, scene);
+        if(!mat.specular_texture)
+            mat.specular_texture = LoadMatTex(aiMat, aiTextureType_SPECULAR, directory_, scene);
         mat.has_specular = mat.specular_texture != 0;
         mat.ao_texture = LoadMatTex(aiMat, aiTextureType_AMBIENT_OCCLUSION, directory_, scene);
         mat.has_ao = mat.ao_texture != 0;
         mat.roughness_texture = LoadMatTex(aiMat, aiTextureType_DIFFUSE_ROUGHNESS, directory_, scene);
+        if(!mat.roughness_texture)
+            mat.roughness_texture = LoadMatTex(aiMat, aiTextureType_SHININESS, directory_, scene);
         mat.has_roughness = mat.roughness_texture != 0;
         mat.emissive_texture = LoadMatTex(aiMat, aiTextureType_EMISSIVE, directory_, scene);
         mat.has_emissive = mat.emissive_texture != 0;

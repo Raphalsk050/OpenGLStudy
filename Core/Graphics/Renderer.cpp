@@ -180,48 +180,7 @@ void Renderer::DrawModel(const Model& model, const glm::mat4& transform) {
             }
         }
         glUniformMatrix4fv(glGetUniformLocation(shader, "u_Model"), 1, GL_FALSE, glm::value_ptr(transform));
-        glUniform3fv(glGetUniformLocation(shader, "u_AlbedoColor"), 1, glm::value_ptr(mat.albedo_color));
-        glUniform1f(glGetUniformLocation(shader, "u_Metallic"), mat.metallic);
-        glUniform1f(glGetUniformLocation(shader, "u_Roughness"), mat.roughness);
-        glUniform3fv(glGetUniformLocation(shader, "u_EmissiveColor"), 1, glm::value_ptr(mat.emissive_color));
-
-        int slot = 0;
-        glUniform1i(glGetUniformLocation(shader, "u_UseAlbedoMap"), mat.has_albedo);
-        if(mat.has_albedo) {
-            glActiveTexture(GL_TEXTURE0 + slot);
-            glBindTexture(GL_TEXTURE_2D, mat.albedo_texture);
-            glUniform1i(glGetUniformLocation(shader, "u_AlbedoMap"), slot++);
-        }
-        glUniform1i(glGetUniformLocation(shader, "u_UseNormalMap"), mat.has_normal);
-        if(mat.has_normal) {
-            glActiveTexture(GL_TEXTURE0 + slot);
-            glBindTexture(GL_TEXTURE_2D, mat.normal_texture);
-            glUniform1i(glGetUniformLocation(shader, "u_NormalMap"), slot++);
-        }
-        glUniform1i(glGetUniformLocation(shader, "u_UseSpecularMap"), mat.has_specular);
-        if(mat.has_specular) {
-            glActiveTexture(GL_TEXTURE0 + slot);
-            glBindTexture(GL_TEXTURE_2D, mat.specular_texture);
-            glUniform1i(glGetUniformLocation(shader, "u_SpecularMap"), slot++);
-        }
-        glUniform1i(glGetUniformLocation(shader, "u_UseAOMap"), mat.has_ao);
-        if(mat.has_ao) {
-            glActiveTexture(GL_TEXTURE0 + slot);
-            glBindTexture(GL_TEXTURE_2D, mat.ao_texture);
-            glUniform1i(glGetUniformLocation(shader, "u_AOMap"), slot++);
-        }
-        glUniform1i(glGetUniformLocation(shader, "u_UseRoughnessMap"), mat.has_roughness);
-        if(mat.has_roughness) {
-            glActiveTexture(GL_TEXTURE0 + slot);
-            glBindTexture(GL_TEXTURE_2D, mat.roughness_texture);
-            glUniform1i(glGetUniformLocation(shader, "u_RoughnessMap"), slot++);
-        }
-        glUniform1i(glGetUniformLocation(shader, "u_UseEmissiveMap"), mat.has_emissive);
-        if(mat.has_emissive) {
-            glActiveTexture(GL_TEXTURE0 + slot);
-            glBindTexture(GL_TEXTURE_2D, mat.emissive_texture);
-            glUniform1i(glGetUniformLocation(shader, "u_EmissiveMap"), slot++);
-        }
+        mat.Apply(shader);
 
         mesh.vao->Bind();
         glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, nullptr);

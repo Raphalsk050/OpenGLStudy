@@ -32,6 +32,56 @@ struct Material {
     bool has_ao = false;
     bool has_roughness = false;
     bool has_emissive = false;
-};
+
+    void Apply(GLuint shader) const;
+}; 
 
 }
+
+#include <gtc/type_ptr.hpp>
+
+inline void GLStudy::Material::Apply(GLuint shader) const {
+    glUniform3fv(glGetUniformLocation(shader, "u_AlbedoColor"), 1, glm::value_ptr(albedo_color));
+    glUniform1f(glGetUniformLocation(shader, "u_Metallic"), metallic);
+    glUniform1f(glGetUniformLocation(shader, "u_Roughness"), roughness);
+    glUniform3fv(glGetUniformLocation(shader, "u_EmissiveColor"), 1, glm::value_ptr(emissive_color));
+
+    int slot = 0;
+    glUniform1i(glGetUniformLocation(shader, "u_UseAlbedoMap"), has_albedo);
+    if (has_albedo) {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_2D, albedo_texture);
+        glUniform1i(glGetUniformLocation(shader, "u_AlbedoMap"), slot++);
+    }
+    glUniform1i(glGetUniformLocation(shader, "u_UseNormalMap"), has_normal);
+    if (has_normal) {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_2D, normal_texture);
+        glUniform1i(glGetUniformLocation(shader, "u_NormalMap"), slot++);
+    }
+    glUniform1i(glGetUniformLocation(shader, "u_UseSpecularMap"), has_specular);
+    if (has_specular) {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_2D, specular_texture);
+        glUniform1i(glGetUniformLocation(shader, "u_SpecularMap"), slot++);
+    }
+    glUniform1i(glGetUniformLocation(shader, "u_UseAOMap"), has_ao);
+    if (has_ao) {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_2D, ao_texture);
+        glUniform1i(glGetUniformLocation(shader, "u_AOMap"), slot++);
+    }
+    glUniform1i(glGetUniformLocation(shader, "u_UseRoughnessMap"), has_roughness);
+    if (has_roughness) {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_2D, roughness_texture);
+        glUniform1i(glGetUniformLocation(shader, "u_RoughnessMap"), slot++);
+    }
+    glUniform1i(glGetUniformLocation(shader, "u_UseEmissiveMap"), has_emissive);
+    if (has_emissive) {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_2D, emissive_texture);
+        glUniform1i(glGetUniformLocation(shader, "u_EmissiveMap"), slot);
+    }
+}
+
