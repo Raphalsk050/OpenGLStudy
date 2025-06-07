@@ -11,6 +11,7 @@ uniform mat4 u_ViewProjection;
 out vec4 vColor;
 out vec3 vNormal;
 out vec3 vPos;
+out vec2 vTexCoord;
 
 void main()
 {
@@ -19,4 +20,5 @@ void main()
     gl_Position = u_ViewProjection * worldPos;
     vPos = worldPos.xyz;
     vColor = aColor;
+    vTexCoord = aTexCoord;
 }

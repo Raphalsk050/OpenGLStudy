@@ -2,6 +2,7 @@
 in vec3 vPos;
 in vec3 vNormal;
 in vec4 vColor;
+in vec2 vTexCoord;
 
 out vec4 FragColor;
 
@@ -20,6 +21,20 @@ struct Light {
 uniform int u_NumLights;
 uniform Light u_Lights[MAX_LIGHTS];
 uniform vec3 u_CamPos;
+
+uniform bool u_UseAlbedoMap;
+uniform bool u_UseNormalMap;
+uniform bool u_UseSpecularMap;
+uniform bool u_UseAOMap;
+uniform bool u_UseRoughnessMap;
+uniform bool u_UseEmissiveMap;
+
+uniform sampler2D u_AlbedoMap;
+uniform sampler2D u_NormalMap;
+uniform sampler2D u_SpecularMap;
+uniform sampler2D u_AOMap;
+uniform sampler2D u_RoughnessMap;
+uniform sampler2D u_EmissiveMap;
 
 const float PI = 3.14159265359;
 
@@ -60,9 +75,25 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 void main()
 {
     vec3 albedo = vColor.rgb;
+    if(u_UseAlbedoMap)
+        albedo = texture(u_AlbedoMap, vTexCoord).rgb;
     float metallic = 0.8;
     float roughness = 0.3;
+    if(u_UseRoughnessMap)
+        roughness = texture(u_RoughnessMap, vTexCoord).r;
     vec3 N = normalize(vNormal);
+    if(u_UseNormalMap)
+    {
+        vec3 tangentNormal = texture(u_NormalMap, vTexCoord).xyz * 2.0 - 1.0;
+        vec3 Q1 = dFdx(vPos);
+        vec3 Q2 = dFdy(vPos);
+        vec2 st1 = dFdx(vTexCoord);
+        vec2 st2 = dFdy(vTexCoord);
+        vec3 T = normalize(Q1 * st2.t - Q2 * st1.t);
+        vec3 B = -normalize(cross(N, T));
+        mat3 TBN = mat3(T, B, N);
+        N = normalize(TBN * tangentNormal);
+    }
     vec3 V = normalize(u_CamPos - vPos);
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
@@ -107,8 +138,15 @@ void main()
         float NdotL = max(dot(N, L), 0.0);
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
-    vec3 ambient = vec3(0.03) * albedo;
-    vec3 color = ambient + Lo;
+    vec3 emissive = vec3(0.0);
+    if(u_UseEmissiveMap)
+        emissive = texture(u_EmissiveMap, vTexCoord).rgb;
+    float ao = 1.0;
+    if(u_UseAOMap)
+        ao = texture(u_AOMap, vTexCoord).r;
+
+    vec3 ambient = vec3(0.03) * albedo + emissive;
+    vec3 color = ambient + Lo * ao;
     color = pow(color, vec3(1.0/2.2));
     FragColor = vec4(color, 1.0);
 }

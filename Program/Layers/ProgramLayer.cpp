@@ -1,6 +1,8 @@
 #include "ProgramLayer.h"
 #include <glm.hpp>
 #include <gtc/random.hpp>
+#include <memory>
+#include "Core/Graphics/Model.h"
 #include "Core/Events/WindowApplicationEvent.h"
 
 namespace GLStudy
@@ -37,6 +39,13 @@ namespace GLStudy
                 }
             }
         }
+
+        auto model_ent = scene_.CreateEntity("Model");
+        RendererComponent model_rc{};
+        model_rc.mesh = MeshType::Model;
+        model_rc.model = std::make_shared<Model>("Assets/Models/cube.obj");
+        model_ent.AddComponent<RendererComponent>(model_rc);
+        model_ent.SetPosition({0.0f,0.0f,0.0f});
 
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();

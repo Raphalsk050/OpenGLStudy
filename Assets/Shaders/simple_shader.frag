@@ -2,6 +2,7 @@
 in vec4 vColor;
 in vec3 vNormal;
 in vec3 vPos;
+in vec2 vTexCoord;
 
 out vec4 FragColor;
 
@@ -9,6 +10,9 @@ vec3 vAmbientLightColor = vec3(1.0f,1.0f,1.0f);
 float ambientLightIntensity = 0.35f;
 vec3 vLightPosition = vec3(0.0f,1.0f,0.0f);
 float pointLightIntensity = 1.0f;
+
+uniform bool u_UseAlbedoMap;
+uniform sampler2D u_AlbedoMap;
 
 void main()
 {
@@ -21,6 +25,10 @@ void main()
     vec3 diffuse = vec3(NdotL) * vec3(pointLightIntensity);
     vec3 lighting = ambientLight + diffuse;
 
-    FragColor.xyz = vColor.xyz * lighting;
+    vec3 baseColor = vColor.xyz;
+    if(u_UseAlbedoMap)
+        baseColor = texture(u_AlbedoMap, vTexCoord).rgb;
+
+    FragColor.xyz = baseColor * lighting;
     FragColor.a = 1.0f;
 }

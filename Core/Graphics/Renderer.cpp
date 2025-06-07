@@ -7,12 +7,23 @@
 
 namespace GLStudy {
     void Renderer::Init() {
-        shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/pbr_shader.vert", "Assets/Shaders/pbr_shader.frag");
+        pbr_shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/pbr_shader.vert", "Assets/Shaders/pbr_shader.frag");
+        unlit_shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/simple_shader.vert", "Assets/Shaders/simple_shader.frag");
+        pbr_model_shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/model_pbr_shader.vert", "Assets/Shaders/pbr_shader.frag");
+        unlit_model_shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/model_simple_shader.vert", "Assets/Shaders/simple_shader.frag");
 
-        glUseProgram(shader_prog_);
-        view_proj_location_ = glGetUniformLocation(shader_prog_, "u_ViewProjection");
-        cam_pos_location_ = glGetUniformLocation(shader_prog_, "u_CamPos");
-        num_lights_location_ = glGetUniformLocation(shader_prog_, "u_NumLights");
+        glUseProgram(pbr_shader_prog_);
+        view_proj_location_ = glGetUniformLocation(pbr_shader_prog_, "u_ViewProjection");
+        cam_pos_location_ = glGetUniformLocation(pbr_shader_prog_, "u_CamPos");
+        num_lights_location_ = glGetUniformLocation(pbr_shader_prog_, "u_NumLights");
+
+        glUseProgram(unlit_shader_prog_);
+        view_proj_location_unlit_ = glGetUniformLocation(unlit_shader_prog_, "u_ViewProjection");
+
+        glUseProgram(pbr_model_shader_prog_);
+        view_proj_location_model_ = glGetUniformLocation(pbr_model_shader_prog_, "u_ViewProjection");
+        glUseProgram(unlit_model_shader_prog_);
+        view_proj_location_model_unlit_ = glGetUniformLocation(unlit_model_shader_prog_, "u_ViewProjection");
 
         struct Vertex {
             glm::vec3 position;
@@ -142,25 +153,92 @@ namespace GLStudy {
         triangle_instances_.push_back({model, color});
     }
 
-    void Renderer::DrawCube(const glm::mat4& model, const glm::vec4& color) {
-        cube_instances_.push_back({model, color});
+void Renderer::DrawCube(const glm::mat4& model, const glm::vec4& color) {
+    cube_instances_.push_back({model, color});
+}
+
+void Renderer::DrawModel(const Model& model, const glm::mat4& transform) {
+    for(const auto& mesh : model.GetMeshes()) {
+        const Material& mat = model.GetMaterials()[mesh.material_index];
+        unsigned int shader = mat.shading == MaterialShading::Lit ? pbr_model_shader_prog_ : unlit_model_shader_prog_;
+        int vp_loc = mat.shading == MaterialShading::Lit ? view_proj_location_model_ : view_proj_location_model_unlit_;
+        glUseProgram(shader);
+        glUniformMatrix4fv(vp_loc, 1, GL_FALSE, glm::value_ptr(view_projection_));
+        if(mat.shading == MaterialShading::Lit) {
+            glUniform3fv(cam_pos_location_, 1, glm::value_ptr(camera_pos_));
+            glUniform1i(num_lights_location_, static_cast<int>(lights_.size()));
+            for(size_t i=0;i<lights_.size() && i<4;++i) {
+                std::string base = "u_Lights[" + std::to_string(i) + "]";
+                glUniform1i(glGetUniformLocation(shader, (base + ".type").c_str()), static_cast<int>(lights_[i].type));
+                glUniform3fv(glGetUniformLocation(shader, (base + ".position").c_str()), 1, glm::value_ptr(lights_[i].position));
+                glUniform3fv(glGetUniformLocation(shader, (base + ".direction").c_str()), 1, glm::value_ptr(lights_[i].direction));
+                glUniform3fv(glGetUniformLocation(shader, (base + ".color").c_str()), 1, glm::value_ptr(lights_[i].color));
+                glUniform1f(glGetUniformLocation(shader, (base + ".intensity").c_str()), lights_[i].intensity);
+                glUniform1f(glGetUniformLocation(shader, (base + ".range").c_str()), lights_[i].range);
+                glUniform1f(glGetUniformLocation(shader, (base + ".innerCutoff").c_str()), lights_[i].inner_cutoff);
+                glUniform1f(glGetUniformLocation(shader, (base + ".outerCutoff").c_str()), lights_[i].outer_cutoff);
+            }
+        }
+        glUniformMatrix4fv(glGetUniformLocation(shader, "u_Model"), 1, GL_FALSE, glm::value_ptr(transform));
+
+        int slot = 0;
+        glUniform1i(glGetUniformLocation(shader, "u_UseAlbedoMap"), mat.has_albedo);
+        if(mat.has_albedo) {
+            glActiveTexture(GL_TEXTURE0 + slot);
+            glBindTexture(GL_TEXTURE_2D, mat.albedo_texture);
+            glUniform1i(glGetUniformLocation(shader, "u_AlbedoMap"), slot++);
+        }
+        glUniform1i(glGetUniformLocation(shader, "u_UseNormalMap"), mat.has_normal);
+        if(mat.has_normal) {
+            glActiveTexture(GL_TEXTURE0 + slot);
+            glBindTexture(GL_TEXTURE_2D, mat.normal_texture);
+            glUniform1i(glGetUniformLocation(shader, "u_NormalMap"), slot++);
+        }
+        glUniform1i(glGetUniformLocation(shader, "u_UseSpecularMap"), mat.has_specular);
+        if(mat.has_specular) {
+            glActiveTexture(GL_TEXTURE0 + slot);
+            glBindTexture(GL_TEXTURE_2D, mat.specular_texture);
+            glUniform1i(glGetUniformLocation(shader, "u_SpecularMap"), slot++);
+        }
+        glUniform1i(glGetUniformLocation(shader, "u_UseAOMap"), mat.has_ao);
+        if(mat.has_ao) {
+            glActiveTexture(GL_TEXTURE0 + slot);
+            glBindTexture(GL_TEXTURE_2D, mat.ao_texture);
+            glUniform1i(glGetUniformLocation(shader, "u_AOMap"), slot++);
+        }
+        glUniform1i(glGetUniformLocation(shader, "u_UseRoughnessMap"), mat.has_roughness);
+        if(mat.has_roughness) {
+            glActiveTexture(GL_TEXTURE0 + slot);
+            glBindTexture(GL_TEXTURE_2D, mat.roughness_texture);
+            glUniform1i(glGetUniformLocation(shader, "u_RoughnessMap"), slot++);
+        }
+        glUniform1i(glGetUniformLocation(shader, "u_UseEmissiveMap"), mat.has_emissive);
+        if(mat.has_emissive) {
+            glActiveTexture(GL_TEXTURE0 + slot);
+            glBindTexture(GL_TEXTURE_2D, mat.emissive_texture);
+            glUniform1i(glGetUniformLocation(shader, "u_EmissiveMap"), slot++);
+        }
+
+        mesh.vao->Bind();
+        glDrawElements(GL_TRIANGLES, mesh.index_count, GL_UNSIGNED_INT, nullptr);
     }
+}
 
     void Renderer::Flush() {
-        glUseProgram(shader_prog_);
+        glUseProgram(pbr_shader_prog_);
         glUniformMatrix4fv(view_proj_location_, 1, GL_FALSE, glm::value_ptr(view_projection_));
         glUniform3fv(cam_pos_location_, 1, glm::value_ptr(camera_pos_));
         glUniform1i(num_lights_location_, static_cast<int>(lights_.size()));
         for (size_t i = 0; i < lights_.size() && i < 4; ++i) {
             std::string base = "u_Lights[" + std::to_string(i) + "]";
-            glUniform1i(glGetUniformLocation(shader_prog_, (base + ".type").c_str()), static_cast<int>(lights_[i].type));
-            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".position").c_str()), 1, glm::value_ptr(lights_[i].position));
-            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".direction").c_str()), 1, glm::value_ptr(lights_[i].direction));
-            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".color").c_str()), 1, glm::value_ptr(lights_[i].color));
-            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".intensity").c_str()), lights_[i].intensity);
-            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".range").c_str()), lights_[i].range);
-            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".innerCutoff").c_str()), lights_[i].inner_cutoff);
-            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".outerCutoff").c_str()), lights_[i].outer_cutoff);
+            glUniform1i(glGetUniformLocation(pbr_shader_prog_, (base + ".type").c_str()), static_cast<int>(lights_[i].type));
+            glUniform3fv(glGetUniformLocation(pbr_shader_prog_, (base + ".position").c_str()), 1, glm::value_ptr(lights_[i].position));
+            glUniform3fv(glGetUniformLocation(pbr_shader_prog_, (base + ".direction").c_str()), 1, glm::value_ptr(lights_[i].direction));
+            glUniform3fv(glGetUniformLocation(pbr_shader_prog_, (base + ".color").c_str()), 1, glm::value_ptr(lights_[i].color));
+            glUniform1f(glGetUniformLocation(pbr_shader_prog_, (base + ".intensity").c_str()), lights_[i].intensity);
+            glUniform1f(glGetUniformLocation(pbr_shader_prog_, (base + ".range").c_str()), lights_[i].range);
+            glUniform1f(glGetUniformLocation(pbr_shader_prog_, (base + ".innerCutoff").c_str()), lights_[i].inner_cutoff);
+            glUniform1f(glGetUniformLocation(pbr_shader_prog_, (base + ".outerCutoff").c_str()), lights_[i].outer_cutoff);
         }
 
         if (!triangle_instances_.empty()) {

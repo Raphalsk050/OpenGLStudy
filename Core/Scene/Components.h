@@ -1,10 +1,12 @@
 #pragma once
 #include <string>
+#include <memory>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <entt.hpp>
 #include "glad/glad.h"
 #include "../Camera/SceneCamera.h"
+#include "../Graphics/Model.h"
 
 namespace GLStudy {
     struct TagComponent {
@@ -43,6 +45,7 @@ namespace GLStudy {
     {
         MeshType mesh{MeshType::Triangle};
         glm::vec4 color{1.0f};
+        std::shared_ptr<Model> model{nullptr};
         bool depth_test{true};
         bool culling{true};
         GLenum cull_face{GL_BACK};
