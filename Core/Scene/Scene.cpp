@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "EntityHandle.h"
 #include "Core/Graphics/Renderer.h"
+#include "Core/Graphics/Model.h"
 #include "Core/Camera/CameraController.h"
 #include <glad/glad.h>
 #include <glm.hpp>
@@ -79,6 +80,7 @@ void Scene::Render(Renderer* renderer) {
     renderer->BeginScene(view_projection, cam_pos, lights);
 
     auto view = registry_.view<Transform, RendererComponent>();
+    auto model_view = registry_.view<Transform, ModelComponent>();
 
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -102,6 +104,11 @@ void Scene::Render(Renderer* renderer) {
         }
     }
     renderer->Flush();
+    for (auto entity : model_view) {
+        auto& mc = model_view.get<ModelComponent>(entity);
+        if (mc.model)
+            mc.model->Draw(renderer->GetShaderProgram(), GetWorldMatrix(entity));
+    }
 }
 
 glm::mat4 Scene::GetWorldMatrix(entt::entity entity) const {

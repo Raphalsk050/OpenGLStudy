@@ -53,6 +53,11 @@ namespace GLStudy
                                                           .color = glm::vec3(1.0f, 0.0f,0.0f),
                                                           .intensity = 10.0f});
         light_2_.SetPosition({0.0f, 0.0f,0.0f});
+
+        dummy_model_ = std::make_shared<Model>();
+        dummy_model_->LoadModel("Assets/Models/dummy.fbx");
+        model_entity_ = scene_.CreateEntity("DummyModel");
+        model_entity_.AddComponent<ModelComponent>(ModelComponent{dummy_model_});
     }
 
     void ProgramLayer::OnDetach()
