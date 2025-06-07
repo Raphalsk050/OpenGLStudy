@@ -10,6 +10,7 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "ModelLoader.h"
+#include "Material.h"
 
 namespace GLStudy {
     class Renderer {
@@ -50,6 +51,7 @@ namespace GLStudy {
             std::unique_ptr<VertexBuffer> instance_vbo;
             std::vector<InstanceData> instances;
             unsigned int index_count = 0;
+            int material_index = -1;
         };
 
         MeshRenderData& GetOrCreateMeshData(const std::string& key,
@@ -63,10 +65,13 @@ namespace GLStudy {
         glm::mat4 view_projection_{1.0f};
 
         std::unordered_map<std::string, MeshRenderData> meshes_;
+        std::unordered_map<std::string, std::vector<MeshRenderData>> model_meshes_;
+        std::unordered_map<std::string, std::vector<Material>> model_materials_;
 
         glm::vec3 camera_pos_{0.0f};
         std::vector<LightData> lights_;
         int cam_pos_location_ = -1;
         int num_lights_location_ = -1;
+        int use_albedo_location_ = -1;
     };
 }

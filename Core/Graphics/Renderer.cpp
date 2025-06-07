@@ -265,6 +265,7 @@ void Renderer::Init()
     view_proj_location_ = glGetUniformLocation(shader_prog_, "u_ViewProjection");
     cam_pos_location_ = glGetUniformLocation(shader_prog_, "u_CamPos");
     num_lights_location_ = glGetUniformLocation(shader_prog_, "u_NumLights");
+    use_albedo_location_ = glGetUniformLocation(shader_prog_, "u_UseAlbedo");
     InitDefaultMeshes();
 }
 
@@ -274,14 +275,40 @@ void Renderer::DrawMesh(MeshType type, const glm::mat4& model, const glm::vec4& 
     if(type == MeshType::Model)
     {
         key = path;
-        if(meshes_.find(key) == meshes_.end())
+        if(model_meshes_.find(key) == model_meshes_.end())
         {
-            std::vector<VertexData> verts; std::vector<unsigned int> inds;
-            if(ModelLoader::LoadOBJ(path, verts, inds))
-                GetOrCreateMeshData(key, verts, inds);
-            else
-                return;
+            ModelData md;
+            if(ModelLoader::LoadModel(path, md))
+            {
+                std::vector<MeshRenderData> datas;
+                for(const auto& mesh : md.meshes)
+                {
+                    MeshRenderData d{};
+                    d.vao = std::make_unique<VertexArray>();
+                    d.vao->Bind();
+                    d.vbo = std::make_unique<VertexBuffer>(mesh.vertices.data(), mesh.vertices.size()*sizeof(VertexData));
+                    d.ibo = std::make_unique<IndexBuffer>(mesh.indices.data(), mesh.indices.size());
+                    SetupVertexAttributes();
+                    d.instance_vbo = std::make_unique<VertexBuffer>(nullptr, sizeof(InstanceData)*1000, GL_DYNAMIC_DRAW);
+                    glVertexAttribPointer(4,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)offsetof(InstanceData,model));
+                    glVertexAttribPointer(5,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)));
+                    glVertexAttribPointer(6,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)*2));
+                    glVertexAttribPointer(7,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)*3));
+                    glVertexAttribPointer(8,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)offsetof(InstanceData,color));
+                    glEnableVertexAttribArray(4); glEnableVertexAttribArray(5); glEnableVertexAttribArray(6); glEnableVertexAttribArray(7); glEnableVertexAttribArray(8);
+                    glVertexAttribDivisor(4,1); glVertexAttribDivisor(5,1); glVertexAttribDivisor(6,1); glVertexAttribDivisor(7,1); glVertexAttribDivisor(8,1);
+                    d.vao->Unbind();
+                    d.index_count = mesh.indices.size();
+                    d.material_index = mesh.material_index;
+                    datas.push_back(std::move(d));
+                }
+                model_meshes_[key] = std::move(datas);
+                model_materials_[key] = std::move(md.materials);
+            }
+            else return;
         }
+        for(auto& d : model_meshes_[key])
+            d.instances.push_back({model,color});
     }
     else
     {
@@ -294,9 +321,9 @@ void Renderer::DrawMesh(MeshType type, const glm::mat4& model, const glm::vec4& 
             case MeshType::Plane: key="Plane"; break;
             default: key="Triangle"; break;
         }
+        auto& data = meshes_[key];
+        data.instances.push_back({model,color});
     }
-    auto& data = meshes_[key];
-    data.instances.push_back({model,color});
 }
 
 void Renderer::BeginScene(const glm::mat4& view_projection,const glm::vec3& cam_pos,const std::vector<LightData>& lights)
@@ -312,6 +339,7 @@ void Renderer::Flush()
     glUniformMatrix4fv(view_proj_location_,1,GL_FALSE,glm::value_ptr(view_projection_));
     glUniform3fv(cam_pos_location_,1,glm::value_ptr(camera_pos_));
     glUniform1i(num_lights_location_, static_cast<int>(lights_.size()));
+    glUniform1i(use_albedo_location_, 0);
     for(size_t i=0;i<lights_.size() && i<4;++i)
     {
         std::string base = "u_Lights["+std::to_string(i)+"]";
@@ -332,6 +360,29 @@ void Renderer::Flush()
         data.instance_vbo->SetData(data.instances.data(), data.instances.size()*sizeof(InstanceData));
         glDrawElementsInstanced(GL_TRIANGLES, data.index_count, GL_UNSIGNED_INT, nullptr, data.instances.size());
         data.instances.clear();
+    }
+    for(auto& [key,list] : model_meshes_)
+    {
+        auto& mats = model_materials_[key];
+        for(auto& data : list)
+        {
+            if(data.instances.empty()) continue;
+            auto& mat = mats[data.material_index];
+            if(mat.has_albedo)
+            {
+                if(!mat.albedo_map) mat.LoadTextures();
+                glUniform1i(use_albedo_location_, 1);
+                mat.albedo_map->Bind(0);
+            }
+            else
+            {
+                glUniform1i(use_albedo_location_, 0);
+            }
+            data.vao->Bind();
+            data.instance_vbo->SetData(data.instances.data(), data.instances.size()*sizeof(InstanceData));
+            glDrawElementsInstanced(GL_TRIANGLES, data.index_count, GL_UNSIGNED_INT, nullptr, data.instances.size());
+            data.instances.clear();
+        }
     }
 }
 

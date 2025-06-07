@@ -15,11 +15,9 @@ namespace GLStudy
         Layer::OnAttach();
         cube_ = scene_.CreateEntity();
 
-        RendererComponent renderer_component_spec{
-            .mesh = MeshType::Cube,
-            .color = glm::vec4(1.0f, 1.0f,1.0f, 1.0f)
-
-        };
+        RendererComponent renderer_component_spec{};
+        renderer_component_spec.mesh = MeshType::Cube;
+        renderer_component_spec.color = glm::vec4(1.0f,1.0f,1.0f,1.0f);
 
         int amount = 5;
 

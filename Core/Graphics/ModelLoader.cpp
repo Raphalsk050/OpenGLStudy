@@ -1,96 +1,76 @@
 #include "ModelLoader.h"
-#include <fstream>
-#include <sstream>
-#include <unordered_map>
-#include <algorithm>
+#include <filesystem>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 namespace GLStudy {
-namespace {
-struct IndexKey {
-    int v;
-    int vt;
-    int vn;
-    bool operator==(const IndexKey& other) const {
-        return v==other.v && vt==other.vt && vn==other.vn;
-    }
-};
-struct KeyHash {
-    std::size_t operator()(const IndexKey& k) const noexcept {
-        return ((std::hash<int>()(k.v) ^ (std::hash<int>()(k.vt) << 1)) >> 1) ^ (std::hash<int>()(k.vn) << 1);
-    }
-};
-}
 
-bool ModelLoader::LoadOBJ(const std::string& path,
-                          std::vector<VertexData>& out_vertices,
-                          std::vector<unsigned int>& out_indices)
+bool ModelLoader::LoadModel(const std::string& path, ModelData& out_model)
 {
-    std::ifstream file(path);
-    if(!file.is_open())
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_FlipUVs);
+    if(!scene || !scene->mNumMeshes)
         return false;
+    std::filesystem::path base = std::filesystem::path(path).parent_path();
 
-    std::vector<glm::vec3> positions;
-    std::vector<glm::vec3> normals;
-    std::vector<glm::vec2> texcoords;
-
-    std::unordered_map<IndexKey, unsigned int, KeyHash> uniqueIndex;
-    std::string line;
-    while(std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string prefix;
-        ss >> prefix;
-        if(prefix == "v") {
-            glm::vec3 pos;
-            ss >> pos.x >> pos.y >> pos.z;
-            positions.push_back(pos);
-        } else if(prefix == "vn") {
-            glm::vec3 n;
-            ss >> n.x >> n.y >> n.z;
-            normals.push_back(n);
-        } else if(prefix == "vt") {
-            glm::vec2 uv;
-            ss >> uv.x >> uv.y;
-            texcoords.push_back(uv);
-        } else if(prefix == "f") {
-            for(int i=0;i<3;i++) {
-                std::string vert;
-                ss >> vert;
-                std::replace(vert.begin(), vert.end(), '/', ' ');
-                std::stringstream vs(vert);
-                IndexKey key{0,0,0};
-                vs >> key.v >> key.vt >> key.vn;
-                key.v--; key.vt--; key.vn--;
-                auto it = uniqueIndex.find(key);
-                if(it == uniqueIndex.end()) {
-                    VertexData v{};
-                    v.position = positions[key.v];
-                    if(key.vn >=0 && key.vn < (int)normals.size())
-                        v.normal = normals[key.vn];
-                    else
-                        v.normal = glm::vec3(0,1,0);
-                    if(key.vt >=0 && key.vt < (int)texcoords.size())
-                        v.texcoord = texcoords[key.vt];
-                    else
-                        v.texcoord = glm::vec2(0.0f);
-                    // simple tangent computation
-                    glm::vec3 up(0.0f,1.0f,0.0f);
-                    glm::vec3 t = glm::cross(up, v.normal);
-                    if(glm::length(t) < 0.001f)
-                        t = glm::cross(glm::vec3(1,0,0), v.normal);
-                    v.tangent = glm::normalize(t);
-
-                    unsigned int index = static_cast<unsigned int>(out_vertices.size());
-                    out_vertices.push_back(v);
-                    uniqueIndex[key] = index;
-                    out_indices.push_back(index);
-                } else {
-                    out_indices.push_back(it->second);
-                }
-            }
+    out_model.materials.resize(scene->mNumMaterials);
+    for(unsigned int i=0;i<scene->mNumMaterials;i++) {
+        Material mat{};
+        const aiMaterial* aimat = scene->mMaterials[i];
+        aiString tex;
+        if(AI_SUCCESS == aimat->GetTexture(aiTextureType_DIFFUSE,0,&tex)) {
+            mat.albedo_path = (base / tex.C_Str()).string();
+            mat.has_albedo = true;
         }
+        if(AI_SUCCESS == aimat->GetTexture(aiTextureType_NORMALS,0,&tex)) {
+            mat.normal_path = (base / tex.C_Str()).string();
+            mat.has_normal = true;
+        }
+        if(AI_SUCCESS == aimat->GetTexture(aiTextureType_SPECULAR,0,&tex)) {
+            mat.specular_path = (base / tex.C_Str()).string();
+            mat.has_specular = true;
+        }
+        if(AI_SUCCESS == aimat->GetTexture(aiTextureType_HEIGHT,0,&tex)) {
+            mat.roughness_path = (base / tex.C_Str()).string();
+            mat.has_roughness = true;
+        }
+        if(AI_SUCCESS == aimat->GetTexture(aiTextureType_LIGHTMAP,0,&tex)) {
+            mat.ao_path = (base / tex.C_Str()).string();
+            mat.has_ao = true;
+        }
+        if(AI_SUCCESS == aimat->GetTexture(aiTextureType_EMISSIVE,0,&tex)) {
+            mat.emissive_path = (base / tex.C_Str()).string();
+            mat.has_emissive = true;
+        }
+        out_model.materials[i] = mat;
     }
 
+    out_model.meshes.resize(scene->mNumMeshes);
+    for(unsigned int m=0;m<scene->mNumMeshes;m++) {
+        const aiMesh* mesh = scene->mMeshes[m];
+        MeshData md{};
+        md.material_index = mesh->mMaterialIndex;
+        md.vertices.resize(mesh->mNumVertices);
+        for(unsigned int v=0; v<mesh->mNumVertices; ++v) {
+            VertexData vd{};
+            vd.position = {mesh->mVertices[v].x, mesh->mVertices[v].y, mesh->mVertices[v].z};
+            if(mesh->HasNormals())
+                vd.normal = {mesh->mNormals[v].x, mesh->mNormals[v].y, mesh->mNormals[v].z};
+            if(mesh->HasTangentsAndBitangents())
+                vd.tangent = {mesh->mTangents[v].x, mesh->mTangents[v].y, mesh->mTangents[v].z};
+            if(mesh->HasTextureCoords(0))
+                vd.texcoord = {mesh->mTextureCoords[0][v].x, mesh->mTextureCoords[0][v].y};
+            md.vertices[v] = vd;
+        }
+        for(unsigned int f=0; f<mesh->mNumFaces; ++f) {
+            const aiFace& face = mesh->mFaces[f];
+            for(unsigned int j=0;j<face.mNumIndices;j++)
+                md.indices.push_back(face.mIndices[j]);
+        }
+        out_model.meshes[m] = std::move(md);
+    }
     return true;
 }
 
-} // namespace GLStudy
+}

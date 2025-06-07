@@ -1,6 +1,7 @@
 #version 330 core
 in vec3 vPos;
 in vec3 vNormal;
+in vec2 vTex;
 in vec4 vColor;
 
 out vec4 FragColor;
@@ -20,6 +21,8 @@ struct Light {
 uniform int u_NumLights;
 uniform Light u_Lights[MAX_LIGHTS];
 uniform vec3 u_CamPos;
+uniform sampler2D u_AlbedoMap;
+uniform int u_UseAlbedo;
 
 const float PI = 3.14159265359;
 
@@ -60,6 +63,8 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 void main()
 {
     vec3 albedo = vColor.rgb;
+    if(u_UseAlbedo == 1)
+        albedo = texture(u_AlbedoMap, vTex).rgb;
     float metallic = 0.8;
     float roughness = 0.3;
     vec3 N = normalize(vNormal);

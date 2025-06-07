@@ -5,6 +5,7 @@
 #include <entt.hpp>
 #include "glad/glad.h"
 #include "../Camera/SceneCamera.h"
+#include "../Graphics/Material.h"
 
 namespace GLStudy {
     struct TagComponent {
@@ -46,6 +47,7 @@ namespace GLStudy {
     {
         MeshType mesh{MeshType::Triangle};
         std::string mesh_path{}; // used when mesh == MeshType::Model
+        Material material{};
         glm::vec4 color{1.0f};
         bool depth_test{true};
         bool culling{true};

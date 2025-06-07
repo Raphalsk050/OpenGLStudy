@@ -11,6 +11,8 @@ add_subdirectory(ThirdParty/glfw)
 add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
+add_subdirectory(ThirdParty/stb)
+add_subdirectory(ThirdParty/assimp)
 
 if(USE_BULLET)
     # bullet properties
@@ -51,6 +53,10 @@ add_executable(openglStudy
         Core/Graphics/Renderer.cpp
         Core/Graphics/ModelLoader.h
         Core/Graphics/ModelLoader.cpp
+        Core/Graphics/Material.h
+        Core/Graphics/Material.cpp
+        Core/Graphics/Texture2D.h
+        Core/Graphics/Texture2D.cpp
         Core/Camera/Camera.h
         Core/Camera/SceneCamera.h
         Core/Camera/SceneCamera.cpp
@@ -74,6 +80,8 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/glfw/include
         ThirdParty/glad/include
         ThirdParty/glm
+        ThirdParty/stb
+        ThirdParty/assimp/include
 )
 
 target_link_libraries(openglStudy PUBLIC
@@ -81,6 +89,8 @@ target_link_libraries(openglStudy PUBLIC
         glad
         glfw
         Entt
+        stb_image
+        assimp
 )
 
 if(USE_BULLET)

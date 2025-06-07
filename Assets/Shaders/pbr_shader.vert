@@ -10,6 +10,7 @@ uniform mat4 u_ViewProjection;
 
 out vec3 vPos;
 out vec3 vNormal;
+out vec2 vTex;
 out vec4 vColor;
 
 void main()
@@ -17,6 +18,7 @@ void main()
     vec4 worldPos = aModelTransform * vec4(aPos, 1.0);
     vPos = worldPos.xyz;
     vNormal = mat3(transpose(inverse(aModelTransform))) * aNormal;
+    vTex = aTexCoord;
     vColor = aColor;
     gl_Position = u_ViewProjection * worldPos;
 }
