@@ -8,6 +8,7 @@
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Model.h"
 
 namespace GLStudy {
     class Renderer {
@@ -37,6 +38,7 @@ namespace GLStudy {
 
         void DrawTriangle(const glm::mat4& model, const glm::vec4& color);
         void DrawCube(const glm::mat4& model, const glm::vec4& color);
+        void DrawModel(const Model& model, const glm::mat4& transform);
         void Flush();
     private:
         struct InstanceData {
@@ -44,8 +46,14 @@ namespace GLStudy {
             glm::vec4 color;
         };
 
-        unsigned int shader_prog_ = 0;
+        unsigned int pbr_shader_prog_ = 0;
+        unsigned int unlit_shader_prog_ = 0;
+        unsigned int pbr_model_shader_prog_ = 0;
+        unsigned int unlit_model_shader_prog_ = 0;
         int view_proj_location_ = -1;
+        int view_proj_location_unlit_ = -1;
+        int view_proj_location_model_ = -1;
+        int view_proj_location_model_unlit_ = -1;
         glm::mat4 view_projection_{1.0f};
 
         std::unique_ptr<VertexArray> triangle_vao_;

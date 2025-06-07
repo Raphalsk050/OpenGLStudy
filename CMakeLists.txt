@@ -50,6 +50,11 @@ add_executable(openglStudy
         Core/Graphics/IndexBuffer.cpp
         Core/Graphics/Renderer.h
         Core/Graphics/Renderer.cpp
+        Core/Graphics/Texture.h
+        Core/Graphics/Texture.cpp
+        Core/Graphics/Material.h
+        Core/Graphics/Model.h
+        Core/Graphics/Model.cpp
         Core/Camera/Camera.h
         Core/Camera/SceneCamera.h
         Core/Camera/SceneCamera.cpp
