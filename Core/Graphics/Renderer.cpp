@@ -153,7 +153,8 @@ namespace GLStudy {
         glUniformMatrix4fv(model_location_, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
         glUniform3fv(cam_pos_location_, 1, glm::value_ptr(camera_pos_));
         glUniform1i(num_lights_location_, static_cast<int>(lights_.size()));
-        glUniform1i(glGetUniformLocation(shader_prog_, "u_UseTexture"), 0);
+        glUniform1i(glGetUniformLocation(shader_prog_, "u_UseAlbedoMap"), 0);
+        glUniform1i(glGetUniformLocation(shader_prog_, "u_UseNormalMap"), 0);
         for (size_t i = 0; i < lights_.size() && i < 4; ++i) {
             std::string base = "u_Lights[" + std::to_string(i) + "]";
             glUniform1i(glGetUniformLocation(shader_prog_, (base + ".type").c_str()), static_cast<int>(lights_[i].type));

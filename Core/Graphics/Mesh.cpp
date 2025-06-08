@@ -3,8 +3,9 @@
 
 namespace GLStudy {
 
-Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, std::shared_ptr<Texture2D> texture)
-    : texture_(std::move(texture)) {
+Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices,
+           std::shared_ptr<Texture2D> albedo, std::shared_ptr<Texture2D> normal)
+    : albedo_(std::move(albedo)), normal_(std::move(normal)) {
     vao_ = std::make_unique<VertexArray>();
     vao_->Bind();
     vbo_ = std::make_unique<VertexBuffer>(vertices.data(), vertices.size() * sizeof(Vertex));
@@ -22,18 +23,27 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>&
 }
 
 void Mesh::Draw(unsigned int shader) const {
-    if (texture_) {
-        glUniform1i(glGetUniformLocation(shader, "u_UseTexture"), 1);
+    if (albedo_) {
+        glUniform1i(glGetUniformLocation(shader, "u_UseAlbedoMap"), 1);
         glUniform1i(glGetUniformLocation(shader, "u_AlbedoMap"), 0);
-        texture_->Bind(0);
+        albedo_->Bind(0);
     } else {
-        glUniform1i(glGetUniformLocation(shader, "u_UseTexture"), 0);
+        glUniform1i(glGetUniformLocation(shader, "u_UseAlbedoMap"), 0);
+    }
+    if (normal_) {
+        glUniform1i(glGetUniformLocation(shader, "u_UseNormalMap"), 1);
+        glUniform1i(glGetUniformLocation(shader, "u_NormalMap"), 1);
+        normal_->Bind(1);
+    } else {
+        glUniform1i(glGetUniformLocation(shader, "u_UseNormalMap"), 0);
     }
     vao_->Bind();
     glDrawElements(GL_TRIANGLES, index_count_, GL_UNSIGNED_INT, nullptr);
     vao_->Unbind();
-    if (texture_)
-        texture_->Unbind();
+    if (albedo_)
+        albedo_->Unbind();
+    if (normal_)
+        normal_->Unbind();
 }
 
 }

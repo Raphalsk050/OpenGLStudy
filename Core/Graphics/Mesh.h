@@ -18,9 +18,12 @@ struct Vertex {
 class Mesh {
 public:
     Mesh() = default;
-    Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, std::shared_ptr<Texture2D> texture);
+    Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices,
+         std::shared_ptr<Texture2D> albedo,
+         std::shared_ptr<Texture2D> normal = nullptr);
     void Draw(unsigned int shader) const;
-    std::shared_ptr<Texture2D> texture_;
+    std::shared_ptr<Texture2D> albedo_;
+    std::shared_ptr<Texture2D> normal_;
 private:
     std::unique_ptr<VertexArray> vao_;
     std::unique_ptr<VertexBuffer> vbo_;

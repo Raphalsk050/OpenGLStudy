@@ -1,6 +1,7 @@
 #version 330 core
 in vec3 vPos;
 in vec3 vNormal;
+in vec3 vTangent;
 in vec4 vColor;
 in vec2 vTexCoord;
 
@@ -22,7 +23,9 @@ uniform int u_NumLights;
 uniform Light u_Lights[MAX_LIGHTS];
 uniform vec3 u_CamPos;
 uniform sampler2D u_AlbedoMap;
-uniform bool u_UseTexture;
+uniform sampler2D u_NormalMap;
+uniform bool u_UseAlbedoMap;
+uniform bool u_UseNormalMap;
 
 const float PI = 3.14159265359;
 
@@ -62,10 +65,18 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 
 void main()
 {
-    vec3 albedo = u_UseTexture ? texture(u_AlbedoMap, vTexCoord).rgb : vColor.rgb;
+    vec3 albedo = u_UseAlbedoMap ? texture(u_AlbedoMap, vTexCoord).rgb : vColor.rgb;
     float metallic = 0.8;
     float roughness = 0.3;
     vec3 N = normalize(vNormal);
+    vec3 T = normalize(vTangent);
+    vec3 B = normalize(cross(N, T));
+    if(u_UseNormalMap)
+    {
+        vec3 n = texture(u_NormalMap, vTexCoord).rgb * 2.0 - 1.0;
+        mat3 TBN = mat3(T, B, N);
+        N = normalize(TBN * n);
+    }
     vec3 V = normalize(u_CamPos - vPos);
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 

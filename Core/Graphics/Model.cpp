@@ -78,38 +78,45 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
         for(size_t i = 0; i < vertices.size(); ++i)
             vertices[i].normal = glm::normalize(temp_normals[i]);
     }
-    std::shared_ptr<Texture2D> tex = nullptr;
+    std::shared_ptr<Texture2D> albedoTex = nullptr;
+    std::shared_ptr<Texture2D> normalTex = nullptr;
     if(mesh->mMaterialIndex >=0) {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-        if(material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-            aiString str; material->GetTexture(aiTextureType_DIFFUSE,0,&str);
+        auto LoadTextureOfType = [&](aiTextureType type) -> std::shared_ptr<Texture2D> {
+            if(material->GetTextureCount(type) == 0)
+                return nullptr;
+            aiString str; material->GetTexture(type, 0, &str);
             std::string filename = str.C_Str();
-            if(!filename.empty()) {
-                const aiTexture* texData = scene->GetEmbeddedTexture(filename.c_str());
-                if(!texData && filename[0] == '*') {
-                    int idx = std::atoi(filename.c_str() + 1);
-                    if(idx >= 0 && idx < static_cast<int>(scene->mNumTextures))
-                        texData = scene->mTextures[idx];
-                }
-                if(texData) {
-                    if(texData->mHeight == 0) {
-                        tex = std::make_shared<Texture2D>(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth);
-                    } else {
-                        tex = std::make_shared<Texture2D>();
-                        tex->LoadFromRawData(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth, texData->mHeight, 4);
-                    }
-                } else {
-                    std::filesystem::path filePath = filename;
-                    if (!filePath.is_absolute())
-                        filePath = std::filesystem::path(directory_) / filePath;
-                    if (!std::filesystem::exists(filePath))
-                        filePath = std::filesystem::path(directory_) / filePath.filename();
-                    tex = std::make_shared<Texture2D>(filePath.string());
-                }
+            if(filename.empty())
+                return nullptr;
+            const aiTexture* texData = scene->GetEmbeddedTexture(filename.c_str());
+            if(!texData && filename[0] == '*') {
+                int idx = std::atoi(filename.c_str() + 1);
+                if(idx >= 0 && idx < static_cast<int>(scene->mNumTextures))
+                    texData = scene->mTextures[idx];
             }
-        }
+            if(texData) {
+                if(texData->mHeight == 0)
+                    return std::make_shared<Texture2D>(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth);
+                auto tex = std::make_shared<Texture2D>();
+                tex->LoadFromRawData(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth, texData->mHeight, 4);
+                return tex;
+            } else {
+                std::filesystem::path filePath = filename;
+                if (!filePath.is_absolute())
+                    filePath = std::filesystem::path(directory_) / filePath;
+                if (!std::filesystem::exists(filePath))
+                    filePath = std::filesystem::path(directory_) / filePath.filename();
+                return std::make_shared<Texture2D>(filePath.string());
+            }
+        };
+
+        albedoTex = LoadTextureOfType(aiTextureType_DIFFUSE);
+        normalTex = LoadTextureOfType(aiTextureType_NORMALS);
+        if(!normalTex)
+            normalTex = LoadTextureOfType(aiTextureType_HEIGHT);
     }
-    return Mesh(vertices, indices, tex);
+    return Mesh(vertices, indices, albedoTex, normalTex);
 }
 
 void Model::Draw(unsigned int shader, const glm::mat4& transform) const {
