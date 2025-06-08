@@ -116,14 +116,18 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
             }
         };
 
-        auto LoadTextureByName = [&](const std::string& hint) -> std::shared_ptr<Texture2D> {
+        auto LoadTextureByName = [&](std::initializer_list<std::string> hints) -> std::shared_ptr<Texture2D> {
             for(unsigned int i = 0; i < material->GetTextureCount(aiTextureType_UNKNOWN); ++i) {
                 aiString str; material->GetTexture(aiTextureType_UNKNOWN, i, &str);
                 std::string name = str.C_Str();
                 std::string lower;
                 lower.resize(name.size());
                 std::transform(name.begin(), name.end(), lower.begin(), ::tolower);
-                if(lower.find(hint) == std::string::npos)
+                bool match = false;
+                for(const auto& h : hints) {
+                    if(lower.find(h) != std::string::npos) { match = true; break; }
+                }
+                if(!match)
                     continue;
                 const aiTexture* texData = scene->GetEmbeddedTexture(name.c_str());
                 if(!texData && name[0] == '*') {
@@ -159,10 +163,10 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
             normalTex = LoadTextureOfType(aiTextureType_HEIGHT);
         metallicTex = LoadTextureOfType(aiTextureType_METALNESS);
         if(!metallicTex)
-            metallicTex = LoadTextureByName("metal");
+            metallicTex = LoadTextureByName({"metal", "spec"});
         roughnessTex = LoadTextureOfType(aiTextureType_DIFFUSE_ROUGHNESS);
         if(!roughnessTex)
-            roughnessTex = LoadTextureByName("rough");
+            roughnessTex = LoadTextureByName({"rough", "gloss"});
     }
     return Mesh(vertices, indices, albedoTex, normalTex, metallicTex, roughnessTex);
 }
