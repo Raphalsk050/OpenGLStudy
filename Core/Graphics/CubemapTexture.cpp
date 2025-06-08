@@ -1,5 +1,7 @@
 #include "CubemapTexture.h"
 #include <stb_image.h>
+#include <glm.hpp>
+#include <gtc/constants.hpp>
 #include <iostream>
 #include <vector>
 #include <cstring>
@@ -72,7 +74,7 @@ bool CubemapTexture::LoadFromSingleFile(const std::string& file, bool hdr) {
         }
     }
 
-    enum class Layout { HorizontalStrip, VerticalStrip, HorizontalCross, VerticalCross };
+    enum class Layout { HorizontalStrip, VerticalStrip, HorizontalCross, VerticalCross, Equirectangular };
     Layout layout;
     int face_size = 0;
     if (width == height * 6) {
@@ -87,6 +89,9 @@ bool CubemapTexture::LoadFromSingleFile(const std::string& file, bool hdr) {
     } else if (height * 3 == width * 4) {
         layout = Layout::VerticalCross;
         face_size = height / 4;
+    } else if (width == height * 2) {
+        layout = Layout::Equirectangular;
+        face_size = height;
     } else {
         std::cerr << "Unsupported cubemap layout: " << file << std::endl;
         if (hdr)
@@ -118,6 +123,42 @@ bool CubemapTexture::LoadFromSingleFile(const std::string& file, bool hdr) {
                      format, type, buffer.data());
     };
 
+    auto copy_from_equirect = [&](int face) {
+        int pixel_size = hdr ? sizeof(float) : sizeof(unsigned char);
+        std::vector<unsigned char> buffer(face_size * face_size * channels * pixel_size);
+        for (int y = 0; y < face_size; ++y) {
+            for (int x = 0; x < face_size; ++x) {
+                float u = 2.0f * (x + 0.5f) / face_size - 1.0f;
+                float v = 2.0f * (y + 0.5f) / face_size - 1.0f;
+                glm::vec3 dir;
+                switch (face) {
+                case 0: dir = glm::normalize(glm::vec3(1.0f, v, -u)); break;  // +X
+                case 1: dir = glm::normalize(glm::vec3(-1.0f, v, u)); break; // -X
+                case 2: dir = glm::normalize(glm::vec3(u, 1.0f, -v)); break; // +Y
+                case 3: dir = glm::normalize(glm::vec3(u, -1.0f, v)); break; // -Y
+                case 4: dir = glm::normalize(glm::vec3(u, v, 1.0f)); break;  // +Z
+                default: dir = glm::normalize(glm::vec3(-u, v, -1.0f)); break; // -Z
+                }
+                float phi = atan2f(dir.z, dir.x);
+                float theta = asinf(dir.y);
+                float uf = (phi + glm::pi<float>()) / (2.0f * glm::pi<float>());
+                float vf = (theta + glm::half_pi<float>()) / glm::pi<float>();
+                int src_x = glm::clamp(int(uf * (width - 1)), 0, width - 1);
+                int src_y = glm::clamp(int(vf * (height - 1)), 0, height - 1);
+                size_t dst_idx = (y * face_size + x) * channels * pixel_size;
+                size_t src_idx = (src_y * width + src_x) * channels * pixel_size;
+                if (hdr) {
+                    memcpy(buffer.data() + dst_idx, reinterpret_cast<unsigned char*>(data_f) + src_idx, channels * pixel_size);
+                } else {
+                    memcpy(buffer.data() + dst_idx, data + src_idx, channels * pixel_size);
+                }
+            }
+        }
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0,
+                     internal, face_size, face_size, 0,
+                     format, type, buffer.data());
+    };
+
     switch (layout) {
     case Layout::HorizontalStrip:
         for (int i = 0; i < 6; ++i)
@@ -142,6 +183,10 @@ bool CubemapTexture::LoadFromSingleFile(const std::string& file, bool hdr) {
         copy_face(3, face_size, 2 * face_size); // -Y
         copy_face(4, 0, face_size);             // +Z
         copy_face(5, 2 * face_size, face_size); // -Z
+        break;
+    case Layout::Equirectangular:
+        for (int i = 0; i < 6; ++i)
+            copy_from_equirect(i);
         break;
     }
 
