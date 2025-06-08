@@ -48,22 +48,22 @@ namespace GLStudy
         light_ = scene_.CreateEntity("Light");
         light_.AddComponent<LightComponent>(LightComponent{.type = LightType::Directional,
                                                           .color = glm::vec3(1.0f, 1.0f, 1.0f),
-                                                          .intensity = 1.0f,.direction = glm::vec3(-1.0f, -1.0f, 0.0f)});
+                                                          .intensity = 4.0f,.direction = glm::vec3(0.0f, -1.0f, 0.0f)});
 
-        light_2_ = scene_.CreateEntity("Light_2");
-        light_2_.AddComponent<LightComponent>(LightComponent{.type = LightType::Point,
-                                                          .color = glm::vec3(1.0f, 0.0f,0.0f),
-                                                          .intensity = 10.0f});
-        light_2_.SetPosition({0.0f, 0.0f,0.0f});
+        // light_2_ = scene_.CreateEntity("Light_2");
+        // light_2_.AddComponent<LightComponent>(LightComponent{.type = LightType::Point,
+        //                                                   .color = glm::vec3(1.0f, 0.0f,0.0f),
+        //                                                   .intensity = 10.0f});
+        // light_2_.SetPosition({0.0f, 0.0f,0.0f});
 
         dummy_model_ = std::make_shared<Model>();
-        dummy_model_->LoadModel("Assets/Models/dummy.fbx");
+        dummy_model_->LoadModel("Assets/Models/balls.glb");
         model_entity_ = scene_.CreateEntity("DummyModel");
         model_entity_.AddComponent<ModelComponent>(ModelComponent{dummy_model_});
 
         skybox_entity_ = scene_.CreateEntity("Skybox");
         auto skybox = std::make_shared<Skybox>();
-        if (skybox->Load("Assets/Textures/Skybox/sky.hdr", true))
+        if (skybox->Load("Assets/Textures/Skybox/TCom_ColorfulAlley_colorful_alley_1K_hdri_sphere.exr", true))
             skybox_entity_.AddComponent<SkyboxComponent>(SkyboxComponent{skybox});
     }
 
@@ -75,10 +75,6 @@ namespace GLStudy
     void ProgramLayer::OnUpdate(Timestep ts)
     {
         Layer::OnUpdate(ts);
-        /*cube_.SetRotation(glm::vec3(0.0f, 0.0f, Time::GetTime()));
-        cube_2_.SetRotation(glm::vec3(0.0f, 0.0f, Time::GetTime() * 2.0));*/
-        light_.SetPosition(glm::vec3(sin(Time::GetTime()), 1.0f, cos(Time::GetTime())));
-        light_2_.SetPosition(glm::vec3(sin(Time::GetTime() * 2.0f), 1.0f, cos(Time::GetTime() * 2.0f)));
     }
 
     void ProgramLayer::OnImGuiRender()
