@@ -134,8 +134,8 @@ bool CubemapTexture::LoadFromSingleFile(const std::string& file, bool hdr) {
                 switch (face) {
                 case 0: dir = glm::normalize(glm::vec3(1.0f, v, -u)); break;  // +X
                 case 1: dir = glm::normalize(glm::vec3(-1.0f, v, u)); break; // -X
-                case 2: dir = glm::normalize(glm::vec3(u, 1.0f, -v)); break; // +Y
-                case 3: dir = glm::normalize(glm::vec3(u, -1.0f, v)); break; // -Y
+                case 2: dir = glm::normalize(glm::vec3(u, -1.0f, v)); break; // -Y
+                case 3: dir = glm::normalize(glm::vec3(u, 1.0f, -v)); break; // +Y
                 case 4: dir = glm::normalize(glm::vec3(u, v, 1.0f)); break;  // +Z
                 default: dir = glm::normalize(glm::vec3(-u, v, -1.0f)); break; // -Z
                 }
