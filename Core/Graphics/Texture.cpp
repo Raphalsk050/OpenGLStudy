@@ -1,6 +1,8 @@
 #include "Texture.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#define TINYEXR_IMPLEMENTATION
+#include <tinyexr.h>
 #include <iostream>
 
 namespace GLStudy {
@@ -116,6 +118,30 @@ bool Texture2D::LoadFromRawData(const float* data, int width, int height, int ch
     glTexImage2D(GL_TEXTURE_2D, 0, internal, width_, height_, 0, format, GL_FLOAT, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     return true;
+}
+
+bool Texture2D::LoadFromEXR(const std::string& path) {
+    if(renderer_id_ != 0) {
+        glDeleteTextures(1, &renderer_id_);
+        renderer_id_ = 0;
+    }
+
+    int width, height; 
+    float* out; 
+    const char* err = nullptr;
+    int ret = LoadEXR(&out, &width, &height, path.c_str(), &err);
+    if(ret != TINYEXR_SUCCESS) {
+        if(err) {
+            std::cerr << "Failed to load EXR: " << err << std::endl;
+            FreeEXRErrorMessage(err);
+        } else {
+            std::cerr << "Failed to load EXR: " << path << std::endl;
+        }
+        return false;
+    }
+    bool res = LoadFromRawData(out, width, height, 4);
+    free(out);
+    return res;
 }
 
 Texture2D::~Texture2D() {

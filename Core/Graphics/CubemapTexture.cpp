@@ -1,5 +1,6 @@
 #include "CubemapTexture.h"
 #include <stb_image.h>
+#include <tinyexr.h>
 #include <glm.hpp>
 #include <gtc/constants.hpp>
 #include <iostream>
@@ -23,15 +24,30 @@ bool CubemapTexture::LoadFromFiles(const std::array<std::string,6>& faces, bool 
     for (unsigned int i = 0; i < faces.size(); ++i) {
         int width, height, channels;
         if (hdr) {
+            int from_exr = 0;
             float* data = stbi_loadf(faces[i].c_str(), &width, &height, &channels, 0);
             if (!data) {
-                std::cerr << "Failed to load HDR cubemap face: " << faces[i] << std::endl;
-                return false;
+                const char* err = nullptr;
+                int ret = LoadEXR(&data, &width, &height, faces[i].c_str(), &err);
+                if (ret != TINYEXR_SUCCESS) {
+                    if(err) {
+                        std::cerr << "Failed to load EXR cubemap face: " << err << std::endl;
+                        FreeEXRErrorMessage(err);
+                    } else {
+                        std::cerr << "Failed to load EXR cubemap face: " << faces[i] << std::endl;
+                    }
+                    return false;
+                }
+                channels = 4;
+                from_exr = 1;
             }
             GLenum format = channels == 4 ? GL_RGBA : (channels == 3 ? GL_RGB : GL_RED);
             GLenum internal = channels == 4 ? GL_RGBA16F : GL_RGB16F;
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internal, width, height, 0, format, GL_FLOAT, data);
-            stbi_image_free(data);
+            if(from_exr)
+                free(data);
+            else
+                stbi_image_free(data);
         } else {
             unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &channels, 0);
             if (!data) {
@@ -61,11 +77,23 @@ bool CubemapTexture::LoadFromSingleFile(const std::string& file, bool hdr) {
     stbi_set_flip_vertically_on_load(false);
     float* data_f = nullptr;
     unsigned char* data = nullptr;
+    bool exr_loaded = false;
     if (hdr) {
         data_f = stbi_loadf(file.c_str(), &width, &height, &channels, 0);
         if (!data_f) {
-            std::cerr << "Failed to load HDR cubemap: " << file << std::endl;
-            return false;
+            const char* err = nullptr;
+            int ret = LoadEXR(&data_f, &width, &height, file.c_str(), &err);
+            if (ret != TINYEXR_SUCCESS) {
+                if(err) {
+                    std::cerr << "Failed to load EXR cubemap: " << err << std::endl;
+                    FreeEXRErrorMessage(err);
+                } else {
+                    std::cerr << "Failed to load HDR cubemap: " << file << std::endl;
+                }
+                return false;
+            }
+            channels = 4;
+            exr_loaded = true;
         }
     } else {
         data = stbi_load(file.c_str(), &width, &height, &channels, 0);
@@ -96,7 +124,7 @@ bool CubemapTexture::LoadFromSingleFile(const std::string& file, bool hdr) {
     } else {
         std::cerr << "Unsupported cubemap layout: " << file << std::endl;
         if (hdr)
-            stbi_image_free(data_f);
+            exr_loaded ? free(data_f) : stbi_image_free(data_f);
         else
             stbi_image_free(data);
         return false;
@@ -192,7 +220,7 @@ bool CubemapTexture::LoadFromSingleFile(const std::string& file, bool hdr) {
     }
 
     if (hdr)
-        stbi_image_free(data_f);
+        exr_loaded ? free(data_f) : stbi_image_free(data_f);
     else
         stbi_image_free(data);
 

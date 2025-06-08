@@ -13,6 +13,7 @@ public:
     bool LoadFromMemory(const unsigned char* data, int size);
     bool LoadFromRawData(const unsigned char* data, int width, int height, int channels);
     bool LoadFromRawData(const float* data, int width, int height, int channels);
+    bool LoadFromEXR(const std::string& path);
     void Bind(unsigned int slot = 0) const;
     void Unbind() const;
     int GetWidth() const { return width_; }
