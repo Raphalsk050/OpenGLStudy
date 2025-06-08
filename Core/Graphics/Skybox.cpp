@@ -89,6 +89,15 @@ bool Skybox::Load(const std::string& file, bool hdr) {
     return shader_prog_ != 0;
 }
 
+bool Skybox::LoadIBL(const std::string& irradianceKtx, const std::string& prefilterKtx) {
+    bool ok = true;
+    if (!irradianceKtx.empty())
+        ok &= irradiance_.LoadFromKTX(irradianceKtx);
+    if (!prefilterKtx.empty())
+        ok &= prefilter_.LoadFromKTX(prefilterKtx);
+    return ok;
+}
+
 void Skybox::Draw(const glm::mat4& view, const glm::mat4& projection) {
     glDepthFunc(GL_LEQUAL);
     glUseProgram(shader_prog_);
@@ -104,6 +113,14 @@ void Skybox::Draw(const glm::mat4& view, const glm::mat4& projection) {
 
 void Skybox::Bind(unsigned int slot) const {
     cubemap_.Bind(slot);
+}
+
+void Skybox::BindIrradiance(unsigned int slot) const {
+    irradiance_.Bind(slot);
+}
+
+void Skybox::BindPrefilter(unsigned int slot) const {
+    prefilter_.Bind(slot);
 }
 
 } // namespace GLStudy

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <cstring>
+#include <fstream>
 
 namespace GLStudy {
 CubemapTexture::~CubemapTexture() {
@@ -237,5 +238,82 @@ bool CubemapTexture::LoadFromSingleFile(const std::string& file, bool hdr) {
 void CubemapTexture::Bind(unsigned int slot) const {
     glActiveTexture(GL_TEXTURE0 + slot);
     glBindTexture(GL_TEXTURE_CUBE_MAP, renderer_id_);
+}
+
+bool CubemapTexture::LoadFromKTX(const std::string& file) {
+    if (renderer_id_ != 0) {
+        glDeleteTextures(1, &renderer_id_);
+        renderer_id_ = 0;
+    }
+    struct KTXHeader {
+        uint8_t identifier[12];
+        uint32_t endianness;
+        uint32_t glType;
+        uint32_t glTypeSize;
+        uint32_t glFormat;
+        uint32_t glInternalFormat;
+        uint32_t glBaseInternalFormat;
+        uint32_t pixelWidth;
+        uint32_t pixelHeight;
+        uint32_t pixelDepth;
+        uint32_t numberOfArrayElements;
+        uint32_t numberOfFaces;
+        uint32_t numberOfMipmapLevels;
+        uint32_t bytesOfKeyValueData;
+    } header{};
+
+    std::ifstream input(file, std::ios::binary);
+    if (!input.is_open()) {
+        std::cerr << "Failed to open KTX file: " << file << std::endl;
+        return false;
+    }
+    input.read(reinterpret_cast<char*>(&header), sizeof(KTXHeader));
+    const uint8_t magic[12] = {0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31,
+                               0xBB, 0x0D, 0x0A, 0x1A, 0x0A};
+    if (memcmp(header.identifier, magic, 12) != 0) {
+        std::cerr << "Invalid KTX identifier: " << file << std::endl;
+        return false;
+    }
+    if (header.numberOfFaces != 6) {
+        std::cerr << "KTX is not a cubemap: " << file << std::endl;
+        return false;
+    }
+    input.seekg(header.bytesOfKeyValueData, std::ios::cur);
+
+    glGenTextures(1, &renderer_id_);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, renderer_id_);
+
+    uint32_t width = header.pixelWidth;
+    uint32_t height = header.pixelHeight;
+
+    for (uint32_t level = 0; level < std::max(1u, header.numberOfMipmapLevels); ++level) {
+        uint32_t imageSize = 0;
+        input.read(reinterpret_cast<char*>(&imageSize), sizeof(uint32_t));
+        for (uint32_t face = 0; face < 6; ++face) {
+            size_t faceSize = width * height * header.glTypeSize *
+                              (header.glFormat == GL_RGB ? 3 : 4);
+            std::vector<uint8_t> data(faceSize);
+            input.read(reinterpret_cast<char*>(data.data()), faceSize);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, level,
+                         header.glInternalFormat, width, height, 0,
+                         header.glFormat, header.glType, data.data());
+            size_t padding = (4 - (faceSize % 4)) % 4;
+            if (padding)
+                input.seekg(padding, std::ios::cur);
+        }
+        width = std::max(1u, width / 2u);
+        height = std::max(1u, height / 2u);
+        if (imageSize % 4) {
+            input.seekg((4 - (imageSize % 4)) % 4, std::ios::cur);
+        }
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return true;
 }
 } // namespace GLStudy

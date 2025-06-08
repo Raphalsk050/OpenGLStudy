@@ -63,8 +63,11 @@ namespace GLStudy
 
         skybox_entity_ = scene_.CreateEntity("Skybox");
         auto skybox = std::make_shared<Skybox>();
-        if (skybox->Load("Assets/Textures/Skybox/TCom_ColorfulAlley_colorful_alley_1K_hdri_sphere.exr", true))
+        if (skybox->Load("Assets/Textures/Skybox/TCom_ColorfulAlley_colorful_alley_1K_hdri_sphere.exr", true)) {
+            skybox->LoadIBL("Assets/Textures/Skybox/ColorfulAlley/irradiance.ktx",
+                            "Assets/Textures/Skybox/ColorfulAlley/prefilter.ktx");
             skybox_entity_.AddComponent<SkyboxComponent>(SkyboxComponent{skybox});
+        }
     }
 
     void ProgramLayer::OnDetach()

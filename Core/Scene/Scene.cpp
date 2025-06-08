@@ -88,8 +88,8 @@ void Scene::Render(Renderer* renderer) {
         auto& sb = sky_view.get<SkyboxComponent>(entity);
         if (sb.skybox) {
             sb.skybox->Draw(view_matrix, projection);
-            sb.skybox->Bind(4);
-            sb.skybox->Bind(5);
+            sb.skybox->BindIrradiance(4);
+            sb.skybox->BindPrefilter(5);
             has_skybox = true;
             break;
         }
