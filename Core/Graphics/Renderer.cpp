@@ -183,4 +183,41 @@ namespace GLStudy {
             cube_instances_.clear();
         }
     }
+
+    bool Renderer::LoadSkybox(const std::string& path) {
+        if(!hdr_texture_)
+            hdr_texture_ = std::make_unique<Texture2D>(path);
+        // For brevity, sampling equirectangular texture directly
+        if(skybox_vao_ == 0) {
+            float quadVertices[] = {
+                -1.0f,  1.0f, -1.0f,
+                -1.0f, -1.0f, -1.0f,
+                 1.0f, -1.0f, -1.0f,
+                 1.0f, -1.0f, -1.0f,
+                 1.0f,  1.0f, -1.0f,
+                -1.0f,  1.0f, -1.0f
+            };
+            glGenVertexArrays(1, &skybox_vao_);
+            glGenBuffers(1, &skybox_vbo_);
+            glBindVertexArray(skybox_vao_);
+            glBindBuffer(GL_ARRAY_BUFFER, skybox_vbo_);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        }
+        skybox_shader_ = Shader::CreateShaderProgram("Assets/Shaders/skybox.vert", "Assets/Shaders/skybox.frag");
+        return true;
+    }
+
+    void Renderer::DrawSkybox() {
+        if(!hdr_texture_) return;
+        glDepthFunc(GL_LEQUAL);
+        glUseProgram(skybox_shader_);
+        glUniformMatrix4fv(glGetUniformLocation(skybox_shader_, "u_ViewProjection"), 1, GL_FALSE, glm::value_ptr(view_projection_));
+        hdr_texture_->Bind(0);
+        glUniform1i(glGetUniformLocation(skybox_shader_, "u_Skybox"), 0);
+        glBindVertexArray(skybox_vao_);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDepthFunc(GL_LESS);
+    }
 }

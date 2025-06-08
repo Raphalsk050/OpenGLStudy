@@ -55,6 +55,10 @@ namespace GLStudy {
         std::shared_ptr<Model> model;
     };
 
+    struct SkyboxComponent {
+        std::string path;
+    };
+
     struct CameraComponent
     {
         SceneCamera camera{};

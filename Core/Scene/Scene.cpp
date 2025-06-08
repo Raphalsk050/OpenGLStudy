@@ -109,6 +109,14 @@ void Scene::Render(Renderer* renderer) {
         if (mc.model)
             mc.model->Draw(renderer->GetShaderProgram(), GetWorldMatrix(entity));
     }
+
+    auto skybox_view = registry_.view<SkyboxComponent>();
+    for(auto entity : skybox_view) {
+        const auto& sb = skybox_view.get<SkyboxComponent>(entity);
+        renderer->LoadSkybox(sb.path);
+        renderer->DrawSkybox();
+        break;
+    }
 }
 
 glm::mat4 Scene::GetWorldMatrix(entt::entity entity) const {

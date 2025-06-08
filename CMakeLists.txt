@@ -52,6 +52,10 @@ add_executable(openglStudy
         Core/Graphics/Renderer.cpp
         Core/Graphics/Texture.h
         Core/Graphics/Texture.cpp
+        Core/Graphics/CubemapTexture.h
+        Core/Graphics/CubemapTexture.cpp
+        Core/Graphics/Framebuffer.h
+        Core/Graphics/Framebuffer.cpp
         Core/Graphics/Mesh.h
         Core/Graphics/Mesh.cpp
         Core/Graphics/Model.h
@@ -81,6 +85,8 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/glm
         ThirdParty/assimp/include
         ThirdParty/stb
+        ThirdParty/bgfx/bimg/3rdparty/tinyexr
+        ThirdParty/bgfx/bimg/3rdparty/tinyexr/deps/miniz
 )
 
 target_link_libraries(openglStudy PUBLIC

@@ -30,6 +30,16 @@ uniform bool u_UseAlbedoMap;
 uniform bool u_UseNormalMap;
 uniform bool u_UseMetallicMap;
 uniform bool u_UseRoughnessMap;
+uniform sampler2D u_Skybox;
+
+const vec2 invAtan = vec2(0.1591, 0.3183);
+vec2 sampleSphericalMap(vec3 v)
+{
+    vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
+    uv *= invAtan;
+    uv += 0.5;
+    return uv;
+}
 
 const float PI = 3.14159265359;
 
@@ -125,7 +135,8 @@ void main()
         float NdotL = max(dot(N, L), 0.0);
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
-    vec3 ambient = vec3(0.03) * albedo;
+    vec3 env = texture(u_Skybox, sampleSphericalMap(N)).rgb;
+    vec3 ambient = env * albedo;
     vec3 color = ambient + Lo;
     color = pow(color, vec3(1.0/2.2));
     FragColor = vec4(color, 1.0);

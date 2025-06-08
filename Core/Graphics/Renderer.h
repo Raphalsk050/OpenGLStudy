@@ -8,6 +8,7 @@
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Texture.h"
 
 namespace GLStudy {
     class Renderer {
@@ -39,6 +40,10 @@ namespace GLStudy {
         void DrawCube(const glm::mat4& model, const glm::vec4& color);
         void Flush();
         unsigned int GetShaderProgram() const { return shader_prog_; }
+
+        // skybox / IBL
+        bool LoadSkybox(const std::string& path);
+        void DrawSkybox();
     private:
         struct InstanceData {
             glm::mat4 model;
@@ -66,5 +71,11 @@ namespace GLStudy {
         std::vector<LightData> lights_;
         int cam_pos_location_ = -1;
         int num_lights_location_ = -1;
+
+        // skybox resources
+        unsigned int skybox_shader_ = 0;
+        unsigned int skybox_vao_ = 0;
+        unsigned int skybox_vbo_ = 0;
+        std::unique_ptr<Texture2D> hdr_texture_;
     };
 }

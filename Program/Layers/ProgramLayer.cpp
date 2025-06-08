@@ -58,6 +58,10 @@ namespace GLStudy
         dummy_model_->LoadModel("Assets/Models/dummy.fbx");
         model_entity_ = scene_.CreateEntity("DummyModel");
         model_entity_.AddComponent<ModelComponent>(ModelComponent{dummy_model_});
+
+        auto skybox = scene_.CreateEntity("Skybox");
+        skybox.AddComponent<SkyboxComponent>(SkyboxComponent{
+            "ThirdParty/bgfx/bgfx/examples/assets/textures/uffizi-large.exr"});
     }
 
     void ProgramLayer::OnDetach()
