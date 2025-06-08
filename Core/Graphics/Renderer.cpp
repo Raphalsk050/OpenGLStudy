@@ -155,6 +155,8 @@ namespace GLStudy {
         glUniform1i(num_lights_location_, static_cast<int>(lights_.size()));
         glUniform1i(glGetUniformLocation(shader_prog_, "u_UseAlbedoMap"), 0);
         glUniform1i(glGetUniformLocation(shader_prog_, "u_UseNormalMap"), 0);
+        glUniform1i(glGetUniformLocation(shader_prog_, "u_UseMetallicMap"), 0);
+        glUniform1i(glGetUniformLocation(shader_prog_, "u_UseRoughnessMap"), 0);
         for (size_t i = 0; i < lights_.size() && i < 4; ++i) {
             std::string base = "u_Lights[" + std::to_string(i) + "]";
             glUniform1i(glGetUniformLocation(shader_prog_, (base + ".type").c_str()), static_cast<int>(lights_[i].type));

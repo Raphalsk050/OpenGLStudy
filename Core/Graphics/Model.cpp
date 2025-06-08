@@ -80,6 +80,8 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
     }
     std::shared_ptr<Texture2D> albedoTex = nullptr;
     std::shared_ptr<Texture2D> normalTex = nullptr;
+    std::shared_ptr<Texture2D> metallicTex = nullptr;
+    std::shared_ptr<Texture2D> roughnessTex = nullptr;
     if(mesh->mMaterialIndex >=0) {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
         auto LoadTextureOfType = [&](aiTextureType type) -> std::shared_ptr<Texture2D> {
@@ -115,8 +117,10 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
         normalTex = LoadTextureOfType(aiTextureType_NORMALS);
         if(!normalTex)
             normalTex = LoadTextureOfType(aiTextureType_HEIGHT);
+        metallicTex = LoadTextureOfType(aiTextureType_METALNESS);
+        roughnessTex = LoadTextureOfType(aiTextureType_DIFFUSE_ROUGHNESS);
     }
-    return Mesh(vertices, indices, albedoTex, normalTex);
+    return Mesh(vertices, indices, albedoTex, normalTex, metallicTex, roughnessTex);
 }
 
 void Model::Draw(unsigned int shader, const glm::mat4& transform) const {

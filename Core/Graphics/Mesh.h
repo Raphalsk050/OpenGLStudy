@@ -20,10 +20,14 @@ public:
     Mesh() = default;
     Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices,
          std::shared_ptr<Texture2D> albedo,
-         std::shared_ptr<Texture2D> normal = nullptr);
+         std::shared_ptr<Texture2D> normal = nullptr,
+         std::shared_ptr<Texture2D> metallic = nullptr,
+         std::shared_ptr<Texture2D> roughness = nullptr);
     void Draw(unsigned int shader) const;
     std::shared_ptr<Texture2D> albedo_;
     std::shared_ptr<Texture2D> normal_;
+    std::shared_ptr<Texture2D> metallic_;
+    std::shared_ptr<Texture2D> roughness_;
 private:
     std::unique_ptr<VertexArray> vao_;
     std::unique_ptr<VertexBuffer> vbo_;
