@@ -3,7 +3,7 @@
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <entt.hpp>
-#include "glad/glad.h"
+#include <filament/MaterialInstance.h>
 #include "../Camera/SceneCamera.h"
 #include <memory>
 namespace GLStudy { class Model; }
@@ -47,7 +47,7 @@ namespace GLStudy {
         glm::vec4 color{1.0f};
         bool depth_test{true};
         bool culling{true};
-        GLenum cull_face{GL_BACK};
+        filament::MaterialInstance::CullingMode cull_face{filament::MaterialInstance::CullingMode::BACK};
         bool double_sided{false};
     };
 

@@ -3,6 +3,7 @@
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <filament/Camera.h>
+#include <filament/Engine.h>
 #include <utils/Entity.h>
 #include <utils/EntityManager.h>
 
