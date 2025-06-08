@@ -1,19 +1,27 @@
 #pragma once
 #include <memory>
-#include "glad/glad.h"
-#include "Core/Shader/Shader.h"
-#include <glm.hpp>
 #include <vector>
+#include <glm.hpp>
+#include <GLFW/glfw3.h>
+#include <filament/Engine.h>
+#include <filament/Renderer.h>
+#include <filament/Scene.h>
+#include <filament/View.h>
+#include <filament/SwapChain.h>
+#include <filament/Camera.h>
+#include <filament/RenderableManager.h>
+#include <utils/Entity.h>
+#include <utils/EntityManager.h>
 #include "Core/Scene/Components.h"
-#include "VertexArray.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
+#include "Core/Camera/SceneCamera.h"
 
 namespace GLStudy {
+    // Renderer wrapper around Filament
     class Renderer {
     public:
         Renderer() = default;
-        void Init();
+        ~Renderer();
+        void Init(GLFWwindow* window);
 
         struct LightData {
             LightType type;
@@ -26,45 +34,22 @@ namespace GLStudy {
             float outer_cutoff;
         };
 
-        void BeginScene(const glm::mat4& view_projection,
+        void BeginScene(SceneCamera* camera,
                         const glm::vec3& cam_pos,
-                        const std::vector<LightData>& lights)
-        {
-            view_projection_ = view_projection;
-            camera_pos_ = cam_pos;
-            lights_ = lights;
-        }
-
+                        const std::vector<LightData>& lights);
         void DrawTriangle(const glm::mat4& model, const glm::vec4& color);
         void DrawCube(const glm::mat4& model, const glm::vec4& color);
         void Flush();
-        unsigned int GetShaderProgram() const { return shader_prog_; }
+        filament::Engine* GetEngine() const { return engine_; }
     private:
-        struct InstanceData {
-            glm::mat4 model;
-            glm::vec4 color;
-        };
+        filament::Engine* engine_ = nullptr;
+        filament::SwapChain* swap_chain_ = nullptr;
+        filament::Renderer* renderer_ = nullptr;
+        filament::Scene* scene_ = nullptr;
+        filament::View* view_ = nullptr;
 
-        unsigned int shader_prog_ = 0;
-        int view_proj_location_ = -1;
-        int model_location_ = -1;
-        glm::mat4 view_projection_{1.0f};
-
-        std::unique_ptr<VertexArray> triangle_vao_;
-        std::unique_ptr<VertexBuffer> triangle_vbo_;
-        std::unique_ptr<IndexBuffer> triangle_ibo_;
-        std::unique_ptr<VertexBuffer> triangle_instance_vbo_;
-        std::vector<InstanceData> triangle_instances_;
-
-        std::unique_ptr<VertexArray> cube_vao_;
-        std::unique_ptr<VertexBuffer> cube_vbo_;
-        std::unique_ptr<IndexBuffer> cube_ibo_;
-        std::unique_ptr<VertexBuffer> cube_instance_vbo_;
-        std::vector<InstanceData> cube_instances_;
-
-        glm::vec3 camera_pos_{0.0f};
-        std::vector<LightData> lights_;
-        int cam_pos_location_ = -1;
-        int num_lights_location_ = -1;
+        utils::Entity triangle_{};
+        utils::Entity cube_{};
+        filament::MaterialInstance* color_material_ = nullptr;
     };
 }

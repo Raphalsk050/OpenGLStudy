@@ -31,7 +31,7 @@ namespace GLStudy
         std::cout << "Renderer: " << renderer << std::endl;
         std::cout << "Version:  " << version  << std::endl;
 
-        renderer_->Init();
+        renderer_->Init(window_);
 
         scene_->OnViewportResize(width_, height_);
 

@@ -12,6 +12,7 @@ add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
 add_subdirectory(ThirdParty/assimp)
+add_subdirectory(ThirdParty/filament)
 
 if(USE_BULLET)
     # bullet properties
@@ -81,6 +82,8 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/glm
         ThirdParty/assimp/include
         ThirdParty/stb
+        ThirdParty/filament/filament/include
+        ThirdParty/filament/libs/math/include
 )
 
 target_link_libraries(openglStudy PUBLIC
@@ -89,6 +92,8 @@ target_link_libraries(openglStudy PUBLIC
         glfw
         Entt
         assimp
+        filament
+        utils
 )
 
 if(USE_BULLET)

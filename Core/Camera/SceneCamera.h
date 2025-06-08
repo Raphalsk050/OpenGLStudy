@@ -2,6 +2,9 @@
 #include "Camera.h"
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+#include <filament/Camera.h>
+#include <utils/Entity.h>
+#include <utils/EntityManager.h>
 
 namespace GLStudy {
     enum class ProjectionType {
@@ -9,9 +12,14 @@ namespace GLStudy {
         Orthographic = 1
     };
 
+    // Camera component using Filament camera internally
     class SceneCamera : public Camera {
     public:
         SceneCamera();
+        ~SceneCamera();
+
+        void CreateFilamentCamera(filament::Engine* engine);
+        filament::Camera* GetFilamentCamera() const { return filament_camera_; }
 
         void SetPerspective(float fov, float near_clip, float far_clip);
         void SetOrthographic(float size, float near_clip, float far_clip);
@@ -29,6 +37,10 @@ namespace GLStudy {
         float orthographic_size_ = 10.0f;
         float near_clip_ = 0.03f;
         float far_clip_ = 1000.0f;
+
+        filament::Engine* engine_ = nullptr;
+        utils::Entity entity_{};
+        filament::Camera* filament_camera_ = nullptr;
 
         void RecalculateProjection();
     };

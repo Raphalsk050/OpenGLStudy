@@ -3,7 +3,6 @@
 #include "Core/Graphics/Renderer.h"
 #include "Core/Graphics/Model.h"
 #include "Core/Camera/CameraController.h"
-#include <glad/glad.h>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 
@@ -34,31 +33,31 @@ void Scene::OnViewportResize(float width, float height) {
 }
 
 void Scene::Render(Renderer* renderer) {
-    glm::mat4 view_projection(1.0f);
     glm::vec3 cam_pos{0.0f};
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    SceneCamera* activeCamera = nullptr;
     auto camera_view = registry_.view<Transform, CameraComponent>();
     for (auto entity : camera_view) {
         auto& cc = camera_view.get<CameraComponent>(entity);
         if (!cc.primary)
             continue;
         const auto& tr = camera_view.get<Transform>(entity);
-        glm::mat4 view;
+        glm::vec3 front{0.0f, 0.0f, -1.0f};
         if (registry_.all_of<CameraControllerComponent>(entity)) {
             const auto& ctrl = registry_.get<CameraControllerComponent>(entity);
-            glm::vec3 front{
+            front = glm::normalize(glm::vec3(
                 cos(glm::radians(ctrl.yaw)) * cos(glm::radians(ctrl.pitch)),
                 sin(glm::radians(ctrl.pitch)),
-                sin(glm::radians(ctrl.yaw)) * cos(glm::radians(ctrl.pitch))};
-            front = glm::normalize(front);
-            view = glm::lookAt(tr.position, tr.position + front, glm::vec3(0.0f, 1.0f, 0.0f));
-        } else {
-            view = glm::inverse(GetWorldMatrix(entity));
+                sin(glm::radians(ctrl.yaw)) * cos(glm::radians(ctrl.pitch))
+            ));
         }
-        view_projection = cc.camera.GetProjection() * view;
+        cc.camera.CreateFilamentCamera(renderer->GetEngine());
+        cc.camera.GetFilamentCamera()->lookAt({tr.position.x, tr.position.y, tr.position.z},
+                                              {tr.position.x + front.x, tr.position.y + front.y, tr.position.z + front.z});
         cam_pos = tr.position;
+        activeCamera = &cc.camera;
         break;
     }
     std::vector<Renderer::LightData> lights;
@@ -77,7 +76,7 @@ void Scene::Render(Renderer* renderer) {
         data.outer_cutoff = glm::cos(glm::radians(lt.outer_cutoff));
         lights.push_back(data);
     }
-    renderer->BeginScene(view_projection, cam_pos, lights);
+    renderer->BeginScene(activeCamera, cam_pos, lights);
 
     auto view = registry_.view<Transform, RendererComponent>();
     auto model_view = registry_.view<Transform, ModelComponent>();
@@ -106,8 +105,9 @@ void Scene::Render(Renderer* renderer) {
     renderer->Flush();
     for (auto entity : model_view) {
         auto& mc = model_view.get<ModelComponent>(entity);
-        if (mc.model)
-            mc.model->Draw(renderer->GetShaderProgram(), GetWorldMatrix(entity));
+        if (mc.model) {
+            // Model rendering with Filament not yet implemented
+        }
     }
 }
 
