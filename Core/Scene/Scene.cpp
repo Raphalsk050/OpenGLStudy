@@ -3,7 +3,9 @@
 #include "Core/Graphics/Renderer.h"
 #include "Core/Graphics/Model.h"
 #include "Core/Camera/CameraController.h"
+#ifndef USE_BGFX
 #include <glad/glad.h>
+#endif
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 
@@ -36,8 +38,10 @@ void Scene::OnViewportResize(float width, float height) {
 void Scene::Render(Renderer* renderer) {
     glm::mat4 view_projection(1.0f);
     glm::vec3 cam_pos{0.0f};
+#ifndef USE_BGFX
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#endif
 
     auto camera_view = registry_.view<Transform, CameraComponent>();
     for (auto entity : camera_view) {
@@ -82,6 +86,7 @@ void Scene::Render(Renderer* renderer) {
     auto view = registry_.view<Transform, RendererComponent>();
     auto model_view = registry_.view<Transform, ModelComponent>();
 
+#ifndef USE_BGFX
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -89,6 +94,7 @@ void Scene::Render(Renderer* renderer) {
     //glEnable(GL_CULL_FACE);
     //glFrontFace(GL_CCW);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#endif
 
     for (auto entity : view) {
         auto& rc = view.get<RendererComponent>(entity);

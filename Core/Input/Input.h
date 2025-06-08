@@ -3,6 +3,9 @@
 #include "Core/Input/KeyCodes.h"
 #include "Core/Input/MouseCodes.h"
 #include <glm.hpp>
+#ifndef GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_NONE
+#endif
 #include <GLFW/glfw3.h>
 
 namespace GLStudy {

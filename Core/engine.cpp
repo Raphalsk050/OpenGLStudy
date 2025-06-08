@@ -2,17 +2,25 @@
 #include "Core/Events/WindowApplicationEvent.h"
 #include "Core/Events/KeyEvent.h"
 #include "Core/Events/MouseEvent.h"
+#ifdef USE_BGFX
+#include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
+#endif
 
 namespace GLStudy
 {
     static void SizeCallback(GLFWwindow* window, int width, int height)
     {
+#ifndef USE_BGFX
         glViewport(0, 0, width, height);
+#else
+        bgfx::reset(width, height, BGFX_RESET_VSYNC);
+#endif
     }
 
     Engine::Engine(): window_(nullptr)
     {
-        renderer_ = std::make_unique<Renderer>();
+        renderer_ = std::make_unique<RendererType>();
         scene_ = new Scene();
     }
 
@@ -21,6 +29,7 @@ namespace GLStudy
         InitGLFW();
         CreateWindow(width_, height_, "OpenGL Study");
         Input::Init(window_);
+#ifndef USE_BGFX
         InitGLAD();
 
         const GLubyte* renderer = glGetString(GL_RENDERER);
@@ -32,6 +41,9 @@ namespace GLStudy
         std::cout << "Version:  " << version  << std::endl;
 
         renderer_->Init();
+#else
+        renderer_->Init(window_, width_, height_);
+#endif
 
         scene_->OnViewportResize(width_, height_);
 
@@ -56,6 +68,9 @@ namespace GLStudy
 
             Update(timestep_);
             scene_->Render(GetRenderer());
+#ifdef USE_BGFX
+            bgfx::frame();
+#endif
         }
     }
 
@@ -104,7 +119,9 @@ namespace GLStudy
             std::cout << "Failed to initialize GLAD" << std::endl;
         }
 
+#ifndef USE_BGFX
         glViewport(0, 0, width_, height_);
+#endif
     }
 
     GLFWwindow* Engine::CreateWindow(int width, int height, const char* title)
@@ -147,7 +164,11 @@ namespace GLStudy
         dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) {
             width_ = e.GetWidth();
             height_ = e.GetHeight();
+#ifndef USE_BGFX
             glViewport(0, 0, width_, height_);
+#else
+            bgfx::reset(width_, height_, BGFX_RESET_VSYNC);
+#endif
             scene_->OnViewportResize(width_, height_);
             return false;
         });

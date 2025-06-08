@@ -4,6 +4,7 @@ project(openglStudy)
 set(CMAKE_CXX_STANDARD 20)
 
 set(USE_BULLET OFF)
+option(USE_BGFX "Enable bgfx renderer" OFF)
 
 
 
@@ -12,6 +13,9 @@ add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
 add_subdirectory(ThirdParty/assimp)
+if(USE_BGFX)
+    add_subdirectory(ThirdParty/bgfx)
+endif()
 
 if(USE_BULLET)
     # bullet properties
@@ -50,6 +54,8 @@ add_executable(openglStudy
         Core/Graphics/IndexBuffer.cpp
         Core/Graphics/Renderer.h
         Core/Graphics/Renderer.cpp
+        $<$<BOOL:${USE_BGFX}>:Core/Graphics/BGFXRenderer.h>
+        $<$<BOOL:${USE_BGFX}>:Core/Graphics/BGFXRenderer.cpp>
         Core/Graphics/Texture.h
         Core/Graphics/Texture.cpp
         Core/Graphics/Mesh.h
@@ -73,7 +79,10 @@ add_executable(openglStudy
         Core/Events/KeyEvent.h
         Core/Events/MouseEvent.h
         Core/Events/WindowApplicationEvent.h
-)
+        )
+
+target_compile_definitions(openglStudy PUBLIC $<$<BOOL:${USE_BGFX}>:USE_BGFX>)
+target_compile_definitions(openglStudy PUBLIC GLFW_INCLUDE_NONE)
 
 target_include_directories(openglStudy PUBLIC
         ThirdParty/glfw/include
@@ -83,6 +92,11 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/stb
 )
 
+if(USE_BGFX)
+    target_include_directories(openglStudy PUBLIC
+            ThirdParty/bgfx/bgfx/include)
+endif()
+
 target_link_libraries(openglStudy PUBLIC
         glm
         glad
@@ -90,6 +104,10 @@ target_link_libraries(openglStudy PUBLIC
         Entt
         assimp
 )
+
+if(USE_BGFX)
+    target_link_libraries(openglStudy PUBLIC bgfx)
+endif()
 
 if(USE_BULLET)
     target_link_libraries(openglStudy PUBLIC

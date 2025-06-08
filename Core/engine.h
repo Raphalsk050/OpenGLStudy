@@ -2,12 +2,19 @@
 #include <iostream>
 #include <memory>
 #include <glm.hpp>
+#ifndef USE_BGFX
+#define GLFW_INCLUDE_NONE
 #include <glad/glad.h>
+#endif
 #include <GLFW/glfw3.h>
 
 #include "Time.h"
 #include "Core/Layer/LayerStack.h"
+#ifdef USE_BGFX
+#include "Core/Graphics/BGFXRenderer.h"
+#else
 #include "Core/Graphics/Renderer.h"
+#endif
 #include "Scene/Scene.h"
 #include "Core/Input/Input.h"
 #include "Core/Events/Event.h"
@@ -46,7 +53,14 @@ namespace GLStudy
 
         void PushLayer(Layer* layer);
 
-        Renderer* GetRenderer() const { return renderer_.get(); }
+        using RendererType =
+#ifdef USE_BGFX
+            BGFXRenderer;
+#else
+            Renderer;
+#endif
+
+        RendererType* GetRenderer() const { return renderer_.get(); }
 
         Scene* GetScene() const { return scene_; }
 
@@ -59,7 +73,7 @@ namespace GLStudy
         Timestep timestep_;
         Time time_;
         float last_frame_time_ = 0.0f;
-        std::unique_ptr<Renderer> renderer_;
+        std::unique_ptr<RendererType> renderer_;
 
         // currently, the engine will have only one scene
         // TODO(rafael): in the future, the idea is to hold multiple scenes and the user can decide
