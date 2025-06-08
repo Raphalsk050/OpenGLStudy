@@ -7,6 +7,7 @@
 #include "Core/Events/KeyEvent.h"
 #include "Core/Scene/Components.h"
 #include "Core/Graphics/Model.h"
+#include "Core/Graphics/Skybox.h"
 #include <unordered_map>
 
 namespace GLStudy
@@ -31,6 +32,7 @@ namespace GLStudy
         EntityHandle light_2_;
         EntityHandle camera_;
         EntityHandle model_entity_;
+        EntityHandle skybox_entity_;
         std::shared_ptr<Model> dummy_model_;
         std::unordered_map<KeyCode, bool> last_key_state_map_;
 

@@ -2,6 +2,8 @@
 #include <glm.hpp>
 #include <gtc/random.hpp>
 #include "Core/Events/WindowApplicationEvent.h"
+#include <array>
+#include <memory>
 
 namespace GLStudy
 {
@@ -58,6 +60,11 @@ namespace GLStudy
         dummy_model_->LoadModel("Assets/Models/dummy.fbx");
         model_entity_ = scene_.CreateEntity("DummyModel");
         model_entity_.AddComponent<ModelComponent>(ModelComponent{dummy_model_});
+
+        skybox_entity_ = scene_.CreateEntity("Skybox");
+        auto skybox = std::make_shared<Skybox>();
+        if (skybox->Load("Assets/Textures/Skybox/sky.hdr", true))
+            skybox_entity_.AddComponent<SkyboxComponent>(SkyboxComponent{skybox});
     }
 
     void ProgramLayer::OnDetach()
