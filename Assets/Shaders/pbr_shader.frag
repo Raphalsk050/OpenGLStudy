@@ -30,6 +30,8 @@ uniform bool u_UseAlbedoMap;
 uniform bool u_UseNormalMap;
 uniform bool u_UseMetallicMap;
 uniform bool u_UseRoughnessMap;
+uniform samplerCube u_IblMap;
+uniform bool u_UseIBL;
 
 const float PI = 3.14159265359;
 
@@ -126,6 +128,14 @@ void main()
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
     vec3 ambient = vec3(0.03) * albedo;
+    if(u_UseIBL)
+    {
+        vec3 diffuseEnv = texture(u_IblMap, N).rgb;
+        ambient = diffuseEnv * albedo;
+        vec3 reflection = texture(u_IblMap, reflect(-V, N)).rgb;
+        vec3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+        Lo += reflection * kS;
+    }
     vec3 color = ambient + Lo;
     color = pow(color, vec3(1.0/2.2));
     FragColor = vec4(color, 1.0);

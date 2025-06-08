@@ -66,5 +66,7 @@ namespace GLStudy {
         std::vector<LightData> lights_;
         int cam_pos_location_ = -1;
         int num_lights_location_ = -1;
+        int ibl_map_location_ = -1;
+        int use_ibl_location_ = -1;
     };
 }

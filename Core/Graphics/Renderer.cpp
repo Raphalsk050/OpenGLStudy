@@ -14,6 +14,9 @@ namespace GLStudy {
         cam_pos_location_ = glGetUniformLocation(shader_prog_, "u_CamPos");
         num_lights_location_ = glGetUniformLocation(shader_prog_, "u_NumLights");
         model_location_ = glGetUniformLocation(shader_prog_, "u_Model");
+        ibl_map_location_ = glGetUniformLocation(shader_prog_, "u_IblMap");
+        use_ibl_location_ = glGetUniformLocation(shader_prog_, "u_UseIBL");
+        glUniform1i(ibl_map_location_, 4);
 
         struct Vertex {
             glm::vec3 position;

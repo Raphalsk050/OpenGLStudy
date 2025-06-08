@@ -83,13 +83,19 @@ void Scene::Render(Renderer* renderer) {
     renderer->BeginScene(view_projection, cam_pos, lights);
 
     auto sky_view = registry_.view<SkyboxComponent>();
+    bool has_skybox = false;
     for (auto entity : sky_view) {
         auto& sb = sky_view.get<SkyboxComponent>(entity);
         if (sb.skybox) {
             sb.skybox->Draw(view_matrix, projection);
+            sb.skybox->Bind(4);
+            has_skybox = true;
             break;
         }
     }
+    glUseProgram(renderer->GetShaderProgram());
+    glUniform1i(glGetUniformLocation(renderer->GetShaderProgram(), "u_IblMap"), 4);
+    glUniform1i(glGetUniformLocation(renderer->GetShaderProgram(), "u_UseIBL"), has_skybox ? 1 : 0);
 
     auto render_view = registry_.view<Transform, RendererComponent>();
     auto model_view = registry_.view<Transform, ModelComponent>();

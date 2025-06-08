@@ -13,6 +13,7 @@ public:
     bool Load(const std::array<std::string,6>& faces, bool hdr = false);
     bool Load(const std::string& file, bool hdr = false);
     void Draw(const glm::mat4& view, const glm::mat4& projection);
+    void Bind(unsigned int slot = 0) const;
 private:
     CubemapTexture cubemap_;
     std::unique_ptr<VertexArray> vao_;

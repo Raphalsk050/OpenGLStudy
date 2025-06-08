@@ -102,4 +102,8 @@ void Skybox::Draw(const glm::mat4& view, const glm::mat4& projection) {
     glDepthFunc(GL_LESS);
 }
 
+void Skybox::Bind(unsigned int slot) const {
+    cubemap_.Bind(slot);
+}
+
 } // namespace GLStudy
