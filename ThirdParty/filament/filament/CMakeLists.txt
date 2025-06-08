@@ -617,22 +617,24 @@ set(LINUX_COMPILER_FLAGS
 
 if (MSVC)
     set(FILAMENT_WARNINGS /W3)
-else()
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(FILAMENT_WARNINGS
             -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers
             -Wextra-semi -Wnewline-eof -Wdeprecated -Wundef
             -Wgnu-conditional-omitted-operand
             -Wweak-vtables -Wnon-virtual-dtor -Wclass-varargs -Wimplicit-fallthrough
-            -Wover-aligned
+            -Wover-aligned -Wreorder-init-list
             -Werror
     )
     if (CMAKE_CXX_STANDARD EQUAL 20)
-        # The lambdas for passes in PostProcessManager.cpp capture this
-        # implicitly in a way that's deprecated in c++20, but can't easily be
-        # fixed in a way that's backwards compatible with c++17:
-        # https://www.nextptr.com/tutorial/ta1430524603/capture-this-in-lambda-expression-timeline-of-change
         list(APPEND FILAMENT_WARNINGS -Wno-deprecated-this-capture)
     endif()
+else()
+    # GCC does not support several of Filament's clang-specific warnings
+    set(FILAMENT_WARNINGS
+            -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers
+            -Werror
+    )
 endif()
 
 target_compile_options(${TARGET} PRIVATE

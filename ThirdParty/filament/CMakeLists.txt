@@ -329,12 +329,13 @@ endif()
 # General compiler flags
 # ==================================================================================================
 set(CXX_STANDARD "-std=c++17")
-if (WIN32)
-    set(CXX_STANDARD "/std:c++17")
-endif()
-
 if (MSVC)
     set(CXX_STANDARD "/std:c++latest")
+elseif (WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # clang-cl expects MSVC style standard flag
+    set(CXX_STANDARD "/std:c++17")
+endif()
+if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_STANDARD} /W0 /Zc:__cplusplus")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_STANDARD} -fstrict-aliasing -Wno-unknown-pragmas -Wno-unused-function -Wno-deprecated-declarations")
@@ -387,7 +388,7 @@ if (MSVC)
 endif()
 
 # Add colors to ninja builds
-if (UNIX AND CMAKE_GENERATOR STREQUAL "Ninja")
+if (UNIX AND CMAKE_GENERATOR STREQUAL "Ninja" AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics")
 endif()

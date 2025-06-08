@@ -460,7 +460,7 @@ endif()
 
 if (MSVC)
     set(FILAMENT_WARNINGS /W3)
-else()
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(FILAMENT_WARNINGS
             -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers
             -Wextra-semi -Wnewline-eof -Wdeprecated -Wundef
@@ -472,6 +472,11 @@ else()
     if (CMAKE_CXX_STANDARD EQUAL 20)
         list(APPEND FILAMENT_WARNINGS -Wno-deprecated-this-capture)
     endif()
+else()
+    set(FILAMENT_WARNINGS
+            -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers
+            -Werror
+    )
 endif()
 
 if (APPLE)
