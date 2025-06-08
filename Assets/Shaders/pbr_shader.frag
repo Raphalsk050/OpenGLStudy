@@ -30,8 +30,12 @@ uniform bool u_UseAlbedoMap;
 uniform bool u_UseNormalMap;
 uniform bool u_UseMetallicMap;
 uniform bool u_UseRoughnessMap;
-uniform samplerCube u_IblMap;
+uniform samplerCube u_IrradianceMap;
+uniform samplerCube u_PrefilterMap;
+uniform sampler2D u_BrdfLUT;
 uniform bool u_UseIBL;
+
+const float MAX_REFLECTION_LOD = 4.0;
 
 const float PI = 3.14159265359;
 
@@ -130,11 +134,19 @@ void main()
     vec3 ambient = vec3(0.03) * albedo;
     if(u_UseIBL)
     {
-        vec3 diffuseEnv = texture(u_IblMap, N).rgb;
-        ambient = diffuseEnv * albedo;
-        vec3 reflection = texture(u_IblMap, reflect(-V, N)).rgb;
-        vec3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
-        Lo += reflection * kS;
+        vec3 kS_ibl = fresnelSchlick(max(dot(N, V), 0.0), F0);
+        vec3 kD_ibl = vec3(1.0) - kS_ibl;
+        kD_ibl *= 1.0 - metallic;
+
+        vec3 irradiance = texture(u_IrradianceMap, N).rgb;
+        vec3 diffuse = irradiance * albedo;
+
+        vec3 R = reflect(-V, N);
+        vec3 prefiltered = textureLod(u_PrefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+        vec2 brdf = texture(u_BrdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+        vec3 specular = prefiltered * (kS_ibl * brdf.x + brdf.y);
+
+        ambient = diffuse * kD_ibl + specular;
     }
     vec3 color = ambient + Lo;
     color = pow(color, vec3(1.0/2.2));

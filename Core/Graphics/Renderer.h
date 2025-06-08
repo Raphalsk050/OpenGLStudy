@@ -8,6 +8,7 @@
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Texture.h"
 
 namespace GLStudy {
     class Renderer {
@@ -39,6 +40,7 @@ namespace GLStudy {
         void DrawCube(const glm::mat4& model, const glm::vec4& color);
         void Flush();
         unsigned int GetShaderProgram() const { return shader_prog_; }
+        const std::shared_ptr<Texture2D>& GetBrdfLUT() const { return brdf_lut_texture_; }
     private:
         struct InstanceData {
             glm::mat4 model;
@@ -66,7 +68,11 @@ namespace GLStudy {
         std::vector<LightData> lights_;
         int cam_pos_location_ = -1;
         int num_lights_location_ = -1;
-        int ibl_map_location_ = -1;
+        int irradiance_location_ = -1;
+        int prefilter_location_ = -1;
+        int brdf_lut_location_ = -1;
         int use_ibl_location_ = -1;
+
+        std::shared_ptr<Texture2D> brdf_lut_texture_;
     };
 }
