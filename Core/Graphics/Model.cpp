@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <iostream>
 #include <cstdlib>
+#include <algorithm>
 
 namespace GLStudy {
 
@@ -109,16 +110,59 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
                     filePath = std::filesystem::path(directory_) / filePath;
                 if (!std::filesystem::exists(filePath))
                     filePath = std::filesystem::path(directory_) / filePath.filename();
+                if(!std::filesystem::exists(filePath))
+                    return nullptr;
                 return std::make_shared<Texture2D>(filePath.string());
             }
         };
 
-        albedoTex = LoadTextureOfType(aiTextureType_DIFFUSE);
+        auto LoadTextureByName = [&](const std::string& hint) -> std::shared_ptr<Texture2D> {
+            for(unsigned int i = 0; i < material->GetTextureCount(aiTextureType_UNKNOWN); ++i) {
+                aiString str; material->GetTexture(aiTextureType_UNKNOWN, i, &str);
+                std::string name = str.C_Str();
+                std::string lower;
+                lower.resize(name.size());
+                std::transform(name.begin(), name.end(), lower.begin(), ::tolower);
+                if(lower.find(hint) == std::string::npos)
+                    continue;
+                const aiTexture* texData = scene->GetEmbeddedTexture(name.c_str());
+                if(!texData && name[0] == '*') {
+                    int idx = std::atoi(name.c_str() + 1);
+                    if(idx >= 0 && idx < static_cast<int>(scene->mNumTextures))
+                        texData = scene->mTextures[idx];
+                }
+                if(texData) {
+                    if(texData->mHeight == 0)
+                        return std::make_shared<Texture2D>(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth);
+                    auto tex = std::make_shared<Texture2D>();
+                    tex->LoadFromRawData(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth, texData->mHeight, 4);
+                    return tex;
+                } else {
+                    std::filesystem::path filePath = name;
+                    if(!filePath.is_absolute())
+                        filePath = std::filesystem::path(directory_) / filePath;
+                    if(!std::filesystem::exists(filePath))
+                        filePath = std::filesystem::path(directory_) / filePath.filename();
+                    if(!std::filesystem::exists(filePath))
+                        continue;
+                    return std::make_shared<Texture2D>(filePath.string());
+                }
+            }
+            return nullptr;
+        };
+
+        albedoTex = LoadTextureOfType(aiTextureType_BASE_COLOR);
+        if(!albedoTex)
+            albedoTex = LoadTextureOfType(aiTextureType_DIFFUSE);
         normalTex = LoadTextureOfType(aiTextureType_NORMALS);
         if(!normalTex)
             normalTex = LoadTextureOfType(aiTextureType_HEIGHT);
         metallicTex = LoadTextureOfType(aiTextureType_METALNESS);
+        if(!metallicTex)
+            metallicTex = LoadTextureByName("metal");
         roughnessTex = LoadTextureOfType(aiTextureType_DIFFUSE_ROUGHNESS);
+        if(!roughnessTex)
+            roughnessTex = LoadTextureByName("rough");
     }
     return Mesh(vertices, indices, albedoTex, normalTex, metallicTex, roughnessTex);
 }
