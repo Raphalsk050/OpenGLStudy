@@ -4,6 +4,7 @@
 #include <assimp/postprocess.h>
 #include <glm.hpp>
 #include <gtc/type_ptr.hpp>
+#include <filesystem>
 #include <iostream>
 #include <cstdlib>
 
@@ -70,8 +71,12 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
                         }
                     }
                 } else {
-                    std::string filepath = directory_ + "/" + filename;
-                    tex = std::make_shared<Texture2D>(filepath);
+                    std::filesystem::path filePath = filename;
+                    if (!filePath.is_absolute())
+                        filePath = std::filesystem::path(directory_) / filePath;
+                    if (!std::filesystem::exists(filePath))
+                        filePath = std::filesystem::path(directory_) / filePath.filename();
+                    tex = std::make_shared<Texture2D>(filePath.string());
                 }
             }
         }
