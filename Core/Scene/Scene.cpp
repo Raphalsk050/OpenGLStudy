@@ -90,7 +90,6 @@ void Scene::Render(Renderer* renderer) {
             sb.skybox->Draw(view_matrix, projection);
             sb.skybox->Bind(4);
             sb.skybox->Bind(5);
-            sb.skybox->Bind(6);
             has_skybox = true;
             break;
         }

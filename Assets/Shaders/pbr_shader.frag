@@ -35,8 +35,6 @@ uniform samplerCube u_PrefilterMap;
 uniform sampler2D u_BrdfLUT;
 uniform bool u_UseIBL;
 
-const float MAX_REFLECTION_LOD = 4.0;
-
 const float PI = 3.14159265359;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
@@ -71,6 +69,11 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
 void main()
@@ -134,7 +137,7 @@ void main()
     vec3 ambient = vec3(0.03) * albedo;
     if(u_UseIBL)
     {
-        vec3 kS_ibl = fresnelSchlick(max(dot(N, V), 0.0), F0);
+        vec3 kS_ibl = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
         vec3 kD_ibl = vec3(1.0) - kS_ibl;
         kD_ibl *= 1.0 - metallic;
 
@@ -142,7 +145,8 @@ void main()
         vec3 diffuse = irradiance * albedo;
 
         vec3 R = reflect(-V, N);
-        vec3 prefiltered = textureLod(u_PrefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+        float maxLod = log2(float(textureSize(u_PrefilterMap, 0).x));
+        vec3 prefiltered = textureLod(u_PrefilterMap, R, roughness * maxLod).rgb;
         vec2 brdf = texture(u_BrdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
         vec3 specular = prefiltered * (kS_ibl * brdf.x + brdf.y);
 

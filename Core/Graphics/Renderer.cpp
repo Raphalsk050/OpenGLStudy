@@ -75,7 +75,7 @@ std::shared_ptr<GLStudy::Texture2D> GenerateBRDFLUT(unsigned int size) {
         }
     }
     auto tex = std::make_shared<Texture2D>();
-    tex->LoadFromRawData(reinterpret_cast<unsigned char*>(data.data()), size, size, 2);
+    tex->LoadFromRawData(data.data(), size, size, 2);
     return tex;
 }
 } // anonymous namespace
