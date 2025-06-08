@@ -11,7 +11,6 @@ add_subdirectory(ThirdParty/glfw)
 add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
-add_subdirectory(ThirdParty/assimp)
 add_subdirectory(ThirdParty/filament)
 
 if(USE_BULLET)
@@ -80,7 +79,6 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/glfw/include
         ThirdParty/glad/include
         ThirdParty/glm
-        ThirdParty/assimp/include
         ThirdParty/stb
         ThirdParty/filament/filament/include
         ThirdParty/filament/libs/math/include
