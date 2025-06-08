@@ -11,6 +11,7 @@ public:
     ~Texture2D();
     bool LoadFromFile(const std::string& path);
     bool LoadFromMemory(const unsigned char* data, int size);
+    bool LoadFromRawData(const unsigned char* data, int width, int height, int channels);
     void Bind(unsigned int slot = 0) const;
     void Unbind() const;
     int GetWidth() const { return width_; }

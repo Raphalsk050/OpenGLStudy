@@ -68,6 +68,30 @@ bool Texture2D::LoadFromMemory(const unsigned char* data, int size) {
     return true;
 }
 
+bool Texture2D::LoadFromRawData(const unsigned char* data, int width, int height, int channels) {
+    if(renderer_id_ != 0) {
+        glDeleteTextures(1, &renderer_id_);
+        renderer_id_ = 0;
+    }
+    width_ = width;
+    height_ = height;
+    channels_ = channels;
+    GLenum format = GL_RGB;
+    if(channels_ == 4) format = GL_RGBA;
+    else if(channels_ == 3) format = GL_RGB;
+    else if(channels_ == 1) format = GL_RED;
+
+    glGenTextures(1, &renderer_id_);
+    glBindTexture(GL_TEXTURE_2D, renderer_id_);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width_, height_, 0, format, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    return true;
+}
+
 Texture2D::~Texture2D() {
     if(renderer_id_)
         glDeleteTextures(1, &renderer_id_);

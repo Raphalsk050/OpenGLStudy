@@ -59,16 +59,18 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
             aiString str; material->GetTexture(aiTextureType_DIFFUSE,0,&str);
             std::string filename = str.C_Str();
             if(!filename.empty()) {
-                if(filename[0] == '*') {
+                const aiTexture* texData = scene->GetEmbeddedTexture(filename.c_str());
+                if(!texData && filename[0] == '*') {
                     int idx = std::atoi(filename.c_str() + 1);
-                    if(idx >= 0 && idx < static_cast<int>(scene->mNumTextures)) {
-                        const aiTexture* texData = scene->mTextures[idx];
-                        if(texData->mHeight == 0) {
-                            tex = std::make_shared<Texture2D>(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth);
-                        } else {
-                            tex = std::make_shared<Texture2D>();
-                            tex->LoadFromMemory(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth * texData->mHeight * 4);
-                        }
+                    if(idx >= 0 && idx < static_cast<int>(scene->mNumTextures))
+                        texData = scene->mTextures[idx];
+                }
+                if(texData) {
+                    if(texData->mHeight == 0) {
+                        tex = std::make_shared<Texture2D>(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth);
+                    } else {
+                        tex = std::make_shared<Texture2D>();
+                        tex->LoadFromRawData(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth, texData->mHeight, 4);
                     }
                 } else {
                     std::filesystem::path filePath = filename;
