@@ -7,8 +7,10 @@ class Texture2D {
 public:
     Texture2D() = default;
     explicit Texture2D(const std::string& path);
+    Texture2D(const unsigned char* data, int size);
     ~Texture2D();
     bool LoadFromFile(const std::string& path);
+    bool LoadFromMemory(const unsigned char* data, int size);
     void Bind(unsigned int slot = 0) const;
     void Unbind() const;
     int GetWidth() const { return width_; }

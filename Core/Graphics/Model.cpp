@@ -5,6 +5,7 @@
 #include <glm.hpp>
 #include <gtc/type_ptr.hpp>
 #include <iostream>
+#include <cstdlib>
 
 namespace GLStudy {
 
@@ -56,8 +57,23 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene) {
         if(material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
             aiString str; material->GetTexture(aiTextureType_DIFFUSE,0,&str);
             std::string filename = str.C_Str();
-            std::string filepath = directory_ + "/" + filename;
-            tex = std::make_shared<Texture2D>(filepath);
+            if(!filename.empty()) {
+                if(filename[0] == '*') {
+                    int idx = std::atoi(filename.c_str() + 1);
+                    if(idx >= 0 && idx < static_cast<int>(scene->mNumTextures)) {
+                        const aiTexture* texData = scene->mTextures[idx];
+                        if(texData->mHeight == 0) {
+                            tex = std::make_shared<Texture2D>(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth);
+                        } else {
+                            tex = std::make_shared<Texture2D>();
+                            tex->LoadFromMemory(reinterpret_cast<const unsigned char*>(texData->pcData), texData->mWidth * texData->mHeight * 4);
+                        }
+                    }
+                } else {
+                    std::string filepath = directory_ + "/" + filename;
+                    tex = std::make_shared<Texture2D>(filepath);
+                }
+            }
         }
     }
     return Mesh(vertices, indices, tex);

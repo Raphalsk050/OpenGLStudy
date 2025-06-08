@@ -18,7 +18,7 @@ void main()
 {
     vec4 worldPos = u_Model * aModelTransform * vec4(aPos, 1.0);
     vPos = worldPos.xyz;
-    vNormal = mat3(transpose(inverse(aModelTransform))) * aNormal;
+    vNormal = mat3(transpose(inverse(u_Model * aModelTransform))) * aNormal;
     vColor = aColor;
     vTexCoord = aTexCoord;
     gl_Position = u_ViewProjection * worldPos;
