@@ -7,6 +7,7 @@
 #include "../Camera/SceneCamera.h"
 #include <memory>
 namespace GLStudy { class Model; }
+namespace GLStudy { class Skybox; }
 
 namespace GLStudy {
     struct TagComponent {
@@ -75,6 +76,10 @@ namespace GLStudy {
         float range{10.0f};
         float inner_cutoff{12.5f};
         float outer_cutoff{17.5f};
+    };
+
+    struct SkyboxComponent {
+        std::shared_ptr<Skybox> skybox;
     };
 } // namespace GLStudy
 

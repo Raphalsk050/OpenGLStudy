@@ -56,6 +56,10 @@ add_executable(openglStudy
         Core/Graphics/Mesh.cpp
         Core/Graphics/Model.h
         Core/Graphics/Model.cpp
+        Core/Graphics/CubemapTexture.h
+        Core/Graphics/CubemapTexture.cpp
+        Core/Graphics/Skybox.h
+        Core/Graphics/Skybox.cpp
         Core/Camera/Camera.h
         Core/Camera/SceneCamera.h
         Core/Camera/SceneCamera.cpp

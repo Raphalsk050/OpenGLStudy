@@ -2,6 +2,7 @@
 #include "EntityHandle.h"
 #include "Core/Graphics/Renderer.h"
 #include "Core/Graphics/Model.h"
+#include "Core/Graphics/Skybox.h"
 #include "Core/Camera/CameraController.h"
 #include <glad/glad.h>
 #include <glm.hpp>
@@ -35,6 +36,8 @@ void Scene::OnViewportResize(float width, float height) {
 
 void Scene::Render(Renderer* renderer) {
     glm::mat4 view_projection(1.0f);
+    glm::mat4 view_matrix(1.0f);
+    glm::mat4 projection(1.0f);
     glm::vec3 cam_pos{0.0f};
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -45,7 +48,6 @@ void Scene::Render(Renderer* renderer) {
         if (!cc.primary)
             continue;
         const auto& tr = camera_view.get<Transform>(entity);
-        glm::mat4 view;
         if (registry_.all_of<CameraControllerComponent>(entity)) {
             const auto& ctrl = registry_.get<CameraControllerComponent>(entity);
             glm::vec3 front{
@@ -53,11 +55,12 @@ void Scene::Render(Renderer* renderer) {
                 sin(glm::radians(ctrl.pitch)),
                 sin(glm::radians(ctrl.yaw)) * cos(glm::radians(ctrl.pitch))};
             front = glm::normalize(front);
-            view = glm::lookAt(tr.position, tr.position + front, glm::vec3(0.0f, 1.0f, 0.0f));
+            view_matrix = glm::lookAt(tr.position, tr.position + front, glm::vec3(0.0f, 1.0f, 0.0f));
         } else {
-            view = glm::inverse(GetWorldMatrix(entity));
+            view_matrix = glm::inverse(GetWorldMatrix(entity));
         }
-        view_projection = cc.camera.GetProjection() * view;
+        projection = cc.camera.GetProjection();
+        view_projection = projection * view_matrix;
         cam_pos = tr.position;
         break;
     }
@@ -79,7 +82,16 @@ void Scene::Render(Renderer* renderer) {
     }
     renderer->BeginScene(view_projection, cam_pos, lights);
 
-    auto view = registry_.view<Transform, RendererComponent>();
+    auto sky_view = registry_.view<SkyboxComponent>();
+    for (auto entity : sky_view) {
+        auto& sb = sky_view.get<SkyboxComponent>(entity);
+        if (sb.skybox) {
+            sb.skybox->Draw(view_matrix, projection);
+            break;
+        }
+    }
+
+    auto render_view = registry_.view<Transform, RendererComponent>();
     auto model_view = registry_.view<Transform, ModelComponent>();
 
     glEnable(GL_BLEND);
@@ -90,8 +102,8 @@ void Scene::Render(Renderer* renderer) {
     //glFrontFace(GL_CCW);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    for (auto entity : view) {
-        auto& rc = view.get<RendererComponent>(entity);
+    for (auto entity : render_view) {
+        auto& rc = render_view.get<RendererComponent>(entity);
 
         switch (rc.mesh) {
         case MeshType::Cube:
