@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.19)
 project(FilamentMinimal)
 
+option(FILAMENT_BUILD_TESTS "Build Filament tests" OFF)
+
 # Root directory of Filament sources
 set(FILAMENT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 

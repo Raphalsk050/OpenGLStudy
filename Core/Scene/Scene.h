@@ -7,7 +7,7 @@
 
 namespace GLStudy {
     class EntityHandle;
-    class Renderer;
+    class FilamentRenderer;
 
     class Scene {
     public:
@@ -18,7 +18,7 @@ namespace GLStudy {
         void OnEvent(Event& e);
         void OnViewportResize(float width, float height);
 
-        void Render(Renderer* renderer);
+        void Render(FilamentRenderer* renderer);
 
         glm::mat4 GetWorldMatrix(entt::entity entity) const;
 

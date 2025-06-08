@@ -4,6 +4,7 @@ project(openglStudy)
 set(CMAKE_CXX_STANDARD 20)
 
 set(USE_BULLET OFF)
+option(USE_FILAMENT "Use Filament renderer" ON)
 
 
 
@@ -12,6 +13,9 @@ add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
 add_subdirectory(ThirdParty/assimp)
+if(USE_FILAMENT)
+    add_subdirectory(ThirdParty/filament)
+endif()
 
 if(USE_BULLET)
     # bullet properties
@@ -50,6 +54,8 @@ add_executable(openglStudy
         Core/Graphics/IndexBuffer.cpp
         Core/Graphics/Renderer.h
         Core/Graphics/Renderer.cpp
+        Core/Graphics/FilamentRenderer.h
+        Core/Graphics/FilamentRenderer.cpp
         Core/Graphics/Texture.h
         Core/Graphics/Texture.cpp
         Core/Graphics/Mesh.h
@@ -81,6 +87,13 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/glm
         ThirdParty/assimp/include
         ThirdParty/stb
+        $<IF:$<BOOL:${USE_FILAMENT}>,$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/ThirdParty/filament/filament/include>,>
+        $<IF:$<BOOL:${USE_FILAMENT}>,$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/ThirdParty/filament/libs/math/include>,>
+        $<IF:$<BOOL:${USE_FILAMENT}>,$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/ThirdParty/filament/libs/utils/include>,>
+        $<IF:$<BOOL:${USE_FILAMENT}>,$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/ThirdParty/filament/libs/image/include>,>
+        $<IF:$<BOOL:${USE_FILAMENT}>,$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/ThirdParty/filament/libs/geometry/include>,>
+        $<IF:$<BOOL:${USE_FILAMENT}>,$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/ThirdParty/filament/libs/filabridge/include>,>
+        $<IF:$<BOOL:${USE_FILAMENT}>,$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/ThirdParty/filament/libs/gltfio/include>,>
 )
 
 target_link_libraries(openglStudy PUBLIC
@@ -89,6 +102,7 @@ target_link_libraries(openglStudy PUBLIC
         glfw
         Entt
         assimp
+        $<IF:$<BOOL:${USE_FILAMENT}>,filament;filabridge;geometry;image;math;utils;gltfio,>
 )
 
 if(USE_BULLET)

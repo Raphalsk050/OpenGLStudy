@@ -175,7 +175,7 @@ if (WEBGL_PTHREADS)
 endif()
 
 # The Path tests are platform-specific
-if (NOT WEBGL)
+if (FILAMENT_BUILD_TESTS AND NOT WEBGL)
     if (WIN32)
         list(APPEND TEST_SRCS test/test_WinPath.cpp)
     else()
@@ -192,7 +192,7 @@ set_target_properties(test_${TARGET} PROPERTIES FOLDER Tests)
 # Benchmarks
 # ==================================================================================================
 
-if (NOT WEBGL)
+if (FILAMENT_BUILD_TESTS AND NOT WEBGL)
 
     add_library(benchmark_${TARGET}_callee SHARED benchmark/benchmark_callee.cpp)
     set_target_properties(benchmark_${TARGET}_callee PROPERTIES FOLDER Benchmarks)

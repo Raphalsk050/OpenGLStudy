@@ -659,5 +659,7 @@ install(FILES "../LICENSE" DESTINATION .)
 # Sub-projects
 # ==================================================================================================
 add_subdirectory(backend)
-add_subdirectory(test)
-add_subdirectory(benchmark)
+if(FILAMENT_BUILD_TESTS)
+    add_subdirectory(test)
+    add_subdirectory(benchmark)
+endif()
