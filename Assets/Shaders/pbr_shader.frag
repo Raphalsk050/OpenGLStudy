@@ -1,7 +1,9 @@
 #version 330 core
 in vec3 vPos;
 in vec3 vNormal;
+in vec3 vTangent;
 in vec4 vColor;
+in vec2 vTexCoord;
 
 out vec4 FragColor;
 
@@ -20,6 +22,14 @@ struct Light {
 uniform int u_NumLights;
 uniform Light u_Lights[MAX_LIGHTS];
 uniform vec3 u_CamPos;
+uniform sampler2D u_AlbedoMap;
+uniform sampler2D u_NormalMap;
+uniform sampler2D u_MetallicMap;
+uniform sampler2D u_RoughnessMap;
+uniform bool u_UseAlbedoMap;
+uniform bool u_UseNormalMap;
+uniform bool u_UseMetallicMap;
+uniform bool u_UseRoughnessMap;
 
 const float PI = 3.14159265359;
 
@@ -59,10 +69,18 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 
 void main()
 {
-    vec3 albedo = vColor.rgb;
-    float metallic = 0.8;
-    float roughness = 0.3;
+    vec3 albedo = u_UseAlbedoMap ? texture(u_AlbedoMap, vTexCoord).rgb : vColor.rgb;
+    float metallic = u_UseMetallicMap ? texture(u_MetallicMap, vTexCoord).r : 0.8;
+    float roughness = u_UseRoughnessMap ? texture(u_RoughnessMap, vTexCoord).r : 0.3;
     vec3 N = normalize(vNormal);
+    vec3 T = normalize(vTangent);
+    vec3 B = normalize(cross(N, T));
+    if(u_UseNormalMap)
+    {
+        vec3 n = texture(u_NormalMap, vTexCoord).rgb * 2.0 - 1.0;
+        mat3 TBN = mat3(T, B, N);
+        N = normalize(TBN * n);
+    }
     vec3 V = normalize(u_CamPos - vPos);
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
