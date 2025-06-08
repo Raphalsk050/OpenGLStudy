@@ -63,14 +63,7 @@ namespace GLStudy
 
         skybox_entity_ = scene_.CreateEntity("Skybox");
         auto skybox = std::make_shared<Skybox>();
-        skybox->Load({
-            "Assets/Textures/Skybox/right.hdr",
-            "Assets/Textures/Skybox/left.hdr",
-            "Assets/Textures/Skybox/top.hdr",
-            "Assets/Textures/Skybox/bottom.hdr",
-            "Assets/Textures/Skybox/front.hdr",
-            "Assets/Textures/Skybox/back.hdr"
-        }, true);
+        skybox->Load("Assets/Textures/Skybox/skybox.hdr", true);
         skybox_entity_.AddComponent<SkyboxComponent>(SkyboxComponent{skybox});
     }
 

@@ -11,6 +11,7 @@ class Skybox {
 public:
     Skybox() = default;
     bool Load(const std::array<std::string,6>& faces, bool hdr = false);
+    bool Load(const std::string& file, bool hdr = false);
     void Draw(const glm::mat4& view, const glm::mat4& projection);
 private:
     CubemapTexture cubemap_;
