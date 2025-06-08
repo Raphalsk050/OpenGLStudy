@@ -30,6 +30,10 @@ uniform bool u_UseAlbedoMap;
 uniform bool u_UseNormalMap;
 uniform bool u_UseMetallicMap;
 uniform bool u_UseRoughnessMap;
+uniform samplerCube u_IrradianceMap;
+uniform samplerCube u_PrefilterMap;
+uniform sampler2D u_BrdfLUT;
+uniform bool u_UseIBL;
 
 const float PI = 3.14159265359;
 
@@ -65,6 +69,11 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
 void main()
@@ -126,6 +135,23 @@ void main()
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
     vec3 ambient = vec3(0.03) * albedo;
+    if(u_UseIBL)
+    {
+        vec3 kS_ibl = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+        vec3 kD_ibl = vec3(1.0) - kS_ibl;
+        kD_ibl *= 1.0 - metallic;
+
+        vec3 irradiance = texture(u_IrradianceMap, N).rgb;
+        vec3 diffuse = irradiance * albedo;
+
+        vec3 R = reflect(-V, N);
+        float maxLod = log2(float(textureSize(u_PrefilterMap, 0).x));
+        vec3 prefiltered = textureLod(u_PrefilterMap, R, roughness * maxLod).rgb;
+        vec2 brdf = texture(u_BrdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+        vec3 specular = prefiltered * (kS_ibl * brdf.x + brdf.y);
+
+        ambient = diffuse * kD_ibl + specular;
+    }
     vec3 color = ambient + Lo;
     color = pow(color, vec3(1.0/2.2));
     FragColor = vec4(color, 1.0);

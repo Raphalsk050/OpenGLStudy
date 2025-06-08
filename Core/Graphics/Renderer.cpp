@@ -4,6 +4,81 @@
 #include "IndexBuffer.h"
 #include <gtc/type_ptr.hpp>
 #include <string>
+#include <vector>
+#include <cmath>
+
+namespace {
+float RadicalInverse_VdC(unsigned int bits) {
+    bits = (bits << 16u) | (bits >> 16u);
+    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+    return float(bits) * 2.3283064365386963e-10f;
+}
+
+glm::vec2 Hammersley(uint32_t i, uint32_t N) {
+    return glm::vec2(float(i) / float(N), RadicalInverse_VdC(i));
+}
+
+glm::vec3 ImportanceSampleGGX(const glm::vec2& Xi, float roughness) {
+    float a = roughness * roughness;
+    float phi = 2.0f * glm::pi<float>() * Xi.x;
+    float cosTheta = sqrt((1.0f - Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
+    float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+    return glm::vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+}
+
+float GeometrySchlickGGX(float NdotV, float roughness) {
+    float r = roughness + 1.0f;
+    float k = (r * r) / 8.0f;
+    float denom = NdotV * (1.0f - k) + k;
+    return NdotV / denom;
+}
+
+float GeometrySmith(float NdotV, float NdotL, float roughness) {
+    float ggx1 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx2 = GeometrySchlickGGX(NdotL, roughness);
+    return ggx1 * ggx2;
+}
+
+std::shared_ptr<GLStudy::Texture2D> GenerateBRDFLUT(unsigned int size) {
+    using namespace GLStudy;
+    std::vector<float> data(size * size * 2);
+    const unsigned int SAMPLE_COUNT = 128u;
+    for (unsigned int y = 0; y < size; ++y) {
+        float roughness = (float)y / float(size - 1);
+        for (unsigned int x = 0; x < size; ++x) {
+            float NdotV = (float)x / float(size - 1);
+            glm::vec3 V = glm::normalize(glm::vec3(sqrt(1.0f - NdotV * NdotV), 0.0f, NdotV));
+            float A = 0.0f;
+            float B = 0.0f;
+            for (unsigned int i = 0; i < SAMPLE_COUNT; ++i) {
+                glm::vec2 Xi = Hammersley(i, SAMPLE_COUNT);
+                glm::vec3 H = ImportanceSampleGGX(Xi, roughness);
+                glm::vec3 L = glm::normalize(2.0f * glm::dot(V, H) * H - V);
+                float NdotL = glm::max(L.z, 0.0f);
+                float NdotH = glm::max(H.z, 0.0f);
+                float VdotH = glm::max(glm::dot(V, H), 0.0f);
+                if (NdotL > 0.0f) {
+                    float G = GeometrySmith(V.z, NdotL, roughness);
+                    float G_Vis = (G * VdotH) / (NdotH * NdotV + 1e-5f);
+                    float Fc = pow(1.0f - VdotH, 5.0f);
+                    A += (1.0f - Fc) * G_Vis;
+                    B += Fc * G_Vis;
+                }
+            }
+            A /= float(SAMPLE_COUNT);
+            B /= float(SAMPLE_COUNT);
+            data[(y * size + x) * 2 + 0] = A;
+            data[(y * size + x) * 2 + 1] = B;
+        }
+    }
+    auto tex = std::make_shared<Texture2D>();
+    tex->LoadFromRawData(data.data(), size, size, 2);
+    return tex;
+}
+} // anonymous namespace
 
 namespace GLStudy {
     void Renderer::Init() {
@@ -14,6 +89,17 @@ namespace GLStudy {
         cam_pos_location_ = glGetUniformLocation(shader_prog_, "u_CamPos");
         num_lights_location_ = glGetUniformLocation(shader_prog_, "u_NumLights");
         model_location_ = glGetUniformLocation(shader_prog_, "u_Model");
+        irradiance_location_ = glGetUniformLocation(shader_prog_, "u_IrradianceMap");
+        prefilter_location_ = glGetUniformLocation(shader_prog_, "u_PrefilterMap");
+        brdf_lut_location_ = glGetUniformLocation(shader_prog_, "u_BrdfLUT");
+        use_ibl_location_ = glGetUniformLocation(shader_prog_, "u_UseIBL");
+        glUniform1i(irradiance_location_, 4);
+        glUniform1i(prefilter_location_, 5);
+        glUniform1i(brdf_lut_location_, 6);
+
+        brdf_lut_texture_ = GenerateBRDFLUT(256);
+        if (brdf_lut_texture_)
+            brdf_lut_texture_->Bind(6);
 
         struct Vertex {
             glm::vec3 position;
