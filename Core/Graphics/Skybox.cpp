@@ -59,8 +59,12 @@ bool Skybox::Load(const std::array<std::string,6>& faces, bool hdr) {
         return false;
 
     shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/skybox.vert", "Assets/Shaders/skybox.frag");
-    view_loc_ = glGetUniformLocation(shader_prog_, "u_View");
-    proj_loc_ = glGetUniformLocation(shader_prog_, "u_Projection");
+    if (shader_prog_ != 0) {
+        glUseProgram(shader_prog_);
+        glUniform1i(glGetUniformLocation(shader_prog_, "u_Skybox"), 0);
+        view_loc_ = glGetUniformLocation(shader_prog_, "u_View");
+        proj_loc_ = glGetUniformLocation(shader_prog_, "u_Projection");
+    }
     return shader_prog_ != 0;
 }
 
@@ -76,8 +80,12 @@ bool Skybox::Load(const std::string& file, bool hdr) {
         return false;
 
     shader_prog_ = Shader::CreateShaderProgram("Assets/Shaders/skybox.vert", "Assets/Shaders/skybox.frag");
-    view_loc_ = glGetUniformLocation(shader_prog_, "u_View");
-    proj_loc_ = glGetUniformLocation(shader_prog_, "u_Projection");
+    if (shader_prog_ != 0) {
+        glUseProgram(shader_prog_);
+        glUniform1i(glGetUniformLocation(shader_prog_, "u_Skybox"), 0);
+        view_loc_ = glGetUniformLocation(shader_prog_, "u_View");
+        proj_loc_ = glGetUniformLocation(shader_prog_, "u_Projection");
+    }
     return shader_prog_ != 0;
 }
 

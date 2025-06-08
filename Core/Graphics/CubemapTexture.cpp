@@ -27,7 +27,8 @@ bool CubemapTexture::LoadFromFiles(const std::array<std::string,6>& faces, bool 
                 return false;
             }
             GLenum format = channels == 4 ? GL_RGBA : (channels == 3 ? GL_RGB : GL_RED);
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, width, height, 0, format, GL_FLOAT, data);
+            GLenum internal = channels == 4 ? GL_RGBA16F : GL_RGB16F;
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internal, width, height, 0, format, GL_FLOAT, data);
             stbi_image_free(data);
         } else {
             unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &channels, 0);
@@ -98,6 +99,7 @@ bool CubemapTexture::LoadFromSingleFile(const std::string& file, bool hdr) {
     glGenTextures(1, &renderer_id_);
     glBindTexture(GL_TEXTURE_CUBE_MAP, renderer_id_);
     GLenum format = channels == 4 ? GL_RGBA : (channels == 3 ? GL_RGB : GL_RED);
+    GLenum internal = channels == 4 && hdr ? GL_RGBA16F : (hdr ? GL_RGB16F : format);
     GLenum type = hdr ? GL_FLOAT : GL_UNSIGNED_BYTE;
 
     auto copy_face = [&](int face, int x_off, int y_off) {
@@ -112,7 +114,7 @@ bool CubemapTexture::LoadFromSingleFile(const std::string& file, bool hdr) {
             memcpy(buffer.data() + row * face_size * channels * pixel_size, src, face_size * channels * pixel_size);
         }
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0,
-                     hdr ? GL_RGB16F : format, face_size, face_size, 0,
+                     internal, face_size, face_size, 0,
                      format, type, buffer.data());
     };
 
