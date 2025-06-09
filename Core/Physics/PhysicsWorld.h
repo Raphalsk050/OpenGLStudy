@@ -1,6 +1,8 @@
 #pragma once
 #include <btBulletDynamicsCommon.h>
 
+#include "Core/TimeStep.h"
+
 namespace GLStudy
 {
     class RigidBody;
@@ -22,7 +24,7 @@ namespace GLStudy
         btDiscreteDynamicsWorld* dynamics_world_;
 
     private:
-        void Update();
+        void Update(Timestep ts);
 
         RigidBody* CreateRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape);
 

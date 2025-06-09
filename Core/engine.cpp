@@ -141,7 +141,7 @@ namespace GLStudy
         scene_->OnUpdate(ts);
 
         // TODO: move the physics to another thread to be more performant and don't freeze the main thread
-        physic_world_->Update();
+        physic_world_->Update(ts);
 
         UpdateLayers(ts);
     }

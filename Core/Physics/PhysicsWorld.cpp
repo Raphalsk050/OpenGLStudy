@@ -5,7 +5,6 @@
 #include "Core/engine.h"
 #include "Core/Scene/Components.h"
 #include "Core/Utils.h"
-#include "ThirdParty/bullet/examples/TinyRenderer/our_gl.h"
 #include <glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <gtx/quaternion.hpp>
@@ -52,9 +51,9 @@ namespace GLStudy
         }
     }
 
-    void PhysicsWorld::Update()
+    void PhysicsWorld::Update(Timestep ts)
     {
-        StepSimulation(time_steps_);
+        StepSimulation(ts);
 
         // synchronize entity transforms with Bullet rigid bodies
         auto view = Engine::Get().GetScene()->registry_.view<TransformComponent, RigidBodyComponent>();
