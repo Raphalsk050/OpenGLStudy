@@ -3,7 +3,7 @@ project(openglStudy)
 
 set(CMAKE_CXX_STANDARD 20)
 
-set(USE_BULLET OFF)
+set(USE_BULLET ON)
 
 
 
@@ -79,6 +79,13 @@ add_executable(openglStudy
         Core/Events/KeyEvent.h
         Core/Events/MouseEvent.h
         Core/Events/WindowApplicationEvent.h
+        Core/Physics/PhysicsWorld.cpp
+        Core/Physics/PhysicsWorld.h
+        Core/Physics/CollisionShape.cpp
+        Core/Physics/CollisionShape.h
+        Core/Physics/RigidBody.cpp
+        Core/Physics/RigidBody.h
+        Core/Utils.h
 )
 
 target_include_directories(openglStudy PUBLIC
@@ -104,6 +111,10 @@ if(USE_BULLET)
             BulletDynamics
             BulletCollision
             LinearMath
+    )
+
+    target_include_directories(openglStudy PUBLIC
+            ThirdParty/bullet/src
     )
 endif ()
 

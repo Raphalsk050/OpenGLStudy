@@ -14,7 +14,7 @@ namespace GLStudy {
 EntityHandle Scene::CreateEntity(const std::string& name) {
     entt::entity e = registry_.create();
     EntityHandle handle{e, this};
-    registry_.emplace<Transform>(e);
+    registry_.emplace<TransformComponent>(e);
     registry_.emplace<TagComponent>(e, TagComponent{name});
     return handle;
 }
@@ -43,12 +43,12 @@ void Scene::Render(Renderer* renderer) {
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    auto camera_view = registry_.view<Transform, CameraComponent>();
+    auto camera_view = registry_.view<TransformComponent, CameraComponent>();
     for (auto entity : camera_view) {
         auto& cc = camera_view.get<CameraComponent>(entity);
         if (!cc.primary)
             continue;
-        const auto& tr = camera_view.get<Transform>(entity);
+        const auto& tr = camera_view.get<TransformComponent>(entity);
         if (registry_.all_of<CameraControllerComponent>(entity)) {
             const auto& ctrl = registry_.get<CameraControllerComponent>(entity);
             glm::vec3 front{
@@ -66,10 +66,10 @@ void Scene::Render(Renderer* renderer) {
         break;
     }
     std::vector<Renderer::LightData> lights;
-    auto light_view = registry_.view<Transform, LightComponent>();
+    auto light_view = registry_.view<TransformComponent, LightComponent>();
     for (auto entity : light_view) {
         const auto& lt = light_view.get<LightComponent>(entity);
-        const auto& tr = light_view.get<Transform>(entity);
+        const auto& tr = light_view.get<TransformComponent>(entity);
         Renderer::LightData data{};
         data.type = lt.type;
         data.position = tr.position;
@@ -103,7 +103,7 @@ void Scene::Render(Renderer* renderer) {
     if(renderer->GetBrdfLUT())
         renderer->GetBrdfLUT()->Bind(6);
 
-    auto render_view = registry_.view<Transform, RendererComponent>();
+    auto render_view = registry_.view<TransformComponent, RendererComponent>();
 
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -155,7 +155,7 @@ void Scene::Render(Renderer* renderer) {
 }
 
 glm::mat4 Scene::GetWorldMatrix(entt::entity entity) const {
-    const auto& tr = registry_.get<Transform>(entity);
+    const auto& tr = registry_.get<TransformComponent>(entity);
     glm::mat4 mat = tr.LocalMatrix();
     if (tr.parent != entt::null) {
         mat = GetWorldMatrix(tr.parent) * mat;

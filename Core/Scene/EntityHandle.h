@@ -57,7 +57,7 @@ T& EntityHandle::AddComponent(Args&&... args) {
 
 template<typename T>
 void EntityHandle::RemoveComponent() {
-    static_assert(!std::is_same_v<T, Transform>, "Transform component cannot be removed");
+    static_assert(!std::is_same_v<T, TransformComponent>, "Transform component cannot be removed");
     scene_->registry_.remove<T>(handle_);
 }
 

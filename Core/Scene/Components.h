@@ -6,6 +6,11 @@
 #include "glad/glad.h"
 #include "../Camera/SceneCamera.h"
 #include <memory>
+
+#include "gtc/quaternion.hpp"
+#include "LinearMath/btTransform.h"
+#include "../Physics/RigidBody.h"
+
 namespace GLStudy { class Model; }
 namespace GLStudy { class Mesh; }
 namespace GLStudy { class Skybox; }
@@ -15,7 +20,7 @@ namespace GLStudy {
         std::string tag{"Entity"};
     };
 
-    struct Transform {
+    struct TransformComponent {
         glm::vec3 position{0.0f};
         glm::vec3 rotation{0.0f};
         glm::vec3 scale{1.0f};
@@ -44,6 +49,14 @@ namespace GLStudy {
         Cylinder = 3,
         Capsule = 4,
         Model = 5
+    };
+
+    struct RigidBodyComponent
+    {
+        MeshType mesh_type = MeshType::Cube;
+        btVector3 size = btVector3(1.0f, 1.0f, 1.0f);
+        float mass = 1.0f;
+        RigidBody* body = nullptr;
     };
 
     struct RendererComponent

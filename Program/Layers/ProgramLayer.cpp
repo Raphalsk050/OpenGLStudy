@@ -26,7 +26,7 @@ namespace GLStudy
 
         int amount = 5;
 
-        for (int i = 0 ; i < amount ; i++)
+        /*for (int i = 0 ; i < amount ; i++)
         {
             for (int j = 0 ; j < amount ; j++)
             {
@@ -39,22 +39,39 @@ namespace GLStudy
                     cube_.SetScale(glm::vec3(0.5f));
                 }
             }
-        }
+        }*/
 
         auto sphereMesh = std::make_shared<Sphere>(0.5f);
         auto sphereEntity = scene_.CreateEntity("Sphere");
+        sphereEntity.AddComponent<RendererComponent>(renderer_component_spec);
+        sphereEntity.SetPosition({0.0f,15.0f,0.0f});
+
+        sphereEntity.AddComponent<RigidBodyComponent>(RigidBodyComponent{.mesh_type = MeshType::Cube,.size = btVector3(1.0f,1.0f,1.0f),.mass = 1.0f});
+
+        sphereEntity = scene_.CreateEntity("Sphere");
         sphereEntity.AddComponent<RendererComponent>(RendererComponent{.color = glm::vec4(1.0f,0.0f,0.0f,1.0f), .mesh_ptr = sphereMesh});
-        sphereEntity.SetPosition({0.0f,1.5f,0.0f});
+        sphereEntity.SetPosition({0.0f,10.0f,0.0f});
+
+        sphereEntity.AddComponent<RigidBodyComponent>(RigidBodyComponent{.mesh_type = MeshType::Sphere,.size = btVector3(0.5f,0.5f,0.5f),.mass = 1.0f});
+
+        auto floor_mesh = std::make_shared<Plane>(100.0f);
+        auto floor_entity = scene_.CreateEntity("Floor");
+        floor_entity.SetRotation(glm::vec3(0.0f,0.0f,3.14f));
+        floor_entity.AddComponent<RendererComponent>(RendererComponent{.color = glm::vec4(1.0f,1.0f,1.0f,1.0f), .mesh_ptr = floor_mesh});
+        floor_entity.AddComponent<RigidBodyComponent>(RigidBodyComponent{.mesh_type = MeshType::Cube,.size = btVector3(100.0f, 0.05f, 100.0f),.mass = 0.0f});
+        floor_entity.SetPosition({0.0f,0.0f,0.0f});
 
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();
         camera_.AddComponent<CameraControllerComponent>();
-        camera_.SetPosition({0.0f, 0.0f, 5.0f});
+        camera_.SetPosition({0.0f, 1.0f, 5.0f});
 
         light_ = scene_.CreateEntity("Light");
         light_.AddComponent<LightComponent>(LightComponent{.type = LightType::Directional,
                                                           .color = glm::vec3(1.0f, 1.0f, 1.0f),
                                                           .intensity = 4.0f,.direction = glm::vec3(0.0f, -1.0f, 0.0f)});
+
+
 
         // light_2_ = scene_.CreateEntity("Light_2");
         // light_2_.AddComponent<LightComponent>(LightComponent{.type = LightType::Point,
@@ -62,10 +79,10 @@ namespace GLStudy
         //                                                   .intensity = 10.0f});
         // light_2_.SetPosition({0.0f, 0.0f,0.0f});
 
-        dummy_model_ = std::make_shared<Model>();
+        /*dummy_model_ = std::make_shared<Model>();
         dummy_model_->LoadModel("Assets/Models/balls.glb");
         model_entity_ = scene_.CreateEntity("DummyModel");
-        model_entity_.AddComponent<RendererComponent>(RendererComponent{.mesh = MeshType::Model, .color = glm::vec4(1.0f), .model = dummy_model_});
+        model_entity_.AddComponent<RendererComponent>(RendererComponent{.mesh = MeshType::Model, .color = glm::vec4(1.0f), .model = dummy_model_});*/
 
         skybox_entity_ = scene_.CreateEntity("Skybox");
         auto skybox = std::make_shared<Skybox>();

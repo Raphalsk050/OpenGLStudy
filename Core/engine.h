@@ -11,6 +11,7 @@
 #include "Scene/Scene.h"
 #include "Core/Input/Input.h"
 #include "Core/Events/Event.h"
+#include "Physics/PhysicsWorld.h"
 
 
 namespace GLStudy
@@ -32,7 +33,12 @@ namespace GLStudy
     class Engine
     {
     public:
-        Engine();
+        static Engine& Get()
+        {
+            static Engine instance;
+            return instance;
+        }
+
 
         void Setup();
 
@@ -52,7 +58,14 @@ namespace GLStudy
 
         GLFWwindow* GetWindow() const { return window_; }
 
+        PhysicsWorld* GetPhysicsWorld() const { return physic_world_; }
+
     private:
+        Engine(const Engine&)            = delete;
+        Engine& operator=(const Engine&) = delete;
+        Engine(Engine&&)                 = delete;
+        Engine& operator=(Engine&&)      = delete;
+
         GLFWwindow* window_;
         int width_ = 800, height_ = 600;
         LayerStack layer_stack_;
@@ -60,11 +73,16 @@ namespace GLStudy
         Time time_;
         float last_frame_time_ = 0.0f;
         std::unique_ptr<Renderer> renderer_;
+        PhysicsWorld* physic_world_;
 
         // currently, the engine will have only one scene
         // TODO(rafael): in the future, the idea is to hold multiple scenes and the user can decide
         // to switch to a new scene or to add multiple scene layers, like unity does.
         Scene* scene_;
+
+    private:
+        Engine();
+        ~Engine();
 
         void InitGLFW();
 
