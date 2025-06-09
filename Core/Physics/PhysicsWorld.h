@@ -14,6 +14,9 @@ namespace GLStudy
         void SetGravity(const btVector3& gravity);
         void SetTimeStep(float timeStep);
 
+        void AddConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies);
+
+
     private:
         btScalar time_steps_ = 1.0f / 60.0f;
         btVector3 gravity_ = btVector3(0.0f, -9.807f, 0.0f);

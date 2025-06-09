@@ -85,6 +85,11 @@ namespace GLStudy
         time_steps_ = timeStep;
     }
 
+    void PhysicsWorld::AddConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies)
+    {
+        dynamics_world_->addConstraint(constraint, disableCollisionsBetweenLinkedBodies);
+    }
+
     void PhysicsWorld::StepSimulation(float deltaTime) const
     {
         if (dynamics_world_)

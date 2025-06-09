@@ -5,6 +5,7 @@
 #include <array>
 #include <memory>
 #include "Core/Graphics/Primitives.h"
+#include "Core/Utils.h"
 
 namespace GLStudy
 {
@@ -64,6 +65,13 @@ namespace GLStudy
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();
         camera_.AddComponent<CameraControllerComponent>();
+        camera_.AddComponent<RigidBodyComponent>();
+
+        btRigidBody* body = camera_.GetComponent<RigidBodyComponent>().body->get();
+        btVector3 localPivot = body->getCenterOfMassTransform().inverse() * ConvertMat4ToBtTransform(camera_.GetComponent<TransformComponent>().LocalMatrix()).getOrigin();
+        btPoint2PointConstraint* p2p = new btPoint2PointConstraint(*body, localPivot);
+        engine_->GetPhysicsWorld()->AddConstraint(p2p, true);
+
         camera_.SetPosition({0.0f, 1.0f, 5.0f});
 
         light_ = scene_.CreateEntity("Light");
