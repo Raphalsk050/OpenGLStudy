@@ -88,37 +88,5 @@ glm::vec3 EntityHandle::GetScale() const {
     return scene_->registry_.get<TransformComponent>(handle_).scale;
 }
 
-boost::future<RigidBodyComponent> EntityHandle::AddRigidbodyAsync(const RigidBodyComponent& spec)
-{
-    // Use a packaged_task to perform the heavy initialization on a separate thread
-    boost::packaged_task<RigidBodyComponent()> task([=, this]() {
-        RigidBodyComponent rb = spec;
-
-        auto transform = scene_->GetWorldMatrix(handle_);
-        auto rb_transform = ConvertMat4ToBtTransform(transform);
-
-        btCollisionShape* shape = nullptr;
-        switch (rb.mesh_type)
-        {
-            case MeshType::Sphere:
-                shape = CollisionShape::createSphereShape(rb.size.getX());
-                break;
-            case MeshType::Cube:
-            default:
-                shape = CollisionShape::createBoxShape(rb.size / 2.0f);
-                break;
-        }
-
-        rb.body = Engine::Get().GetPhysicsWorld()->CreateRigidBody(rb.mass, rb_transform, shape);
-
-        // Store the fully initialized component in the registry
-        scene_->registry_.emplace_or_replace<RigidBodyComponent>(handle_, rb);
-        return rb;
-    });
-
-    boost::future<RigidBodyComponent> future = task.get_future();
-    std::thread(std::move(task)).detach();
-    return future;
-}
 
 } // namespace GLStudy

@@ -2,6 +2,9 @@
 #include <btBulletDynamicsCommon.h>
 
 #include "Core/TimeStep.h"
+#include <boost/thread/future.hpp>
+#include "Core/Scene/EntityHandle.h"
+#include "Core/Scene/Components.h"
 
 namespace GLStudy
 {
@@ -20,6 +23,9 @@ namespace GLStudy
         // Expose rigid body creation so external systems can asynchronously
         // create bodies when components are added at runtime
         RigidBody* CreateRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape);
+
+        // Create a RigidBodyComponent asynchronously for an entity using Boost futures
+        boost::future<RigidBodyComponent> AddRigidbodyAsync(EntityHandle entity, const RigidBodyComponent& spec);
 
 
     private:

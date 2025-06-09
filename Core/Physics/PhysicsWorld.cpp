@@ -4,6 +4,7 @@
 #include "RigidBody.h"
 #include "Core/engine.h"
 #include "Core/Scene/Components.h"
+#include <boost/thread/future.hpp>
 #include "Core/Utils.h"
 #include <glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -99,10 +100,46 @@ namespace GLStudy
     }
 
     // TODO(rafael): make a complete wrapper around btCollisionShape. Now we only have a class that creates directly and returns a btCollsionShape pointer
-    RigidBody* PhysicsWorld::CreateRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape)
-    {
-        auto body = new RigidBody(shape, mass, startTransform);
-        dynamics_world_->addRigidBody(body->body_);
-        return body;
-    }
+RigidBody* PhysicsWorld::CreateRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape)
+{
+    auto body = new RigidBody(shape, mass, startTransform);
+    dynamics_world_->addRigidBody(body->body_);
+    return body;
+}
+
+boost::future<RigidBodyComponent> PhysicsWorld::AddRigidbodyAsync(EntityHandle entity, const RigidBodyComponent& spec)
+{
+    // First add a placeholder component to the entity
+    entity.AddComponent<RigidBodyComponent>(spec);
+
+    boost::packaged_task<RigidBodyComponent()> task([=]() mutable {
+        RigidBodyComponent rb = spec;
+
+        auto transform = Engine::Get().GetScene()->GetWorldMatrix(entity.Raw());
+        auto rb_transform = ConvertMat4ToBtTransform(transform);
+
+        btCollisionShape* shape = nullptr;
+        switch (rb.mesh_type)
+        {
+            case MeshType::Sphere:
+                shape = CollisionShape::createSphereShape(rb.size.getX());
+                break;
+            case MeshType::Cube:
+            default:
+                shape = CollisionShape::createBoxShape(rb.size / 2.0f);
+                break;
+        }
+
+        rb.body = CreateRigidBody(rb.mass, rb_transform, shape);
+
+        // Update the component in the registry
+        auto& registry = Engine::Get().GetScene()->registry_;
+        registry.patch<RigidBodyComponent>(entity.Raw(), [&](auto& comp){ comp.body = rb.body; });
+        return rb;
+    });
+
+    boost::future<RigidBodyComponent> future = task.get_future();
+    std::thread(std::move(task)).detach();
+    return future;
+}
 } // GLStudy

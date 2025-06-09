@@ -25,6 +25,12 @@ namespace GLStudy
 
         };
 
+        cube_.AddComponent<RendererComponent>(renderer_component_spec);
+        engine_->GetPhysicsWorld()->AddRigidbodyAsync(
+            cube_,
+            RigidBodyComponent{.mesh_type = MeshType::Cube, .size = btVector3(1.0f,1.0f,1.0f), .mass = 1.0f});
+        cube_.SetPosition({0.0f,5.0f,0.0f});
+
         int amount = 5;
 
         /*for (int i = 0 ; i < amount ; i++)

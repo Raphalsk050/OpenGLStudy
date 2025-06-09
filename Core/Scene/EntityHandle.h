@@ -4,7 +4,6 @@
 #include <glm.hpp>
 #include <type_traits>
 #include "Components.h"
-#include <boost/thread/future.hpp>
 
 namespace GLStudy {
     class Scene;
@@ -19,9 +18,6 @@ namespace GLStudy {
         template<typename T, typename... Args>
         T& AddComponent(Args&&... args);
 
-        // Asynchronously create a RigidBody component and return a future that
-        // resolves when the component is fully initialized.
-        boost::future<RigidBodyComponent> AddRigidbodyAsync(const RigidBodyComponent& spec);
 
         template<typename T>
         void RemoveComponent();

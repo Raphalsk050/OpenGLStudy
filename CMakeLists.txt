@@ -3,8 +3,6 @@ project(openglStudy)
 
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(Boost REQUIRED COMPONENTS thread system)
-
 set(USE_BULLET ON)
 
 
@@ -14,6 +12,7 @@ add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
 add_subdirectory(ThirdParty/assimp)
+add_subdirectory(ThirdParty/boost)
 
 if(USE_BULLET)
     # bullet properties
