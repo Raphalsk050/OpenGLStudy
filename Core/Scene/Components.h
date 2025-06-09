@@ -7,6 +7,7 @@
 #include "../Camera/SceneCamera.h"
 #include <memory>
 namespace GLStudy { class Model; }
+namespace GLStudy { class Mesh; }
 namespace GLStudy { class Skybox; }
 
 namespace GLStudy {
@@ -54,6 +55,7 @@ namespace GLStudy {
         GLenum cull_face{GL_BACK};
         bool double_sided{false};
         std::shared_ptr<Model> model{nullptr};
+        std::shared_ptr<Mesh> mesh_ptr{nullptr};
     };
 
     struct CameraComponent

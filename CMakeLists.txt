@@ -54,6 +54,8 @@ add_executable(openglStudy
         Core/Graphics/Texture.cpp
         Core/Graphics/Mesh.h
         Core/Graphics/Mesh.cpp
+        Core/Graphics/Primitives.h
+        Core/Graphics/Primitives.cpp
         Core/Graphics/Model.h
         Core/Graphics/Model.cpp
         Core/Graphics/CubemapTexture.h

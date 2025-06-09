@@ -7,6 +7,7 @@
 #include <glad/glad.h>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
 
 namespace GLStudy {
 
@@ -114,6 +115,18 @@ void Scene::Render(Renderer* renderer) {
 
     for (auto entity : render_view) {
         auto& rc = render_view.get<RendererComponent>(entity);
+
+        if (rc.mesh_ptr) {
+            glUniformMatrix4fv(glGetUniformLocation(renderer->GetShaderProgram(), "u_Model"), 1, GL_FALSE, glm::value_ptr(GetWorldMatrix(entity)));
+            glm::mat4 identity(1.0f);
+            glVertexAttrib4fv(4, glm::value_ptr(identity[0]));
+            glVertexAttrib4fv(5, glm::value_ptr(identity[1]));
+            glVertexAttrib4fv(6, glm::value_ptr(identity[2]));
+            glVertexAttrib4fv(7, glm::value_ptr(identity[3]));
+            glVertexAttrib4fv(8, glm::value_ptr(rc.color));
+            rc.mesh_ptr->Draw(renderer->GetShaderProgram());
+            continue;
+        }
 
         switch (rc.mesh) {
         case MeshType::Cube:

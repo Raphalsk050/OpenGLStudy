@@ -4,6 +4,7 @@
 #include "Core/Events/WindowApplicationEvent.h"
 #include <array>
 #include <memory>
+#include "Core/Graphics/Primitives.h"
 
 namespace GLStudy
 {
@@ -39,6 +40,11 @@ namespace GLStudy
                 }
             }
         }
+
+        auto sphereMesh = std::make_shared<Sphere>(0.5f);
+        auto sphereEntity = scene_.CreateEntity("Sphere");
+        sphereEntity.AddComponent<RendererComponent>(RendererComponent{.color = glm::vec4(1.0f,0.0f,0.0f,1.0f), .mesh_ptr = sphereMesh});
+        sphereEntity.SetPosition({0.0f,1.5f,0.0f});
 
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();
