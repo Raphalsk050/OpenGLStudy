@@ -4,6 +4,7 @@
 #include "Core/Events/WindowApplicationEvent.h"
 #include <array>
 #include <memory>
+#include "Core/Graphics/Primitives.h"
 
 namespace GLStudy
 {
@@ -40,6 +41,11 @@ namespace GLStudy
             }
         }
 
+        auto sphereMesh = std::make_shared<Sphere>(0.5f);
+        auto sphereEntity = scene_.CreateEntity("Sphere");
+        sphereEntity.AddComponent<RendererComponent>(RendererComponent{.color = glm::vec4(1.0f,0.0f,0.0f,1.0f), .mesh_ptr = sphereMesh});
+        sphereEntity.SetPosition({0.0f,1.5f,0.0f});
+
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();
         camera_.AddComponent<CameraControllerComponent>();
@@ -59,7 +65,7 @@ namespace GLStudy
         dummy_model_ = std::make_shared<Model>();
         dummy_model_->LoadModel("Assets/Models/balls.glb");
         model_entity_ = scene_.CreateEntity("DummyModel");
-        model_entity_.AddComponent<ModelComponent>(ModelComponent{dummy_model_});
+        model_entity_.AddComponent<RendererComponent>(RendererComponent{.mesh = MeshType::Model, .color = glm::vec4(1.0f), .model = dummy_model_});
 
         skybox_entity_ = scene_.CreateEntity("Skybox");
         auto skybox = std::make_shared<Skybox>();
