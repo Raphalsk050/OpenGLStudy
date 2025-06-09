@@ -6,6 +6,7 @@
 #include <memory>
 #include "Core/Graphics/Primitives.h"
 #include "Core/Utils.h"
+#include <boost/thread/future.hpp>
 
 namespace GLStudy
 {
@@ -26,9 +27,12 @@ namespace GLStudy
         };
 
         cube_.AddComponent<RendererComponent>(renderer_component_spec);
-        engine_->GetPhysicsWorld()->AddRigidbodyAsync(
+        auto future = engine_->GetPhysicsWorld()->AddRigidbodyAsync(
             cube_,
             RigidBodyComponent{.mesh_type = MeshType::Cube, .size = btVector3(1.0f,1.0f,1.0f), .mass = 1.0f});
+        future.then([](boost::future<RigidBodyComponent> f){
+            (void)f.get();
+        });
         cube_.SetPosition({0.0f,5.0f,0.0f});
 
         int amount = 5;

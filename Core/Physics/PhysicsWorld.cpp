@@ -5,6 +5,7 @@
 #include "Core/engine.h"
 #include "Core/Scene/Components.h"
 #include <boost/thread/future.hpp>
+#include <thread>
 #include "Core/Utils.h"
 #include <glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -112,7 +113,7 @@ boost::future<RigidBodyComponent> PhysicsWorld::AddRigidbodyAsync(EntityHandle e
     // First add a placeholder component to the entity
     entity.AddComponent<RigidBodyComponent>(spec);
 
-    boost::packaged_task<RigidBodyComponent()> task([=]() mutable {
+    boost::packaged_task<RigidBodyComponent()> task([=, this]() mutable -> RigidBodyComponent {
         RigidBodyComponent rb = spec;
 
         auto transform = Engine::Get().GetScene()->GetWorldMatrix(entity.Raw());
