@@ -223,6 +223,272 @@ namespace GLStudy {
         glVertexAttribDivisor(7, 1);
         glVertexAttribDivisor(8, 1);
         cube_vao_->Unbind();
+
+        // Setup sphere buffers
+        {
+            const int sectors = 16;
+            const int stacks = 16;
+            std::vector<Vertex> vertices;
+            std::vector<unsigned int> indices;
+            for (int i = 0; i <= stacks; ++i) {
+                float stackAngle = glm::pi<float>() * ((float)i / stacks - 0.5f);
+                float xy = cos(stackAngle);
+                float z = sin(stackAngle);
+                for (int j = 0; j <= sectors; ++j) {
+                    float sectorAngle = 2.0f * glm::pi<float>() * j / sectors;
+                    float x = xy * cos(sectorAngle);
+                    float y = xy * sin(sectorAngle);
+                    Vertex v{};
+                    v.position = glm::vec3(x, z, y);
+                    v.normal = glm::normalize(v.position);
+                    v.tangent = glm::vec3(-sin(sectorAngle), 0.0f, cos(sectorAngle));
+                    v.texcoord = glm::vec2((float)j / sectors, (float)i / stacks);
+                    vertices.push_back(v);
+                }
+            }
+            for (int i = 0; i < stacks; ++i) {
+                int k1 = i * (sectors + 1);
+                int k2 = k1 + sectors + 1;
+                for (int j = 0; j < sectors; ++j) {
+                    if (i != 0) {
+                        indices.push_back(k1 + j);
+                        indices.push_back(k2 + j);
+                        indices.push_back(k1 + j + 1);
+                    }
+                    if (i != (stacks - 1)) {
+                        indices.push_back(k1 + j + 1);
+                        indices.push_back(k2 + j);
+                        indices.push_back(k2 + j + 1);
+                    }
+                }
+            }
+            sphere_index_count_ = indices.size();
+            sphere_vao_ = std::make_unique<VertexArray>();
+            sphere_vao_->Bind();
+            sphere_vbo_ = std::make_unique<VertexBuffer>(vertices.data(), vertices.size() * sizeof(Vertex));
+            sphere_ibo_ = std::make_unique<IndexBuffer>(indices.data(), indices.size());
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+            glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texcoord));
+            glEnableVertexAttribArray(0);
+            glEnableVertexAttribArray(1);
+            glEnableVertexAttribArray(2);
+            glEnableVertexAttribArray(3);
+            sphere_instance_vbo_ = std::make_unique<VertexBuffer>(nullptr, sizeof(InstanceData) * 1000, GL_DYNAMIC_DRAW);
+            glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, model));
+            glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4)));
+            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4) * 2));
+            glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4) * 3));
+            glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, color));
+            glEnableVertexAttribArray(4);
+            glEnableVertexAttribArray(5);
+            glEnableVertexAttribArray(6);
+            glEnableVertexAttribArray(7);
+            glEnableVertexAttribArray(8);
+            glVertexAttribDivisor(4, 1);
+            glVertexAttribDivisor(5, 1);
+            glVertexAttribDivisor(6, 1);
+            glVertexAttribDivisor(7, 1);
+            glVertexAttribDivisor(8, 1);
+            sphere_vao_->Unbind();
+        }
+
+        // Setup cylinder buffers
+        {
+            const int sectors = 16;
+            const int rings = 1; // just top and bottom
+            std::vector<Vertex> vertices;
+            std::vector<unsigned int> indices;
+            for (int i = 0; i <= rings; ++i) {
+                float y = -0.5f + i * 1.0f; // height 1
+                for (int j = 0; j <= sectors; ++j) {
+                    float ang = 2.0f * glm::pi<float>() * j / sectors;
+                    float x = 0.5f * cos(ang);
+                    float z = 0.5f * sin(ang);
+                    Vertex v{};
+                    v.position = glm::vec3(x, y, z);
+                    v.normal = glm::normalize(glm::vec3(x, 0.0f, z));
+                    v.tangent = glm::vec3(-sin(ang), 0.0f, cos(ang));
+                    v.texcoord = glm::vec2((float)j / sectors, (float)i);
+                    vertices.push_back(v);
+                }
+            }
+            for (int i = 0; i < rings; ++i) {
+                int k1 = i * (sectors + 1);
+                int k2 = k1 + sectors + 1;
+                for (int j = 0; j < sectors; ++j) {
+                    indices.push_back(k1 + j);
+                    indices.push_back(k2 + j);
+                    indices.push_back(k1 + j + 1);
+
+                    indices.push_back(k1 + j + 1);
+                    indices.push_back(k2 + j);
+                    indices.push_back(k2 + j + 1);
+                }
+            }
+            // top and bottom caps
+            int base_top = vertices.size();
+            vertices.push_back({glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0.0f,1.0f,0.0f), glm::vec3(1.0f,0.0f,0.0f), glm::vec2(0.5f,0.5f)});
+            int center_top = base_top;
+            for(int j=0;j<=sectors;++j){
+                float ang=2.0f*glm::pi<float>()*j/sectors;
+                float x=0.5f*cos(ang); float z=0.5f*sin(ang);
+                vertices.push_back({glm::vec3(x,0.5f,z), glm::vec3(0.0f,1.0f,0.0f), glm::vec3(1.0f,0.0f,0.0f), glm::vec2((cos(ang)+1)*0.5f,(sin(ang)+1)*0.5f)});
+            }
+            for(int j=0;j<sectors;++j){
+                indices.push_back(center_top);
+                indices.push_back(base_top+1+j);
+                indices.push_back(base_top+1+j+1);
+            }
+            int base_bottom = vertices.size();
+            vertices.push_back({glm::vec3(0.0f,-0.5f,0.0f), glm::vec3(0.0f,-1.0f,0.0f), glm::vec3(1.0f,0.0f,0.0f), glm::vec2(0.5f,0.5f)});
+            int center_bottom = base_bottom;
+            for(int j=0;j<=sectors;++j){
+                float ang=2.0f*glm::pi<float>()*j/sectors;
+                float x=0.5f*cos(ang); float z=0.5f*sin(ang);
+                vertices.push_back({glm::vec3(x,-0.5f,z), glm::vec3(0.0f,-1.0f,0.0f), glm::vec3(1.0f,0.0f,0.0f), glm::vec2((cos(ang)+1)*0.5f,(sin(ang)+1)*0.5f)});
+            }
+            for(int j=0;j<sectors;++j){
+                indices.push_back(center_bottom);
+                indices.push_back(base_bottom+1+j+1);
+                indices.push_back(base_bottom+1+j);
+            }
+            cylinder_index_count_ = indices.size();
+            cylinder_vao_ = std::make_unique<VertexArray>();
+            cylinder_vao_->Bind();
+            cylinder_vbo_ = std::make_unique<VertexBuffer>(vertices.data(), vertices.size()*sizeof(Vertex));
+            cylinder_ibo_ = std::make_unique<IndexBuffer>(indices.data(), indices.size());
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,sizeof(Vertex),(void*)offsetof(Vertex,position));
+            glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,sizeof(Vertex),(void*)offsetof(Vertex,normal));
+            glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,sizeof(Vertex),(void*)offsetof(Vertex,tangent));
+            glVertexAttribPointer(3,2,GL_FLOAT,GL_FALSE,sizeof(Vertex),(void*)offsetof(Vertex,texcoord));
+            glEnableVertexAttribArray(0);
+            glEnableVertexAttribArray(1);
+            glEnableVertexAttribArray(2);
+            glEnableVertexAttribArray(3);
+            cylinder_instance_vbo_ = std::make_unique<VertexBuffer>(nullptr,sizeof(InstanceData)*1000,GL_DYNAMIC_DRAW);
+            glVertexAttribPointer(4,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)offsetof(InstanceData,model));
+            glVertexAttribPointer(5,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)));
+            glVertexAttribPointer(6,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)*2));
+            glVertexAttribPointer(7,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)*3));
+            glVertexAttribPointer(8,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)offsetof(InstanceData,color));
+            glEnableVertexAttribArray(4);
+            glEnableVertexAttribArray(5);
+            glEnableVertexAttribArray(6);
+            glEnableVertexAttribArray(7);
+            glEnableVertexAttribArray(8);
+            glVertexAttribDivisor(4,1);
+            glVertexAttribDivisor(5,1);
+            glVertexAttribDivisor(6,1);
+            glVertexAttribDivisor(7,1);
+            glVertexAttribDivisor(8,1);
+            cylinder_vao_->Unbind();
+        }
+
+        // Setup capsule buffers (hemisphere + cylinder)
+        {
+            const int sectors = 16;
+            const int stacks = 8;
+            std::vector<Vertex> vertices;
+            std::vector<unsigned int> indices;
+            // bottom hemisphere
+            for(int i=0;i<=stacks;++i){
+                float stackAngle = glm::pi<float>()/2.0f + (glm::pi<float>()/2.0f)*(float)i/stacks;
+                float xy = cos(stackAngle);
+                float y = -0.5f + 0.5f*sin(stackAngle);
+                for(int j=0;j<=sectors;++j){
+                    float sectorAngle = 2.0f*glm::pi<float>()*j/sectors;
+                    float x = 0.5f*xy*cos(sectorAngle);
+                    float z = 0.5f*xy*sin(sectorAngle);
+                    Vertex v{};
+                    v.position = glm::vec3(x,y,z);
+                    glm::vec3 n = glm::normalize(glm::vec3(x, (y+0.5f), z));
+                    v.normal = n;
+                    v.tangent = glm::vec3(-sin(sectorAngle),0.0f,cos(sectorAngle));
+                    v.texcoord = glm::vec2((float)j/sectors,(float)i/stacks*0.5f);
+                    vertices.push_back(v);
+                }
+            }
+            // cylinder part
+            for(int i=0;i<=1;++i){
+                float y = -0.5f + i*1.0f;
+                for(int j=0;j<=sectors;++j){
+                    float sectorAngle=2.0f*glm::pi<float>()*j/sectors;
+                    float x=0.5f*cos(sectorAngle);
+                    float z=0.5f*sin(sectorAngle);
+                    Vertex v{};
+                    v.position=glm::vec3(x,y,z);
+                    v.normal=glm::normalize(glm::vec3(x,0.0f,z));
+                    v.tangent=glm::vec3(-sin(sectorAngle),0.0f,cos(sectorAngle));
+                    v.texcoord=glm::vec2((float)j/sectors,0.5f+0.5f*i);
+                    vertices.push_back(v);
+                }
+            }
+            int cylinderOffset = stacks+1;
+            // top hemisphere
+            for(int i=0;i<=stacks;++i){
+                float stackAngle = (glm::pi<float>()/2.0f)*(1.0f - (float)i/stacks);
+                float xy = cos(stackAngle);
+                float y = 0.5f + 0.5f*sin(stackAngle);
+                for(int j=0;j<=sectors;++j){
+                    float sectorAngle=2.0f*glm::pi<float>()*j/sectors;
+                    float x=0.5f*xy*cos(sectorAngle);
+                    float z=0.5f*xy*sin(sectorAngle);
+                    Vertex v{};
+                    v.position=glm::vec3(x,y,z);
+                    glm::vec3 n=glm::normalize(glm::vec3(x,(y-0.5f),z));
+                    v.normal=n;
+                    v.tangent=glm::vec3(-sin(sectorAngle),0.0f,cos(sectorAngle));
+                    v.texcoord=glm::vec2((float)j/sectors,0.5f+0.5f*i/stacks);
+                    vertices.push_back(v);
+                }
+            }
+            int rings = stacks*2+1; // number of vertical rings used for connectivity
+            for(int i=0;i<rings;i++){
+                int k1=i*(sectors+1);
+                int k2=k1+(sectors+1);
+                for(int j=0;j<sectors;j++){
+                    indices.push_back(k1+j);
+                    indices.push_back(k2+j);
+                    indices.push_back(k1+j+1);
+
+                    indices.push_back(k1+j+1);
+                    indices.push_back(k2+j);
+                    indices.push_back(k2+j+1);
+                }
+            }
+            capsule_index_count_ = indices.size();
+            capsule_vao_ = std::make_unique<VertexArray>();
+            capsule_vao_->Bind();
+            capsule_vbo_ = std::make_unique<VertexBuffer>(vertices.data(), vertices.size()*sizeof(Vertex));
+            capsule_ibo_ = std::make_unique<IndexBuffer>(indices.data(), indices.size());
+            glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,sizeof(Vertex),(void*)offsetof(Vertex,position));
+            glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,sizeof(Vertex),(void*)offsetof(Vertex,normal));
+            glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,sizeof(Vertex),(void*)offsetof(Vertex,tangent));
+            glVertexAttribPointer(3,2,GL_FLOAT,GL_FALSE,sizeof(Vertex),(void*)offsetof(Vertex,texcoord));
+            glEnableVertexAttribArray(0);
+            glEnableVertexAttribArray(1);
+            glEnableVertexAttribArray(2);
+            glEnableVertexAttribArray(3);
+            capsule_instance_vbo_ = std::make_unique<VertexBuffer>(nullptr,sizeof(InstanceData)*1000,GL_DYNAMIC_DRAW);
+            glVertexAttribPointer(4,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)offsetof(InstanceData,model));
+            glVertexAttribPointer(5,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)));
+            glVertexAttribPointer(6,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)*2));
+            glVertexAttribPointer(7,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)*3));
+            glVertexAttribPointer(8,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)offsetof(InstanceData,color));
+            glEnableVertexAttribArray(4);
+            glEnableVertexAttribArray(5);
+            glEnableVertexAttribArray(6);
+            glEnableVertexAttribArray(7);
+            glEnableVertexAttribArray(8);
+            glVertexAttribDivisor(4,1);
+            glVertexAttribDivisor(5,1);
+            glVertexAttribDivisor(6,1);
+            glVertexAttribDivisor(7,1);
+            glVertexAttribDivisor(8,1);
+            capsule_vao_->Unbind();
+        }
     }
 
     void Renderer::DrawTriangle(const glm::mat4& model, const glm::vec4& color) {
@@ -231,6 +497,18 @@ namespace GLStudy {
 
     void Renderer::DrawCube(const glm::mat4& model, const glm::vec4& color) {
         cube_instances_.push_back({model, color});
+    }
+
+    void Renderer::DrawSphere(const glm::mat4& model, const glm::vec4& color) {
+        sphere_instances_.push_back({model, color});
+    }
+
+    void Renderer::DrawCylinder(const glm::mat4& model, const glm::vec4& color) {
+        cylinder_instances_.push_back({model, color});
+    }
+
+    void Renderer::DrawCapsule(const glm::mat4& model, const glm::vec4& color) {
+        capsule_instances_.push_back({model, color});
     }
 
     void Renderer::Flush() {
@@ -267,6 +545,27 @@ namespace GLStudy {
             cube_instance_vbo_->SetData(cube_instances_.data(), cube_instances_.size() * sizeof(InstanceData));
             glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr, cube_instances_.size());
             cube_instances_.clear();
+        }
+
+        if (!sphere_instances_.empty()) {
+            sphere_vao_->Bind();
+            sphere_instance_vbo_->SetData(sphere_instances_.data(), sphere_instances_.size() * sizeof(InstanceData));
+            glDrawElementsInstanced(GL_TRIANGLES, sphere_index_count_, GL_UNSIGNED_INT, nullptr, sphere_instances_.size());
+            sphere_instances_.clear();
+        }
+
+        if (!cylinder_instances_.empty()) {
+            cylinder_vao_->Bind();
+            cylinder_instance_vbo_->SetData(cylinder_instances_.data(), cylinder_instances_.size() * sizeof(InstanceData));
+            glDrawElementsInstanced(GL_TRIANGLES, cylinder_index_count_, GL_UNSIGNED_INT, nullptr, cylinder_instances_.size());
+            cylinder_instances_.clear();
+        }
+
+        if (!capsule_instances_.empty()) {
+            capsule_vao_->Bind();
+            capsule_instance_vbo_->SetData(capsule_instances_.data(), capsule_instances_.size() * sizeof(InstanceData));
+            glDrawElementsInstanced(GL_TRIANGLES, capsule_index_count_, GL_UNSIGNED_INT, nullptr, capsule_instances_.size());
+            capsule_instances_.clear();
         }
     }
 }

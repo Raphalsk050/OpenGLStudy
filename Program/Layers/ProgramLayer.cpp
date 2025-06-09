@@ -59,7 +59,7 @@ namespace GLStudy
         dummy_model_ = std::make_shared<Model>();
         dummy_model_->LoadModel("Assets/Models/balls.glb");
         model_entity_ = scene_.CreateEntity("DummyModel");
-        model_entity_.AddComponent<ModelComponent>(ModelComponent{dummy_model_});
+        model_entity_.AddComponent<RendererComponent>(RendererComponent{.mesh = MeshType::Model, .color = glm::vec4(1.0f), .model = dummy_model_});
 
         skybox_entity_ = scene_.CreateEntity("Skybox");
         auto skybox = std::make_shared<Skybox>();

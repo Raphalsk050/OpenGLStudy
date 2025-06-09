@@ -38,6 +38,9 @@ namespace GLStudy {
 
         void DrawTriangle(const glm::mat4& model, const glm::vec4& color);
         void DrawCube(const glm::mat4& model, const glm::vec4& color);
+        void DrawSphere(const glm::mat4& model, const glm::vec4& color);
+        void DrawCylinder(const glm::mat4& model, const glm::vec4& color);
+        void DrawCapsule(const glm::mat4& model, const glm::vec4& color);
         void Flush();
         unsigned int GetShaderProgram() const { return shader_prog_; }
         const std::shared_ptr<Texture2D>& GetBrdfLUT() const { return brdf_lut_texture_; }
@@ -63,6 +66,28 @@ namespace GLStudy {
         std::unique_ptr<IndexBuffer> cube_ibo_;
         std::unique_ptr<VertexBuffer> cube_instance_vbo_;
         std::vector<InstanceData> cube_instances_;
+
+        std::unique_ptr<VertexArray> sphere_vao_;
+        std::unique_ptr<VertexBuffer> sphere_vbo_;
+        std::unique_ptr<IndexBuffer> sphere_ibo_;
+        std::unique_ptr<VertexBuffer> sphere_instance_vbo_;
+        std::vector<InstanceData> sphere_instances_;
+
+        std::unique_ptr<VertexArray> cylinder_vao_;
+        std::unique_ptr<VertexBuffer> cylinder_vbo_;
+        std::unique_ptr<IndexBuffer> cylinder_ibo_;
+        std::unique_ptr<VertexBuffer> cylinder_instance_vbo_;
+        std::vector<InstanceData> cylinder_instances_;
+
+        std::unique_ptr<VertexArray> capsule_vao_;
+        std::unique_ptr<VertexBuffer> capsule_vbo_;
+        std::unique_ptr<IndexBuffer> capsule_ibo_;
+        std::unique_ptr<VertexBuffer> capsule_instance_vbo_;
+        std::vector<InstanceData> capsule_instances_;
+
+        unsigned int sphere_index_count_ = 0;
+        unsigned int cylinder_index_count_ = 0;
+        unsigned int capsule_index_count_ = 0;
 
         glm::vec3 camera_pos_{0.0f};
         std::vector<LightData> lights_;

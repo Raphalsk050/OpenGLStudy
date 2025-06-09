@@ -103,7 +103,6 @@ void Scene::Render(Renderer* renderer) {
         renderer->GetBrdfLUT()->Bind(6);
 
     auto render_view = registry_.view<Transform, RendererComponent>();
-    auto model_view = registry_.view<Transform, ModelComponent>();
 
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -120,6 +119,19 @@ void Scene::Render(Renderer* renderer) {
         case MeshType::Cube:
             renderer->DrawCube(GetWorldMatrix(entity), rc.color);
             break;
+        case MeshType::Sphere:
+            renderer->DrawSphere(GetWorldMatrix(entity), rc.color);
+            break;
+        case MeshType::Cylinder:
+            renderer->DrawCylinder(GetWorldMatrix(entity), rc.color);
+            break;
+        case MeshType::Capsule:
+            renderer->DrawCapsule(GetWorldMatrix(entity), rc.color);
+            break;
+        case MeshType::Model:
+            if (rc.model)
+                rc.model->Draw(renderer->GetShaderProgram(), GetWorldMatrix(entity));
+            break;
         case MeshType::Triangle:
         default:
             renderer->DrawTriangle(GetWorldMatrix(entity), rc.color);
@@ -127,11 +139,6 @@ void Scene::Render(Renderer* renderer) {
         }
     }
     renderer->Flush();
-    for (auto entity : model_view) {
-        auto& mc = model_view.get<ModelComponent>(entity);
-        if (mc.model)
-            mc.model->Draw(renderer->GetShaderProgram(), GetWorldMatrix(entity));
-    }
 }
 
 glm::mat4 Scene::GetWorldMatrix(entt::entity entity) const {

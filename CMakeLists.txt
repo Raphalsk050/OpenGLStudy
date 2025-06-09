@@ -85,8 +85,8 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/glm
         ThirdParty/assimp/include
         ThirdParty/stb
-        ThirdParty/bgfx/bimg/3rdparty/tinyexr
-        ThirdParty/bgfx/bimg/3rdparty/tinyexr/deps/miniz
+        ThirdParty/tinyexr
+        ThirdParty/tinyexr/deps/miniz
 )
 
 target_link_libraries(openglStudy PUBLIC

@@ -39,7 +39,10 @@ namespace GLStudy {
     {
         Triangle = 0,
         Cube = 1,
-        Model = 2
+        Sphere = 2,
+        Cylinder = 3,
+        Capsule = 4,
+        Model = 5
     };
 
     struct RendererComponent
@@ -50,10 +53,7 @@ namespace GLStudy {
         bool culling{true};
         GLenum cull_face{GL_BACK};
         bool double_sided{false};
-    };
-
-    struct ModelComponent {
-        std::shared_ptr<Model> model;
+        std::shared_ptr<Model> model{nullptr};
     };
 
     struct CameraComponent
