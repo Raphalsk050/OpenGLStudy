@@ -5,10 +5,10 @@
 #include "Core/engine.h"
 #include "Core/Scene/Components.h"
 #include <boost/thread/future.hpp>
-#include <thread>
 #include "Core/Utils.h"
 #include <glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
+#include <thread>
 #include <gtx/quaternion.hpp>
 
 namespace GLStudy

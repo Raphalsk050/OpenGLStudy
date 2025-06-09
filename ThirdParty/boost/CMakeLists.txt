@@ -1,22 +1,20 @@
-cmake_minimum_required(VERSION 3.11)
+# Copyright 2019, 2021 Peter Dimov
+# Distributed under the Boost Software License, Version 1.0.
+# See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt
 
-include(FetchContent)
+cmake_minimum_required(VERSION 3.5...3.16)
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_LIST_DIR})
-set(BOOST_ENABLE_CMAKE ON)
-set(BOOST_INCLUDE_LIBRARIES thread system)
-
-FetchContent_Declare(
-    boost
-    GIT_REPOSITORY https://github.com/boostorg/boost.git
-    GIT_TAG boost-1.84.0
-)
-
-FetchContent_MakeAvailable(boost)
-
-if(TARGET boost_thread)
-    add_library(Boost::thread ALIAS boost_thread)
+# The default build type must be set before project()
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR AND NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
-if(TARGET boost_system)
-    add_library(Boost::system ALIAS boost_system)
-endif()
+
+project(Boost VERSION 1.88.0 LANGUAGES CXX)
+
+set(BOOST_SUPERPROJECT_VERSION ${PROJECT_VERSION})
+set(BOOST_SUPERPROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR})
+
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/tools/cmake/include)
+
+include(BoostRoot)
