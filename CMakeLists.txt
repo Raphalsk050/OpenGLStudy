@@ -3,6 +3,8 @@ project(openglStudy)
 
 set(CMAKE_CXX_STANDARD 20)
 
+find_package(Boost REQUIRED COMPONENTS thread system)
+
 set(USE_BULLET ON)
 
 
@@ -104,6 +106,8 @@ target_link_libraries(openglStudy PUBLIC
         glfw
         Entt
         assimp
+        Boost::thread
+        Boost::system
 )
 
 if(USE_BULLET)

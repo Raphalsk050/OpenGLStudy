@@ -14,7 +14,12 @@ namespace GLStudy
         void SetGravity(const btVector3& gravity);
         void SetTimeStep(float timeStep);
 
+
         void AddConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies);
+
+        // Expose rigid body creation so external systems can asynchronously
+        // create bodies when components are added at runtime
+        RigidBody* CreateRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape);
 
 
     private:
@@ -28,8 +33,6 @@ namespace GLStudy
 
     private:
         void Update(Timestep ts);
-
-        RigidBody* CreateRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape);
 
         void StepSimulation(float deltaTime) const;
 
