@@ -54,7 +54,7 @@ namespace GLStudy {
     struct RigidBodyComponent
     {
         MeshType mesh_type = MeshType::Cube;
-        float size = 1.0f;
+        btVector3 size = btVector3(1.0f, 1.0f, 1.0f);
         float mass = 1.0f;
         RigidBody* body = nullptr;
     };

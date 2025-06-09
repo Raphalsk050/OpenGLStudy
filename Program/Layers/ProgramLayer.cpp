@@ -46,7 +46,13 @@ namespace GLStudy
         sphereEntity.AddComponent<RendererComponent>(RendererComponent{.color = glm::vec4(1.0f,0.0f,0.0f,1.0f), .mesh_ptr = sphereMesh});
         sphereEntity.SetPosition({0.0f,1.5f,0.0f});
 
-        sphereEntity.AddComponent<RigidBodyComponent>(RigidBodyComponent{.mesh_type = MeshType::Sphere,.mass = 1.0f,.size = 1.0f});
+        sphereEntity.AddComponent<RigidBodyComponent>(RigidBodyComponent{.mesh_type = MeshType::Sphere,.mass = 1.0f,.size = btVector3(0.5f,0.5f,0.5f)});
+
+        auto floor_mesh = std::make_shared<Plane>(100.0f);
+        auto floor_entity = scene_.CreateEntity("Floor");
+        floor_entity.AddComponent<RendererComponent>(RendererComponent{.color = glm::vec4(1.0f,1.0f,1.0f,1.0f), .mesh_ptr = floor_mesh});
+        floor_entity.AddComponent<RigidBodyComponent>(RigidBodyComponent{.mesh_type = MeshType::Cube,.mass = 0.0f,.size = btVector3(100.0f, 0.05f, 100.0f)});
+        floor_entity.SetPosition({0.0f,0.0f,0.0f});
 
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();

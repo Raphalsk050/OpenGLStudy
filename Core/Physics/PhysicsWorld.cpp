@@ -35,7 +35,7 @@ namespace GLStudy
                     auto transform = Engine::Get().GetScene()->GetWorldMatrix(entity);
                     auto rb_transform = ConvertMat4ToBtTransform(transform);
 
-                    rb.body = CreateRigidBody(rb.mass, rb_transform, CollisionShape::createSphereShape(rb.size));
+                    rb.body = CreateRigidBody(rb.mass, rb_transform, CollisionShape::createSphereShape(rb.size.getX()));
                     break;
                 }
 
@@ -45,7 +45,7 @@ namespace GLStudy
                     auto transform = Engine::Get().GetScene()->GetWorldMatrix(entity);
                     auto rb_transform = ConvertMat4ToBtTransform(transform);
 
-                    rb.body = CreateRigidBody(rb.mass, rb_transform, CollisionShape::createBoxShape(btVector3(rb.size / 2.0f, rb.size / 2.0f, rb.size / 2.0f)));
+                    rb.body = CreateRigidBody(rb.mass, rb_transform, CollisionShape::createBoxShape(rb.size / 2.0f));
                     break;
                 }
             }
