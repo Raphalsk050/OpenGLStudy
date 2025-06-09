@@ -24,14 +24,20 @@ namespace GLStudy
 
         btRigidBody::btRigidBodyConstructionInfo cInfo(mass, myMotionState, shape, localInertia);
 
-        btRigidBody* body = new btRigidBody(cInfo);
-        //body->setContactProcessingThreshold(m_defaultContactProcessingThreshold);
+        body_ = new btRigidBody(cInfo);
+        //body_->setContactProcessingThreshold(m_defaultContactProcessingThreshold);
 
 #else
-        btRigidBody* body = new btRigidBody(mass, 0, shape, localInertia);
-        body->setWorldTransform(startTransform);
+        body_ = new btRigidBody(mass, 0, shape, localInertia);
+        body_->setWorldTransform(startTransform);
 #endif  //
 
-        body->setUserIndex(-1);
+        body_->setUserIndex(-1);
+    }
+
+    RigidBody::~RigidBody()
+    {
+        delete body_->getMotionState();
+        delete body_;
     }
 } // GLStudy

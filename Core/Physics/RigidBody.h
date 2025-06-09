@@ -8,6 +8,7 @@ namespace GLStudy
     {
     public:
         RigidBody(btCollisionShape* shape, btScalar mass, const btTransform& startTransform);
+        ~RigidBody();
 
         btRigidBody* operator->() { return body_; }
         const btRigidBody* operator->() const { return body_; }

@@ -6,6 +6,9 @@
 #include "Core/Scene/Components.h"
 #include "Core/Utils.h"
 #include "ThirdParty/bullet/examples/TinyRenderer/our_gl.h"
+#include <glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <gtx/quaternion.hpp>
 
 namespace GLStudy
 {
@@ -21,8 +24,6 @@ namespace GLStudy
         // Setup all the rigidBody components in the scene
 
         auto body_view = Engine::Get().GetScene()->registry_.view<RigidBodyComponent>();
-        auto transform_view = Engine::Get().GetScene()->registry_.view<TransformComponent>();
-
         for (auto entity : body_view)
         {
             auto& rb = body_view.get<RigidBodyComponent>(entity);
@@ -34,7 +35,7 @@ namespace GLStudy
                     auto transform = Engine::Get().GetScene()->GetWorldMatrix(entity);
                     auto rb_transform = ConvertMat4ToBtTransform(transform);
 
-                    CreateRigidBody(rb.mass, rb_transform, CollisionShape::createSphereShape(rb.size));
+                    rb.body = CreateRigidBody(rb.mass, rb_transform, CollisionShape::createSphereShape(rb.size));
                     break;
                 }
 
@@ -44,7 +45,7 @@ namespace GLStudy
                     auto transform = Engine::Get().GetScene()->GetWorldMatrix(entity);
                     auto rb_transform = ConvertMat4ToBtTransform(transform);
 
-                    CreateRigidBody(rb.mass, rb_transform, CollisionShape::createBoxShape(btVector3(rb.size / 2.0f, rb.size / 2.0f, rb.size / 2.0f)));
+                    rb.body = CreateRigidBody(rb.mass, rb_transform, CollisionShape::createBoxShape(btVector3(rb.size / 2.0f, rb.size / 2.0f, rb.size / 2.0f)));
                     break;
                 }
             }
@@ -54,6 +55,24 @@ namespace GLStudy
     void PhysicsWorld::Update()
     {
         StepSimulation(time_steps_);
+
+        // synchronize entity transforms with Bullet rigid bodies
+        auto view = Engine::Get().GetScene()->registry_.view<TransformComponent, RigidBodyComponent>();
+        for (auto entity : view)
+        {
+            auto& tr = view.get<TransformComponent>(entity);
+            auto& rb = view.get<RigidBodyComponent>(entity);
+            if (rb.body && rb.body->body_)
+            {
+                btTransform trans;
+                rb.body->body_->getMotionState()->getWorldTransform(trans);
+                btVector3 pos = trans.getOrigin();
+                tr.position = glm::vec3(pos.getX(), pos.getY(), pos.getZ());
+                btQuaternion rot = trans.getRotation();
+                glm::quat q(rot.getW(), rot.getX(), rot.getY(), rot.getZ());
+                tr.rotation = glm::eulerAngles(q);
+            }
+        }
     }
 
     void PhysicsWorld::SetGravity(const btVector3& gravity)
@@ -80,5 +99,6 @@ namespace GLStudy
     {
         auto body = new RigidBody(shape, mass, startTransform);
         dynamics_world_->addRigidBody(body->body_);
+        return body;
     }
 } // GLStudy

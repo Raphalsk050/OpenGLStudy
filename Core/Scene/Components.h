@@ -9,6 +9,7 @@
 
 #include "gtc/quaternion.hpp"
 #include "LinearMath/btTransform.h"
+#include "../Physics/RigidBody.h"
 
 namespace GLStudy { class Model; }
 namespace GLStudy { class Mesh; }
@@ -55,6 +56,7 @@ namespace GLStudy {
         MeshType mesh_type = MeshType::Cube;
         float size = 1.0f;
         float mass = 1.0f;
+        RigidBody* body = nullptr;
     };
 
     struct RendererComponent
