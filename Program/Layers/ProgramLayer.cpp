@@ -26,7 +26,7 @@ namespace GLStudy
 
         int amount = 5;
 
-        for (int i = 0 ; i < amount ; i++)
+        /*for (int i = 0 ; i < amount ; i++)
         {
             for (int j = 0 ; j < amount ; j++)
             {
@@ -39,12 +39,14 @@ namespace GLStudy
                     cube_.SetScale(glm::vec3(0.5f));
                 }
             }
-        }
+        }*/
 
         auto sphereMesh = std::make_shared<Sphere>(0.5f);
         auto sphereEntity = scene_.CreateEntity("Sphere");
         sphereEntity.AddComponent<RendererComponent>(RendererComponent{.color = glm::vec4(1.0f,0.0f,0.0f,1.0f), .mesh_ptr = sphereMesh});
         sphereEntity.SetPosition({0.0f,1.5f,0.0f});
+
+        sphereEntity.AddComponent<RigidBodyComponent>(RigidBodyComponent{.mesh_type = MeshType::Sphere,.mass = 1.0f,.size = 1.0f});
 
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();
@@ -56,16 +58,18 @@ namespace GLStudy
                                                           .color = glm::vec3(1.0f, 1.0f, 1.0f),
                                                           .intensity = 4.0f,.direction = glm::vec3(0.0f, -1.0f, 0.0f)});
 
+
+
         // light_2_ = scene_.CreateEntity("Light_2");
         // light_2_.AddComponent<LightComponent>(LightComponent{.type = LightType::Point,
         //                                                   .color = glm::vec3(1.0f, 0.0f,0.0f),
         //                                                   .intensity = 10.0f});
         // light_2_.SetPosition({0.0f, 0.0f,0.0f});
 
-        dummy_model_ = std::make_shared<Model>();
+        /*dummy_model_ = std::make_shared<Model>();
         dummy_model_->LoadModel("Assets/Models/balls.glb");
         model_entity_ = scene_.CreateEntity("DummyModel");
-        model_entity_.AddComponent<RendererComponent>(RendererComponent{.mesh = MeshType::Model, .color = glm::vec4(1.0f), .model = dummy_model_});
+        model_entity_.AddComponent<RendererComponent>(RendererComponent{.mesh = MeshType::Model, .color = glm::vec4(1.0f), .model = dummy_model_});*/
 
         skybox_entity_ = scene_.CreateEntity("Skybox");
         auto skybox = std::make_shared<Skybox>();

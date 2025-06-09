@@ -16,6 +16,12 @@ namespace GLStudy
         scene_ = new Scene();
     }
 
+    Engine::~Engine()
+    {
+        delete scene_;
+        delete physic_world_;
+    }
+
     void Engine::Setup()
     {
         InitGLFW();
@@ -44,6 +50,9 @@ namespace GLStudy
         {
             layer->OnAttach();
         }
+
+        // Physics
+        physic_world_ = new PhysicsWorld();
 
         // TODO(rafael): Just to debug the engine for now. Take this off in the future
         Resume();
@@ -82,6 +91,7 @@ namespace GLStudy
         if (initialization_state_ == EngineInitializationStates::INITIALIZED)
         {
             layer->OnAttach();
+
         }
     }
 
@@ -129,6 +139,10 @@ namespace GLStudy
             return;
 
         scene_->OnUpdate(ts);
+
+        // TODO: move the physics to another thread to be more performant and don't freeze the main thread
+        physic_world_->Update();
+
         UpdateLayers(ts);
     }
 

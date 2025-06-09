@@ -86,9 +86,9 @@ void CameraControllerSystem::OnEvent(Scene& scene, Event& e) {
 }
 
 void CameraControllerSystem::OnUpdate(Scene& scene, Timestep ts) {
-    auto view = scene.registry_.view<Transform, CameraControllerComponent>();
+    auto view = scene.registry_.view<TransformComponent, CameraControllerComponent>();
     for (auto entity : view) {
-        auto& tr = view.get<Transform>(entity);
+        auto& tr = view.get<TransformComponent>(entity);
         auto& cc = view.get<CameraControllerComponent>(entity);
 
         glm::vec3 front{
