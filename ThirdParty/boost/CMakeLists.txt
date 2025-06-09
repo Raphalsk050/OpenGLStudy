@@ -1,18 +1,19 @@
 cmake_minimum_required(VERSION 3.11)
 
-# Use the Boost sources already present in this directory. The Boost project
-# provides its own CMake build scripts, so simply include them here.
+include(FetchContent)
+
+set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(BOOST_ENABLE_CMAKE ON)
 set(BOOST_INCLUDE_LIBRARIES thread system)
 
-# Build Boost from the local sources instead of downloading from the system
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/boost)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/boost ${CMAKE_CURRENT_BINARY_DIR}/boost-build)
-else()
-    message(FATAL_ERROR "Boost sources not found in ${CMAKE_CURRENT_SOURCE_DIR}/boost")
-endif()
+FetchContent_Declare(
+    boost
+    GIT_REPOSITORY https://github.com/boostorg/boost.git
+    GIT_TAG boost-1.84.0
+)
 
-# Alias libraries to match expected target names
+FetchContent_MakeAvailable(boost)
+
 if(TARGET boost_thread)
     add_library(Boost::thread ALIAS boost_thread)
 endif()

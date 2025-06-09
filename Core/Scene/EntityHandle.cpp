@@ -1,9 +1,5 @@
 #include "EntityHandle.h"
 #include "Scene.h"
-#include "Core/engine.h"
-#include "Core/Physics/CollisionShape.h"
-#include "Core/Utils.h"
-#include <thread>
 
 namespace GLStudy {
 
