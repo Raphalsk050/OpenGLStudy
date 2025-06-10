@@ -1,5 +1,6 @@
 #include "CharacterController.h"
 #include "Components.h"
+#include "Core/Camera/CameraController.h"
 #include "Core/Input/Input.h"
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
@@ -21,9 +22,15 @@ void CharacterControllerSystem::OnUpdate(Scene& scene, Timestep ts) {
     glm::vec3 cam_forward{0.0f,0.0f,-1.0f};
     glm::vec3 cam_right{1.0f,0.0f,0.0f};
     if (cam_ent != entt::null) {
-        const auto& cam_tr = scene.registry_.get<TransformComponent>(cam_ent);
-        float yaw = cam_tr.rotation.y;
-        cam_forward = glm::normalize(glm::vec3(cos(yaw), 0.0f, sin(yaw)));
+        if (scene.registry_.all_of<CameraControllerComponent>(cam_ent)) {
+            const auto& cam_ctrl = scene.registry_.get<CameraControllerComponent>(cam_ent);
+            float rad_yaw = glm::radians(cam_ctrl.yaw);
+            cam_forward = glm::normalize(glm::vec3(cos(rad_yaw), 0.0f, sin(rad_yaw)));
+        } else {
+            const auto& cam_tr = scene.registry_.get<TransformComponent>(cam_ent);
+            float yaw = cam_tr.rotation.y;
+            cam_forward = glm::normalize(glm::vec3(cos(yaw), 0.0f, sin(yaw)));
+        }
         cam_right = glm::normalize(glm::cross(cam_forward, glm::vec3(0,1,0)));
     }
 
@@ -44,10 +51,12 @@ void CharacterControllerSystem::OnUpdate(Scene& scene, Timestep ts) {
             auto currentVel = rb.body->get()->getLinearVelocity();
             glm::vec3 desired = move_dir * cc.move_speed;
             rb.body->get()->setLinearVelocity(btVector3(desired.x, currentVel.getY(), desired.z));
+            rb.body->get()->activate();
         }
 
         if (Input::IsKeyPressed(Key::Space) && rb.body) {
             rb.body->get()->applyCentralImpulse(btVector3(0, cc.jump_force, 0));
+            rb.body->get()->activate();
         }
     }
 }

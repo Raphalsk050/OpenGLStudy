@@ -59,6 +59,9 @@ namespace GLStudy {
         /** Angular factor used by Bullet to lock rotation axes. A value of 0.0
          *  on an axis prevents the rigid body from rotating around it. */
         btVector3 angular_factor = btVector3(1.0f, 1.0f, 1.0f);
+        /** When true the rigid body will never be deactivated by Bullet's
+         *  internal sleeping mechanism. Useful for player characters. */
+        bool disable_sleep = false;
         RigidBody* body = nullptr;
     };
 
