@@ -24,7 +24,11 @@ namespace GLStudy
             render_thread_.join();
         if (physics_thread_.joinable())
             physics_thread_.join();
-        delete scene_;
+        if (scene_)
+        {
+            delete scene_;
+            scene_ = nullptr;
+        }
     }
 
     void Engine::Setup()
@@ -121,6 +125,12 @@ namespace GLStudy
             render_thread_.join();
         if (physics_thread_.joinable())
             physics_thread_.join();
+
+        if (scene_)
+        {
+            delete scene_;
+            scene_ = nullptr;
+        }
 
         window_.reset();
         glfwTerminate();
