@@ -77,6 +77,9 @@ REM Persist VCPKG_ROOT so CMake can automatically find the toolchain later
 echo Setting VCPKG_ROOT environment variable for future terminals...
 setx VCPKG_ROOT "%VCPKG_ROOT%" >nul
 
+REM Also keep VCPKG_ROOT available in the current session
+endlocal & set VCPKG_ROOT=%VCPKG_ROOT%
+
 echo - Use CMake with:
 echo     -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake"
 echo   to automatically find these dependencies.
