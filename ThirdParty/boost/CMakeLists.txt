@@ -17,4 +17,12 @@ set(BOOST_SUPERPROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR})
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/tools/cmake/include)
 
+# Only build the Boost libraries we actually use
+set(BOOST_INCLUDE_LIBRARIES thread system CACHE STRING "Which Boost libs to build" FORCE)
+
+# Disable optional components to speed up configuration
+set(BOOST_ENABLE_MPI OFF CACHE BOOL "" FORCE)
+set(BOOST_ENABLE_PYTHON OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+
 include(BoostRoot)

@@ -27,7 +27,7 @@ namespace GLStudy
         };
 
         cube_.AddComponent<RendererComponent>(renderer_component_spec);
-        auto future = engine_->GetPhysicsWorld()->AddRigidbodyAsync(
+        auto future = engine_->GetPhysicsWorld()->AddRigidbody(
             cube_,
             RigidBodyComponent{.mesh_type = MeshType::Cube, .size = btVector3(1.0f,1.0f,1.0f), .mass = 1.0f});
         future.then([](boost::future<RigidBodyComponent> f){

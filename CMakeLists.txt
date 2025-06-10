@@ -11,8 +11,21 @@ add_subdirectory(ThirdParty/glfw)
 add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
+
+# Configure Assimp to build only the pieces we require
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_NO_EXPORT ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)
 add_subdirectory(ThirdParty/assimp)
+
 add_subdirectory(ThirdParty/boost)
+find_package(ZLIB REQUIRED)
 
 if(USE_BULLET)
     # bullet properties
@@ -20,6 +33,7 @@ if(USE_BULLET)
     set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
     set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
     set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+    set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
     set(INSTALL_LIBS OFF CACHE BOOL "" FORCE)
     add_subdirectory(ThirdParty/bullet)
 endif ()
@@ -107,7 +121,14 @@ target_link_libraries(openglStudy PUBLIC
         assimp
         Boost::thread
         Boost::system
+        ZLIB::ZLIB
 )
+
+# Enable Boost future support
+target_compile_definitions(openglStudy PRIVATE
+        BOOST_THREAD_PROVIDES_FUTURE
+        BOOST_THREAD_VERSION=5
+        TINYEXR_USE_MINIZ=0)
 
 if(USE_BULLET)
     target_link_libraries(openglStudy PUBLIC
