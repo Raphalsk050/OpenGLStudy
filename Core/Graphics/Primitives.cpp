@@ -264,7 +264,9 @@ void Plane::Build(){
         {{ h,0.0f, h}, {0.0f,1.0f,0.0f}, {1.0f,0.0f,0.0f}, {1.0f,1.0f}},
         {{-h,0.0f, h}, {0.0f,1.0f,0.0f}, {1.0f,0.0f,0.0f}, {0.0f,1.0f}}
     };
-    std::vector<unsigned int> indices = {0,1,2, 0,3,2};
+    // The first triangle was wound clockwise which inverted one half of the
+    // plane. Use counter-clockwise order for both so the normal points up.
+    std::vector<unsigned int> indices = {0,2,1, 0,3,2};
     Mesh tmp3(vertices, indices, nullptr, nullptr, nullptr, nullptr);
     static_cast<Mesh&>(*this) = std::move(tmp3);
 }
