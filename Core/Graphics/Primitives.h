@@ -17,6 +17,16 @@ private:
     unsigned int stacks_;
 };
 
+class Cube : public Mesh {
+public:
+    Cube(float size = 1.0f);
+    void SetSize(float s);
+
+private:
+    void Build();
+    float size_;
+};
+
 class Cylinder : public Mesh {
 public:
     Cylinder(float radius = 0.5f, float height = 1.0f, unsigned int sectors = 16);

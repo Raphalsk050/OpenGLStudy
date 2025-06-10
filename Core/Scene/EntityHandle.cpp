@@ -84,4 +84,5 @@ glm::vec3 EntityHandle::GetScale() const {
     return scene_->registry_.get<TransformComponent>(handle_).scale;
 }
 
+
 } // namespace GLStudy

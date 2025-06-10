@@ -11,16 +11,14 @@ add_subdirectory(ThirdParty/glfw)
 add_subdirectory(ThirdParty/glad)
 add_subdirectory(ThirdParty/glm)
 add_subdirectory(ThirdParty/entt)
-add_subdirectory(ThirdParty/assimp)
+
+# Use prebuilt versions of Assimp, Boost and Bullet from the system
+find_package(assimp REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread system)
+find_package(ZLIB REQUIRED)
 
 if(USE_BULLET)
-    # bullet properties
-    set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
-    set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
-    set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
-    set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
-    set(INSTALL_LIBS OFF CACHE BOOL "" FORCE)
-    add_subdirectory(ThirdParty/bullet)
+    find_package(Bullet REQUIRED)
 endif ()
 
 add_executable(openglStudy
@@ -92,10 +90,10 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/glfw/include
         ThirdParty/glad/include
         ThirdParty/glm
-        ThirdParty/assimp/include
         ThirdParty/stb
         ThirdParty/tinyexr
         ThirdParty/tinyexr/deps/miniz
+        ${CMAKE_SOURCE_DIR}/ThirdParty/boost_patch
 )
 
 target_link_libraries(openglStudy PUBLIC
@@ -104,18 +102,21 @@ target_link_libraries(openglStudy PUBLIC
         glfw
         Entt
         assimp
+        Boost::thread
+        Boost::system
+        ZLIB::ZLIB
 )
 
-if(USE_BULLET)
-    target_link_libraries(openglStudy PUBLIC
-            BulletDynamics
-            BulletCollision
-            LinearMath
-    )
+# Enable Boost future support
+target_compile_definitions(openglStudy PRIVATE
+        BOOST_THREAD_PROVIDES_FUTURE
+        BOOST_THREAD_VERSION=5
+        TINYEXR_USE_MINIZ=0)
 
-    target_include_directories(openglStudy PUBLIC
-            ThirdParty/bullet/src
-    )
+if(USE_BULLET)
+    target_link_libraries(openglStudy PUBLIC ${BULLET_LIBRARIES})
+
+    target_include_directories(openglStudy PUBLIC ${BULLET_INCLUDE_DIRS})
 endif ()
 
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_DEBUG} -pg")

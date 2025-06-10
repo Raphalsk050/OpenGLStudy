@@ -1,6 +1,7 @@
 #include "Texture.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <zlib.h>
 #define TINYEXR_IMPLEMENTATION
 #include <tinyexr.h>
 #include <iostream>

@@ -18,6 +18,7 @@ namespace GLStudy {
         template<typename T, typename... Args>
         T& AddComponent(Args&&... args);
 
+
         template<typename T>
         void RemoveComponent();
 

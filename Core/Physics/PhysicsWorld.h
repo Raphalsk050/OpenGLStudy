@@ -2,6 +2,9 @@
 #include <btBulletDynamicsCommon.h>
 
 #include "Core/TimeStep.h"
+#include <boost/thread/future.hpp>
+#include "Core/Scene/EntityHandle.h"
+#include "Core/Scene/Components.h"
 
 namespace GLStudy
 {
@@ -13,6 +16,23 @@ namespace GLStudy
         PhysicsWorld();
         void SetGravity(const btVector3& gravity);
         void SetTimeStep(float timeStep);
+
+
+        void AddConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies);
+
+        // Expose rigid body creation so external systems can asynchronously
+        // create bodies when components are added at runtime
+        RigidBody* CreateRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape);
+
+        // Create a RigidBodyComponent asynchronously for an entity using Boost futures
+        boost::future<RigidBodyComponent> AddRigidbodyAsync(EntityHandle entity, const RigidBodyComponent& spec);
+
+        // Convenience wrapper matching typical AddComponent semantics
+        boost::future<RigidBodyComponent> AddRigidbody(EntityHandle entity, const RigidBodyComponent& spec)
+        {
+            return AddRigidbodyAsync(entity, spec);
+        }
+
 
     private:
         btScalar time_steps_ = 1.0f / 60.0f;
@@ -26,18 +46,7 @@ namespace GLStudy
     private:
         void Update(Timestep ts);
 
-        RigidBody* CreateRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape);
-
         void StepSimulation(float deltaTime) const;
-
-        void physicsDebugDraw(int debugFlags)
-        {
-            if (dynamics_world_ && dynamics_world_->getDebugDrawer())
-            {
-                dynamics_world_->getDebugDrawer()->setDebugMode(debugFlags);
-                dynamics_world_->debugDrawWorld();
-            }
-        }
 
         friend class Engine;
     };

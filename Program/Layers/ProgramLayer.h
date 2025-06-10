@@ -27,7 +27,8 @@ namespace GLStudy
         Engine* engine_;
         Scene& scene_;
         EntityHandle cube_;
-        EntityHandle cube_2_;
+        EntityHandle floor_;
+        EntityHandle sphere_;
         EntityHandle light_;
         EntityHandle light_2_;
         EntityHandle camera_;

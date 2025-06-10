@@ -86,7 +86,7 @@ namespace GLStudy
 
         void InitGLFW();
 
-        void InitGLAD();
+        bool InitGLAD();
 
         GLFWwindow* CreateWindow(int width = 800, int height = 600, const char* title = "Sample");
 

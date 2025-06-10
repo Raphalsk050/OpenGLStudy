@@ -13,6 +13,9 @@ namespace GLStudy
         btRigidBody* operator->() { return body_; }
         const btRigidBody* operator->() const { return body_; }
 
+        [[nodiscard]] const btRigidBody* get() const { return body_; }
+        [[nodiscard]] btRigidBody* get() { return body_; }
+
         // deleted operators
         RigidBody& operator=(const RigidBody&) = delete;
         RigidBody(const RigidBody&) = delete;
