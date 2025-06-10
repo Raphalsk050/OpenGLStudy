@@ -56,6 +56,9 @@ namespace GLStudy {
         MeshType mesh_type = MeshType::Cube;
         btVector3 size = btVector3(1.0f, 1.0f, 1.0f);
         float mass = 1.0f;
+        /** Angular factor used by Bullet to lock rotation axes. A value of 0.0
+         *  on an axis prevents the rigid body from rotating around it. */
+        btVector3 angular_factor = btVector3(1.0f, 1.0f, 1.0f);
         RigidBody* body = nullptr;
     };
 

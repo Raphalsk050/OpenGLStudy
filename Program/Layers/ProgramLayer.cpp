@@ -67,7 +67,12 @@ namespace GLStudy
         sphere_.AddComponent<RendererComponent>(sphere_renderer_spec);
         auto sphere_rigidbody_future = engine_->GetPhysicsWorld()->AddRigidbody(
             sphere_,
-            RigidBodyComponent{.mesh_type = MeshType::Sphere, .size = btVector3(0.5, 0.5, 0.5), .mass = 1.0f});
+            RigidBodyComponent{
+                .mesh_type = MeshType::Sphere,
+                .size = btVector3(0.5, 0.5, 0.5),
+                .mass = 1.0f,
+                .angular_factor = btVector3(0.0f, 0.0f, 0.0f)
+            });
         sphere_.AddComponent<CharacterControllerComponent>(CharacterControllerComponent{.camera_type = CameraType::ThirdPerson});
         sphere_.SetPosition({0.0f, 15.0f, 0.0f});
 

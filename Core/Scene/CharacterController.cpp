@@ -22,10 +22,8 @@ void CharacterControllerSystem::OnUpdate(Scene& scene, Timestep ts) {
     glm::vec3 cam_right{1.0f,0.0f,0.0f};
     if (cam_ent != entt::null) {
         const auto& cam_tr = scene.registry_.get<TransformComponent>(cam_ent);
-        glm::mat4 rot(1.0f);
-        rot = glm::rotate(rot, cam_tr.rotation.y, glm::vec3(0,1,0));
-        rot = glm::rotate(rot, cam_tr.rotation.x, glm::vec3(1,0,0));
-        cam_forward = glm::normalize(glm::vec3(rot * glm::vec4(0,0,-1,0)));
+        float yaw = cam_tr.rotation.y;
+        cam_forward = glm::normalize(glm::vec3(cos(yaw), 0.0f, sin(yaw)));
         cam_right = glm::normalize(glm::cross(cam_forward, glm::vec3(0,1,0)));
     }
 
@@ -41,7 +39,12 @@ void CharacterControllerSystem::OnUpdate(Scene& scene, Timestep ts) {
         if (Input::IsKeyPressed(Key::A)) move_dir -= cam_right;
         if (glm::length(move_dir) > 0.0f)
             move_dir = glm::normalize(move_dir);
-        tr.position += move_dir * cc.move_speed * ts.GetSeconds();
+
+        if (rb.body) {
+            auto currentVel = rb.body->get()->getLinearVelocity();
+            glm::vec3 desired = move_dir * cc.move_speed;
+            rb.body->get()->setLinearVelocity(btVector3(desired.x, currentVel.getY(), desired.z));
+        }
 
         if (Input::IsKeyPressed(Key::Space) && rb.body) {
             rb.body->get()->applyCentralImpulse(btVector3(0, cc.jump_force, 0));
