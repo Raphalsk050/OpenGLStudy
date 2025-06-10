@@ -1,4 +1,19 @@
 cmake_minimum_required(VERSION 3.11)
+
+# Automatically use the vcpkg toolchain on Windows when available. The
+# `setup.bat` script installs vcpkg in `%VCPKG_ROOT%` and users are expected to
+# run CMake with the toolchain file. To make configuration easier we detect the
+# environment variable and set `CMAKE_TOOLCHAIN_FILE` if it is not already
+# provided.
+if(WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    if(DEFINED ENV{VCPKG_ROOT})
+        set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain" FORCE)
+        message(STATUS "Using vcpkg toolchain: ${CMAKE_TOOLCHAIN_FILE}")
+    else()
+        message(WARNING "VCPKG_ROOT environment variable not set. Run setup.bat first or specify -DVCPKG_ROOT=path")
+    endif()
+endif()
+
 project(openglStudy)
 
 set(CMAKE_CXX_STANDARD 20)

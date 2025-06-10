@@ -72,6 +72,11 @@ echo ============================
 echo Setup complete!
 echo - Libraries installed via vcpkg:
 echo     assimp, boost-thread, boost-system, zlib, bullet3, glfw3, tinyexr
+
+REM Persist VCPKG_ROOT so CMake can automatically find the toolchain later
+echo Setting VCPKG_ROOT environment variable for future terminals...
+setx VCPKG_ROOT "%VCPKG_ROOT%" >nul
+
 echo - Use CMake with:
 echo     -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake"
 echo   to automatically find these dependencies.
