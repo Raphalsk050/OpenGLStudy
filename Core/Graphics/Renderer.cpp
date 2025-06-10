@@ -93,6 +93,22 @@ namespace GLStudy {
         prefilter_location_ = glGetUniformLocation(shader_prog_, "u_PrefilterMap");
         brdf_lut_location_ = glGetUniformLocation(shader_prog_, "u_BrdfLUT");
         use_ibl_location_ = glGetUniformLocation(shader_prog_, "u_UseIBL");
+        use_albedo_location_ = glGetUniformLocation(shader_prog_, "u_UseAlbedoMap");
+        use_normal_location_ = glGetUniformLocation(shader_prog_, "u_UseNormalMap");
+        use_metallic_location_ = glGetUniformLocation(shader_prog_, "u_UseMetallicMap");
+        use_roughness_location_ = glGetUniformLocation(shader_prog_, "u_UseRoughnessMap");
+
+        for (int i = 0; i < 4; ++i) {
+            std::string base = "u_Lights[" + std::to_string(i) + "]";
+            light_uniforms_[i].type = glGetUniformLocation(shader_prog_, (base + ".type").c_str());
+            light_uniforms_[i].position = glGetUniformLocation(shader_prog_, (base + ".position").c_str());
+            light_uniforms_[i].direction = glGetUniformLocation(shader_prog_, (base + ".direction").c_str());
+            light_uniforms_[i].color = glGetUniformLocation(shader_prog_, (base + ".color").c_str());
+            light_uniforms_[i].intensity = glGetUniformLocation(shader_prog_, (base + ".intensity").c_str());
+            light_uniforms_[i].range = glGetUniformLocation(shader_prog_, (base + ".range").c_str());
+            light_uniforms_[i].inner_cutoff = glGetUniformLocation(shader_prog_, (base + ".innerCutoff").c_str());
+            light_uniforms_[i].outer_cutoff = glGetUniformLocation(shader_prog_, (base + ".outerCutoff").c_str());
+        }
         glUniform1i(irradiance_location_, 4);
         glUniform1i(prefilter_location_, 5);
         glUniform1i(brdf_lut_location_, 6);
@@ -129,6 +145,7 @@ namespace GLStudy {
         glEnableVertexAttribArray(3);
 
         triangle_instance_vbo_ = std::make_unique<VertexBuffer>(nullptr, sizeof(InstanceData) * 1000, GL_DYNAMIC_DRAW);
+        triangle_instances_.reserve(1000);
         glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, model));
         glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4)));
         glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4) * 2));
@@ -207,6 +224,7 @@ namespace GLStudy {
         glEnableVertexAttribArray(3);
 
         cube_instance_vbo_ = std::make_unique<VertexBuffer>(nullptr, sizeof(InstanceData) * 1000, GL_DYNAMIC_DRAW);
+        cube_instances_.reserve(1000);
         glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, model));
         glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4)));
         glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4) * 2));
@@ -276,6 +294,7 @@ namespace GLStudy {
             glEnableVertexAttribArray(2);
             glEnableVertexAttribArray(3);
             sphere_instance_vbo_ = std::make_unique<VertexBuffer>(nullptr, sizeof(InstanceData) * 1000, GL_DYNAMIC_DRAW);
+            sphere_instances_.reserve(1000);
             glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, model));
             glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4)));
             glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(offsetof(InstanceData, model) + sizeof(glm::vec4) * 2));
@@ -368,6 +387,7 @@ namespace GLStudy {
             glEnableVertexAttribArray(2);
             glEnableVertexAttribArray(3);
             cylinder_instance_vbo_ = std::make_unique<VertexBuffer>(nullptr,sizeof(InstanceData)*1000,GL_DYNAMIC_DRAW);
+            cylinder_instances_.reserve(1000);
             glVertexAttribPointer(4,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)offsetof(InstanceData,model));
             glVertexAttribPointer(5,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)));
             glVertexAttribPointer(6,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)*2));
@@ -472,6 +492,7 @@ namespace GLStudy {
             glEnableVertexAttribArray(2);
             glEnableVertexAttribArray(3);
             capsule_instance_vbo_ = std::make_unique<VertexBuffer>(nullptr,sizeof(InstanceData)*1000,GL_DYNAMIC_DRAW);
+            capsule_instances_.reserve(1000);
             glVertexAttribPointer(4,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)offsetof(InstanceData,model));
             glVertexAttribPointer(5,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)));
             glVertexAttribPointer(6,4,GL_FLOAT,GL_FALSE,sizeof(InstanceData),(void*)(offsetof(InstanceData,model)+sizeof(glm::vec4)*2));
@@ -517,20 +538,20 @@ namespace GLStudy {
         glUniformMatrix4fv(model_location_, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
         glUniform3fv(cam_pos_location_, 1, glm::value_ptr(camera_pos_));
         glUniform1i(num_lights_location_, static_cast<int>(lights_.size()));
-        glUniform1i(glGetUniformLocation(shader_prog_, "u_UseAlbedoMap"), 0);
-        glUniform1i(glGetUniformLocation(shader_prog_, "u_UseNormalMap"), 0);
-        glUniform1i(glGetUniformLocation(shader_prog_, "u_UseMetallicMap"), 0);
-        glUniform1i(glGetUniformLocation(shader_prog_, "u_UseRoughnessMap"), 0);
+        glUniform1i(use_albedo_location_, 0);
+        glUniform1i(use_normal_location_, 0);
+        glUniform1i(use_metallic_location_, 0);
+        glUniform1i(use_roughness_location_, 0);
         for (size_t i = 0; i < lights_.size() && i < 4; ++i) {
-            std::string base = "u_Lights[" + std::to_string(i) + "]";
-            glUniform1i(glGetUniformLocation(shader_prog_, (base + ".type").c_str()), static_cast<int>(lights_[i].type));
-            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".position").c_str()), 1, glm::value_ptr(lights_[i].position));
-            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".direction").c_str()), 1, glm::value_ptr(lights_[i].direction));
-            glUniform3fv(glGetUniformLocation(shader_prog_, (base + ".color").c_str()), 1, glm::value_ptr(lights_[i].color));
-            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".intensity").c_str()), lights_[i].intensity);
-            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".range").c_str()), lights_[i].range);
-            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".innerCutoff").c_str()), lights_[i].inner_cutoff);
-            glUniform1f(glGetUniformLocation(shader_prog_, (base + ".outerCutoff").c_str()), lights_[i].outer_cutoff);
+            const auto& loc = light_uniforms_[i];
+            glUniform1i(loc.type, static_cast<int>(lights_[i].type));
+            glUniform3fv(loc.position, 1, glm::value_ptr(lights_[i].position));
+            glUniform3fv(loc.direction, 1, glm::value_ptr(lights_[i].direction));
+            glUniform3fv(loc.color, 1, glm::value_ptr(lights_[i].color));
+            glUniform1f(loc.intensity, lights_[i].intensity);
+            glUniform1f(loc.range, lights_[i].range);
+            glUniform1f(loc.inner_cutoff, lights_[i].inner_cutoff);
+            glUniform1f(loc.outer_cutoff, lights_[i].outer_cutoff);
         }
 
         if (!triangle_instances_.empty()) {

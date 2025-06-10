@@ -6,7 +6,6 @@
 #include <memory>
 #include "Core/Graphics/Primitives.h"
 #include "Core/Utils.h"
-#include <boost/thread/future.hpp>
 
 namespace GLStudy
 {

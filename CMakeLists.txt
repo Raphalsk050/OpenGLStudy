@@ -14,7 +14,6 @@ add_subdirectory(ThirdParty/entt)
 
 # Use prebuilt versions of Assimp, Boost and Bullet from the system
 find_package(assimp REQUIRED)
-find_package(Boost REQUIRED COMPONENTS thread system)
 find_package(ZLIB REQUIRED)
 
 if(USE_BULLET)
@@ -97,7 +96,6 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/stb
         ThirdParty/tinyexr
         ThirdParty/tinyexr/deps/miniz
-        ${CMAKE_SOURCE_DIR}/ThirdParty/boost_patch
 )
 
 target_link_libraries(openglStudy PUBLIC
@@ -106,15 +104,11 @@ target_link_libraries(openglStudy PUBLIC
         glfw
         Entt
         assimp
-        Boost::thread
-        Boost::system
         ZLIB::ZLIB
 )
 
-# Enable Boost future support
+# Enable tinyexr
 target_compile_definitions(openglStudy PRIVATE
-        BOOST_THREAD_PROVIDES_FUTURE
-        BOOST_THREAD_VERSION=5
         TINYEXR_USE_MINIZ=0)
 
 if(USE_BULLET)

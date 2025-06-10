@@ -4,6 +4,7 @@
 #include "Core/Shader/Shader.h"
 #include <glm.hpp>
 #include <vector>
+#include <array>
 #include "Core/Scene/Components.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
@@ -97,6 +98,23 @@ namespace GLStudy {
         int prefilter_location_ = -1;
         int brdf_lut_location_ = -1;
         int use_ibl_location_ = -1;
+        int use_albedo_location_ = -1;
+        int use_normal_location_ = -1;
+        int use_metallic_location_ = -1;
+        int use_roughness_location_ = -1;
+
+        struct LightUniformLocations {
+            int type;
+            int position;
+            int direction;
+            int color;
+            int intensity;
+            int range;
+            int inner_cutoff;
+            int outer_cutoff;
+        };
+
+        std::array<LightUniformLocations, 4> light_uniforms_{};
 
         std::shared_ptr<Texture2D> brdf_lut_texture_;
     };

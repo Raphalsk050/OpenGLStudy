@@ -27,6 +27,10 @@ void Scene::OnUpdate(Timestep ts) {
     CharacterControllerSystem::OnUpdate(*this, ts);
 }
 
+void Scene::LateUpdate(Timestep ts) {
+    CameraBoomSystem::OnUpdate(*this, ts);
+}
+
 void Scene::OnEvent(Event& e) {
     CameraControllerSystem::OnEvent(*this, e);
 }
