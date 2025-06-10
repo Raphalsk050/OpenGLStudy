@@ -26,8 +26,18 @@ namespace GLStudy
     {
         InitGLFW();
         CreateWindow(width_, height_, "OpenGL Study");
+        if (!window_)
+        {
+            glfwTerminate();
+            return;
+        }
         Input::Init(window_);
-        InitGLAD();
+        if (!InitGLAD())
+        {
+            glfwDestroyWindow(window_);
+            glfwTerminate();
+            return;
+        }
 
         const GLubyte* renderer = glGetString(GL_RENDERER);
         const GLubyte* vendor   = glGetString(GL_VENDOR);
@@ -66,6 +76,9 @@ namespace GLStudy
             Update(timestep_);
             scene_->Render(GetRenderer());
         }
+
+        glfwDestroyWindow(window_);
+        glfwTerminate();
     }
 
     void Engine::Pause()
@@ -107,14 +120,16 @@ namespace GLStudy
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     }
 
-    void Engine::InitGLAD()
+    bool Engine::InitGLAD()
     {
         if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
         {
             std::cout << "Failed to initialize GLAD" << std::endl;
+            return false;
         }
 
         glViewport(0, 0, width_, height_);
+        return true;
     }
 
     GLFWwindow* Engine::CreateWindow(int width, int height, const char* title)
