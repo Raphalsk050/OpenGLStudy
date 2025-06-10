@@ -18,7 +18,10 @@ namespace GLStudy
 
     Engine::~Engine()
     {
+        render_running_ = false;
         physics_running_ = false;
+        if (render_thread_.joinable())
+            render_thread_.join();
         if (physics_thread_.joinable())
             physics_thread_.join();
         delete scene_;
@@ -54,6 +57,7 @@ namespace GLStudy
         scene_->OnViewportResize(width_, height_);
 
         InitCallbacks();
+        glfwMakeContextCurrent(nullptr);
 
         // Physics world must exist before layers attach so asynchronous
         // component creation can safely reference it
@@ -71,6 +75,21 @@ namespace GLStudy
             }
         });
 
+        render_running_ = true;
+        render_thread_ = std::thread([this]() {
+            glfwMakeContextCurrent(window_.get());
+            while (render_running_ && !glfwWindowShouldClose(window_.get()))
+            {
+                {
+                    std::scoped_lock lock(scene_mutex_);
+                    scene_->Render(GetRenderer());
+                }
+                glfwSwapBuffers(window_.get());
+                glfwPollEvents();
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+        });
+
         initialization_state_ = EngineInitializationStates::INITIALIZED;
 
         // Attach layers that were pushed before setup
@@ -82,15 +101,22 @@ namespace GLStudy
         // TODO(rafael): Just to debug the engine for now. Take this off in the future
         Resume();
 
-        while (!glfwWindowShouldClose(window_.get()))
+        while (render_running_ && !glfwWindowShouldClose(window_.get()))
         {
             float time = Time::GetTime();
             timestep_ = time - last_frame_time_;
             last_frame_time_ = time;
 
             Update(timestep_);
-            scene_->Render(GetRenderer());
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+
+        render_running_ = false;
+        physics_running_ = false;
+        if (render_thread_.joinable())
+            render_thread_.join();
+        if (physics_thread_.joinable())
+            physics_thread_.join();
 
         window_.reset();
         glfwTerminate();
@@ -163,17 +189,14 @@ namespace GLStudy
 
     void Engine::Update(Timestep ts)
     {
-        glfwPollEvents();
-        glfwSwapBuffers(window_.get());
-
         if (state_ != EngineStates::RUNNING)
             return;
 
-        scene_->OnUpdate(ts);
-
-        // Physics update happens on a separate thread
-
-        UpdateLayers(ts);
+        {
+            std::scoped_lock lock(scene_mutex_);
+            scene_->OnUpdate(ts);
+            UpdateLayers(ts);
+        }
     }
 
     void Engine::UpdateLayers(Timestep ts)
@@ -186,6 +209,7 @@ namespace GLStudy
 
     void Engine::OnEvent(Event& event)
     {
+        std::scoped_lock lock(scene_mutex_);
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) {
             width_ = e.GetWidth();

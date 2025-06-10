@@ -4,6 +4,7 @@
 #include "RigidBody.h"
 #include "Core/engine.h"
 #include "Core/Scene/Components.h"
+#include "Core/Scene/Scene.h"
 #include <future>
 #include <memory>
 #include "Core/Utils.h"
@@ -79,8 +80,12 @@ namespace GLStudy
     {
         StepSimulation(ts);
 
+        Engine& engine = Engine::Get();
+        std::scoped_lock lock(engine.GetSceneMutex());
+        Scene* scene = engine.GetScene();
+
         // synchronize entity transforms with Bullet rigid bodies
-        auto view = Engine::Get().GetScene()->registry_.view<TransformComponent, RigidBodyComponent>();
+        auto view = scene->registry_.view<TransformComponent, RigidBodyComponent>();
         for (auto entity : view)
         {
             auto& tr = view.get<TransformComponent>(entity);
@@ -97,6 +102,7 @@ namespace GLStudy
             }
         }
 
+        scene->LateUpdate(ts);
     }
 
     void PhysicsWorld::SetGravity(const btVector3& gravity)

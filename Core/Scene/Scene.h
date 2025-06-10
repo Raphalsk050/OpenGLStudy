@@ -15,6 +15,7 @@ namespace GLStudy {
         EntityHandle CreateEntity(const std::string& name = "Entity");
 
         void OnUpdate(Timestep ts);
+        void LateUpdate(Timestep ts);
         void OnEvent(Event& e);
         void OnViewportResize(float width, float height);
 

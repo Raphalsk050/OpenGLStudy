@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <thread>
 #include <atomic>
+#include <mutex>
 
 #include "Time.h"
 #include "Core/Layer/LayerStack.h"
@@ -62,6 +63,8 @@ namespace GLStudy
 
         PhysicsWorld* GetPhysicsWorld() const { return physic_world_.get(); }
 
+        std::mutex& GetSceneMutex() { return scene_mutex_; }
+
     private:
         Engine(const Engine&)            = delete;
         Engine& operator=(const Engine&) = delete;
@@ -81,8 +84,12 @@ namespace GLStudy
         std::unique_ptr<Renderer> renderer_;
         std::unique_ptr<PhysicsWorld> physic_world_;
 
+        std::thread render_thread_;
         std::thread physics_thread_;
+        std::atomic<bool> render_running_{false};
         std::atomic<bool> physics_running_{false};
+
+        std::mutex scene_mutex_;
 
         // currently, the engine will have only one scene
         // TODO(rafael): in the future, the idea is to hold multiple scenes and the user can decide
