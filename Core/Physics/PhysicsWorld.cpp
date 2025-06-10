@@ -74,6 +74,7 @@ namespace GLStudy
                 tr.rotation = glm::eulerAngles(q);
             }
         }
+
     }
 
     void PhysicsWorld::SetGravity(const btVector3& gravity)

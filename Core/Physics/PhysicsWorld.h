@@ -48,15 +48,6 @@ namespace GLStudy
 
         void StepSimulation(float deltaTime) const;
 
-        void physicsDebugDraw(int debugFlags)
-        {
-            if (dynamics_world_ && dynamics_world_->getDebugDrawer())
-            {
-                dynamics_world_->getDebugDrawer()->setDebugMode(debugFlags);
-                dynamics_world_->debugDrawWorld();
-            }
-        }
-
         friend class Engine;
     };
 } // GLStudy

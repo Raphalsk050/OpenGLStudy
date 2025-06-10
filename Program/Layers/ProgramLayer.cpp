@@ -18,89 +18,62 @@ namespace GLStudy
     void ProgramLayer::OnAttach()
     {
         Layer::OnAttach();
-        cube_ = scene_.CreateEntity();
+        cube_ = scene_.CreateEntity("Cube");
+        floor_ = scene_.CreateEntity("Floor");
+        sphere_ = scene_.CreateEntity("Sphere");
 
-        RendererComponent renderer_component_spec{
+        std::shared_ptr<Sphere> sphere_mesh(new Sphere(0.5));
+        std::shared_ptr<Plane> plane_mesh(new Plane(100.0f));
+
+        RendererComponent cube_renderer_spec{
             .mesh = MeshType::Cube,
-            .color = glm::vec4(1.0f, 1.0f,1.0f, 1.0f)
-
+            .color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
         };
 
-        cube_.AddComponent<RendererComponent>(renderer_component_spec);
-        auto future = engine_->GetPhysicsWorld()->AddRigidbody(
+        RendererComponent sphere_renderer_spec{
+            .mesh = MeshType::Model,
+            .mesh_ptr = sphere_mesh,
+            .color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+        };
+
+        RendererComponent plane_renderer_spec{
+            .mesh = MeshType::Model,
+            .mesh_ptr = plane_mesh,
+            .color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
+        };
+
+        cube_.AddComponent<RendererComponent>(cube_renderer_spec);
+        auto cube_rigidbody_future = engine_->GetPhysicsWorld()->AddRigidbody(
             cube_,
-            RigidBodyComponent{.mesh_type = MeshType::Cube, .size = btVector3(1.0f,1.0f,1.0f), .mass = 1.0f});
-        future.then([](boost::future<RigidBodyComponent> f){
-            (void)f.get();
-        });
-        cube_.SetPosition({0.0f,5.0f,0.0f});
+            RigidBodyComponent{.mesh_type = MeshType::Cube, .size = btVector3(1.0f, 1.0f, 1.0f), .mass = 1.0f});
+        cube_.SetPosition({0.0f, 5.0f, 0.0f});
 
-        int amount = 5;
+        floor_.AddComponent<RendererComponent>(plane_renderer_spec);
+        auto floor_rigidbody_future = engine_->GetPhysicsWorld()->AddRigidbody(
+            floor_,
+            RigidBodyComponent{.mesh_type = MeshType::Cube, .size = btVector3(100.0f, 0.05f, 100.0f), .mass = 0.0f});
+        sphere_.SetPosition({0.0f, 0.0f, 0.0f});
 
-        /*for (int i = 0 ; i < amount ; i++)
-        {
-            for (int j = 0 ; j < amount ; j++)
-            {
-                for (int k = 0 ; k < amount ; k++)
-                {
-                    cube_ = scene_.CreateEntity();
-                    renderer_component_spec.color = glm::vec4(glm::linearRand(0.0f,1.0f), glm::linearRand(0.0f,1.0f), glm::linearRand(0.0f,1.0f), 1.0f);
-                    cube_.AddComponent<RendererComponent>(renderer_component_spec);
-                    cube_.SetPosition(glm::vec3(i - amount/2.0f, k - amount/2.0f, j - amount/2.0f));
-                    cube_.SetScale(glm::vec3(0.5f));
-                }
-            }
-        }*/
+        sphere_.AddComponent<RendererComponent>(sphere_renderer_spec);
+        auto sphere_rigidbody_future = engine_->GetPhysicsWorld()->AddRigidbody(
+            sphere_,
+            RigidBodyComponent{.mesh_type = MeshType::Sphere, .size = btVector3(0.5, 0.5, 0.5), .mass = 1.0f});
+        sphere_.SetPosition({0.0f, 15.0f, 0.0f});
 
-        auto sphereMesh = std::make_shared<Sphere>(0.5f);
-        auto sphereEntity = scene_.CreateEntity("Sphere");
-        sphereEntity.AddComponent<RendererComponent>(renderer_component_spec);
-        sphereEntity.SetPosition({0.0f,15.0f,0.0f});
-
-        sphereEntity.AddComponent<RigidBodyComponent>(RigidBodyComponent{.mesh_type = MeshType::Cube,.size = btVector3(1.0f,1.0f,1.0f),.mass = 1.0f});
-
-        sphereEntity = scene_.CreateEntity("Sphere");
-        sphereEntity.AddComponent<RendererComponent>(RendererComponent{.color = glm::vec4(1.0f,0.0f,0.0f,1.0f), .mesh_ptr = sphereMesh});
-        sphereEntity.SetPosition({0.0f,10.0f,0.0f});
-
-        sphereEntity.AddComponent<RigidBodyComponent>(RigidBodyComponent{.mesh_type = MeshType::Sphere,.size = btVector3(0.5f,0.5f,0.5f),.mass = 1.0f});
-
-        auto floor_mesh = std::make_shared<Plane>(100.0f);
-        auto floor_entity = scene_.CreateEntity("Floor");
-        floor_entity.SetRotation(glm::vec3(0.0f,0.0f,3.14f));
-        floor_entity.AddComponent<RendererComponent>(RendererComponent{.color = glm::vec4(1.0f,1.0f,1.0f,1.0f), .mesh_ptr = floor_mesh});
-        floor_entity.AddComponent<RigidBodyComponent>(RigidBodyComponent{.mesh_type = MeshType::Cube,.size = btVector3(100.0f, 0.05f, 100.0f),.mass = 0.0f});
-        floor_entity.SetPosition({0.0f,0.0f,0.0f});
 
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();
         camera_.AddComponent<CameraControllerComponent>();
-        camera_.AddComponent<RigidBodyComponent>();
-
-        btRigidBody* body = camera_.GetComponent<RigidBodyComponent>().body->get();
-        btVector3 localPivot = body->getCenterOfMassTransform().inverse() * ConvertMat4ToBtTransform(camera_.GetComponent<TransformComponent>().LocalMatrix()).getOrigin();
-        btPoint2PointConstraint* p2p = new btPoint2PointConstraint(*body, localPivot);
-        engine_->GetPhysicsWorld()->AddConstraint(p2p, true);
 
         camera_.SetPosition({0.0f, 1.0f, 5.0f});
 
         light_ = scene_.CreateEntity("Light");
-        light_.AddComponent<LightComponent>(LightComponent{.type = LightType::Directional,
-                                                          .color = glm::vec3(1.0f, 1.0f, 1.0f),
-                                                          .intensity = 4.0f,.direction = glm::vec3(0.0f, -1.0f, 0.0f)});
+        light_.AddComponent<LightComponent>(LightComponent{
+            .type = LightType::Directional,
+            .color = glm::vec3(1.0f, 1.0f, 1.0f),
+            .intensity = 4.0f, .direction = glm::vec3(0.0f, -1.0f, 0.0f)
+        });
 
-
-
-        // light_2_ = scene_.CreateEntity("Light_2");
-        // light_2_.AddComponent<LightComponent>(LightComponent{.type = LightType::Point,
-        //                                                   .color = glm::vec3(1.0f, 0.0f,0.0f),
-        //                                                   .intensity = 10.0f});
-        // light_2_.SetPosition({0.0f, 0.0f,0.0f});
-
-        /*dummy_model_ = std::make_shared<Model>();
-        dummy_model_->LoadModel("Assets/Models/balls.glb");
-        model_entity_ = scene_.CreateEntity("DummyModel");
-        model_entity_.AddComponent<RendererComponent>(RendererComponent{.mesh = MeshType::Model, .color = glm::vec4(1.0f), .model = dummy_model_});*/
 
         skybox_entity_ = scene_.CreateEntity("Skybox");
         auto skybox = std::make_shared<Skybox>();
@@ -166,17 +139,17 @@ namespace GLStudy
                 break;
             }
 
-        /*case Key::I:
-            {
-                if (!last_key_state_map_[KeyCode])
+            /*case Key::I:
                 {
-                    auto_instancing_enabled_ = !auto_instancing_enabled_;
-                    Renderer3D::EnableAutoInstancing(auto_instancing_enabled_);
-                    last_key_state_map_[KeyCode] = true;
-                }
+                    if (!last_key_state_map_[KeyCode])
+                    {
+                        auto_instancing_enabled_ = !auto_instancing_enabled_;
+                        Renderer3D::EnableAutoInstancing(auto_instancing_enabled_);
+                        last_key_state_map_[KeyCode] = true;
+                    }
 
-                break;
-            }*/
+                    break;
+                }*/
         }
 
         return false;
