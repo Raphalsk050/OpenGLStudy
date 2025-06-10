@@ -96,5 +96,22 @@ namespace GLStudy {
     struct SkyboxComponent {
         std::shared_ptr<Skybox> skybox;
     };
+
+    struct CameraBoomComponent {
+        float arm_length{5.0f};
+        bool collision_test{true};
+        entt::entity target{entt::null};
+    };
+
+    enum class CameraType {
+        FirstPerson = 0,
+        ThirdPerson = 1
+    };
+
+    struct CharacterControllerComponent {
+        CameraType camera_type{CameraType::FirstPerson};
+        float move_speed{5.0f};
+        float jump_force{5.0f};
+    };
 } // namespace GLStudy
 

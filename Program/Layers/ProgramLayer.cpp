@@ -32,14 +32,24 @@ namespace GLStudy
 
         RendererComponent sphere_renderer_spec{
             .mesh = MeshType::Model,
-            .mesh_ptr = sphere_mesh,
-            .color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+            .color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f),
+            .depth_test = true,
+            .culling = true,
+            .cull_face = GL_BACK,
+            .double_sided = false,
+            .model = nullptr,
+            .mesh_ptr = sphere_mesh
         };
 
         RendererComponent plane_renderer_spec{
             .mesh = MeshType::Model,
-            .mesh_ptr = plane_mesh,
-            .color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
+            .color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+            .depth_test = true,
+            .culling = true,
+            .cull_face = GL_BACK,
+            .double_sided = false,
+            .model = nullptr,
+            .mesh_ptr = plane_mesh
         };
 
         cube_.AddComponent<RendererComponent>(cube_renderer_spec);
@@ -58,12 +68,14 @@ namespace GLStudy
         auto sphere_rigidbody_future = engine_->GetPhysicsWorld()->AddRigidbody(
             sphere_,
             RigidBodyComponent{.mesh_type = MeshType::Sphere, .size = btVector3(0.5, 0.5, 0.5), .mass = 1.0f});
+        sphere_.AddComponent<CharacterControllerComponent>(CharacterControllerComponent{.camera_type = CameraType::ThirdPerson});
         sphere_.SetPosition({0.0f, 15.0f, 0.0f});
 
 
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();
         camera_.AddComponent<CameraControllerComponent>();
+        camera_.AddComponent<CameraBoomComponent>(CameraBoomComponent{5.0f, true, sphere_.Raw()});
 
         camera_.SetPosition({0.0f, 1.0f, 5.0f});
 
