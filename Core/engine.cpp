@@ -53,6 +53,10 @@ namespace GLStudy
 
         InitCallbacks();
 
+        // Physics world must exist before layers attach so asynchronous
+        // component creation can safely reference it
+        physic_world_ = new PhysicsWorld();
+
         initialization_state_ = EngineInitializationStates::INITIALIZED;
 
         // Attach layers that were pushed before setup
@@ -60,9 +64,6 @@ namespace GLStudy
         {
             layer->OnAttach();
         }
-
-        // Physics
-        physic_world_ = new PhysicsWorld();
 
         // TODO(rafael): Just to debug the engine for now. Take this off in the future
         Resume();
