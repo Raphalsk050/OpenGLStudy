@@ -36,9 +36,27 @@ namespace GLStudy
             glfwTerminate();
             return;
         }
+
+        glfwMakeContextCurrent(window_.get());
+        if (!InitGLAD())
+        {
+            glfwDestroyWindow(window_.get());
+            glfwTerminate();
+            return;
+        }
+
+        const GLubyte* renderer = glGetString(GL_RENDERER);
+        const GLubyte* vendor   = glGetString(GL_VENDOR);
+        const GLubyte* version  = glGetString(GL_VERSION);
+
+        std::cout << "Vendor:   " << vendor   << std::endl;
+        std::cout << "Renderer: " << renderer << std::endl;
+        std::cout << "Version:  " << version  << std::endl;
+
         Input::Init(window_.get());
         InitCallbacks();
 
+        renderer_->Init();
         scene_->OnViewportResize(width_, height_);
 
         // Physics world must exist before layers attach so asynchronous
@@ -57,24 +75,21 @@ namespace GLStudy
             }
         });
 
+        initialization_state_ = EngineInitializationStates::INITIALIZED;
+
+        // Attach layers that were pushed before setup
+        for (Layer* layer : layer_stack_)
+        {
+            layer->OnAttach();
+        }
+
+        // Release the context from the main thread and start the render thread
+        glfwMakeContextCurrent(nullptr);
+
         render_running_ = true;
         render_thread_ = std::thread([this]() {
             glfwMakeContextCurrent(window_.get());
-            if (!InitGLAD())
-            {
-                render_running_ = false;
-                return;
-            }
 
-            const GLubyte* renderer = glGetString(GL_RENDERER);
-            const GLubyte* vendor   = glGetString(GL_VENDOR);
-            const GLubyte* version  = glGetString(GL_VERSION);
-
-            std::cout << "Vendor:   " << vendor   << std::endl;
-            std::cout << "Renderer: " << renderer << std::endl;
-            std::cout << "Version:  " << version  << std::endl;
-
-            renderer_->Init();
             while (render_running_ && !glfwWindowShouldClose(window_.get()))
             {
                 {
@@ -86,14 +101,6 @@ namespace GLStudy
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         });
-
-        initialization_state_ = EngineInitializationStates::INITIALIZED;
-
-        // Attach layers that were pushed before setup
-        for (Layer* layer : layer_stack_)
-        {
-            layer->OnAttach();
-        }
 
         // TODO(rafael): Just to debug the engine for now. Take this off in the future
         Resume();
