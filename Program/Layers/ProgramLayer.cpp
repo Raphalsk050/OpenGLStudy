@@ -51,14 +51,19 @@ namespace GLStudy
             .mesh_ptr = plane_mesh
         };
 
-        for (int i = 0; i < 50; i++)
+        int amount = 5;
+
+        for (int i = -amount/2; i < amount/2; i++)
         {
-            auto cube = scene_.CreateEntity("Cube");
-            cube.AddComponent<RendererComponent>(cube_renderer_spec);
-            auto cube_rigidbody_future = engine_->GetPhysicsWorld()->AddRigidbody(
-                cube,
-                RigidBodyComponent{.mesh_type = MeshType::Cube, .size = btVector3(1.0f, 1.0f, 1.0f), .mass = 1.0f});
-            cube.SetPosition({0.0f, 1.0 * i + 1.0f, 0.0f});
+            for (int j = -amount/2; j < amount/2; j++)
+            {
+                auto cube = scene_.CreateEntity("Cube");
+                cube.AddComponent<RendererComponent>(cube_renderer_spec);
+                auto cube_rigidbody_future = engine_->GetPhysicsWorld()->AddRigidbody(
+                    cube,
+                    RigidBodyComponent{.mesh_type = MeshType::Cube, .size = btVector3(1.0f, 1.0f, 1.0f), .mass = 1.0f});
+                cube.SetPosition({i, 1.0, j});
+            }
         }
 
         floor_.AddComponent<RendererComponent>(plane_renderer_spec);
@@ -77,7 +82,7 @@ namespace GLStudy
                 .angular_factor = btVector3(0.0f, 0.0f, 0.0f),
                 .disable_sleep = true
             });
-        sphere_.SetPosition({2.0f, 15.0f, 0.0f});
+        sphere_.SetPosition({0.0f, 15.0f, 0.0f});
         sphere_.AddComponent<CharacterControllerComponent>(CharacterControllerComponent{.camera_type = CameraType::ThirdPerson});
 
 
