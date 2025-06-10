@@ -10,7 +10,12 @@ sudo apt install -y \
     libgl1-mesa-dev \
     libglu1-mesa-dev \
     freeglut3-dev \
-    mesa-utils
+    mesa-utils \
+    libassimp-dev \
+    libboost-thread-dev libboost-system-dev \
+    zlib1g-dev \
+    libbullet-dev
+
 
 # Wayland (wayland-scanner)
 sudo apt install -y \
