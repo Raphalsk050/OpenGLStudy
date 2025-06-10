@@ -63,16 +63,16 @@ namespace GLStudy
 
     PhysicsWorld::~PhysicsWorld()
     {
-        // Bullet objects are owned by unique_ptr, but ensure world is cleared first
         if (dynamics_world_)
         {
-            // Remove all rigid bodies to avoid dangling pointers
+            std::scoped_lock lock(world_mutex_);
             for (int i = dynamics_world_->getNumCollisionObjects() - 1; i >= 0; --i)
             {
                 btCollisionObject* obj = dynamics_world_->getCollisionObjectArray()[i];
                 dynamics_world_->removeCollisionObject(obj);
                 delete obj;
             }
+            dynamics_world_.reset();
         }
     }
 
@@ -118,6 +118,7 @@ namespace GLStudy
 
     void PhysicsWorld::AddConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies)
     {
+        std::scoped_lock lock(world_mutex_);
         dynamics_world_->addConstraint(constraint, disableCollisionsBetweenLinkedBodies);
     }
 
@@ -125,6 +126,7 @@ namespace GLStudy
     {
         if (dynamics_world_)
         {
+            std::scoped_lock lock(world_mutex_);
             dynamics_world_->stepSimulation(deltaTime);
         }
     }
@@ -132,6 +134,7 @@ namespace GLStudy
     // TODO(rafael): make a complete wrapper around btCollisionShape. Now we only have a class that creates directly and returns a btCollsionShape pointer
 RigidBody* PhysicsWorld::CreateRigidBody(float mass, const btTransform& startTransform, btCollisionShape* shape)
 {
+    std::scoped_lock lock(world_mutex_);
     auto body = new RigidBody(shape, mass, startTransform);
     dynamics_world_->addRigidBody(body->body_);
     return body;
@@ -142,8 +145,10 @@ std::future<RigidBodyComponent> PhysicsWorld::AddRigidbodyAsync(EntityHandle ent
     // First add a placeholder component to the entity
     entity.AddComponent<RigidBodyComponent>(spec);
 
-    std::packaged_task<RigidBodyComponent()> task([=, this]() mutable -> RigidBodyComponent {
+    auto task = [=, this]() mutable -> RigidBodyComponent {
         RigidBodyComponent rb = spec;
+        if (!dynamics_world_)
+            return rb;
 
         auto transform = Engine::Get().GetScene()->GetWorldMatrix(entity.Raw());
         auto rb_transform = ConvertMat4ToBtTransform(transform);
@@ -165,14 +170,11 @@ std::future<RigidBodyComponent> PhysicsWorld::AddRigidbodyAsync(EntityHandle ent
         if (rb.disable_sleep)
             rb.body->get()->setActivationState(DISABLE_DEACTIVATION);
 
-        // Update the component in the registry
         auto& registry = Engine::Get().GetScene()->registry_;
         registry.patch<RigidBodyComponent>(entity.Raw(), [&](auto& comp){ comp.body = rb.body; });
         return rb;
-    });
+    };
 
-    std::future<RigidBodyComponent> future = task.get_future();
-    std::thread(std::move(task)).detach();
-    return future;
+    return std::async(std::launch::async, std::move(task));
 }
 } // GLStudy

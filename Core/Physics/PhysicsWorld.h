@@ -4,6 +4,7 @@
 #include "Core/TimeStep.h"
 #include <future>
 #include <memory>
+#include <mutex>
 #include "Core/Scene/EntityHandle.h"
 #include "Core/Scene/Components.h"
 
@@ -44,6 +45,8 @@ namespace GLStudy
         std::unique_ptr<btSequentialImpulseConstraintSolver> solver_;
         std::unique_ptr<btDefaultCollisionConfiguration> collisionConfiguration_;
         std::unique_ptr<btDiscreteDynamicsWorld> dynamics_world_;
+
+        mutable std::mutex world_mutex_;
 
     private:
         void Update(Timestep ts);

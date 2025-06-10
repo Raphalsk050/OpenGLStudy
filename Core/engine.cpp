@@ -24,7 +24,11 @@ namespace GLStudy
             render_thread_.join();
         if (physics_thread_.joinable())
             physics_thread_.join();
-        delete scene_;
+        if (scene_)
+        {
+            delete scene_;
+            scene_ = nullptr;
+        }
     }
 
     void Engine::Setup()
@@ -97,7 +101,6 @@ namespace GLStudy
                     scene_->Render(GetRenderer());
                 }
                 glfwSwapBuffers(window_.get());
-                glfwPollEvents();
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         });
@@ -111,6 +114,7 @@ namespace GLStudy
             timestep_ = time - last_frame_time_;
             last_frame_time_ = time;
 
+            glfwPollEvents();
             Update(timestep_);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
@@ -121,6 +125,12 @@ namespace GLStudy
             render_thread_.join();
         if (physics_thread_.joinable())
             physics_thread_.join();
+
+        if (scene_)
+        {
+            delete scene_;
+            scene_ = nullptr;
+        }
 
         window_.reset();
         glfwTerminate();
