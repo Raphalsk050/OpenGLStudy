@@ -37,27 +37,9 @@ namespace GLStudy
             return;
         }
         Input::Init(window_.get());
-        if (!InitGLAD())
-        {
-            window_.reset();
-            glfwTerminate();
-            return;
-        }
-
-        const GLubyte* renderer = glGetString(GL_RENDERER);
-        const GLubyte* vendor   = glGetString(GL_VENDOR);
-        const GLubyte* version  = glGetString(GL_VERSION);
-
-        std::cout << "Vendor:   " << vendor   << std::endl;
-        std::cout << "Renderer: " << renderer << std::endl;
-        std::cout << "Version:  " << version  << std::endl;
-
-        renderer_->Init();
+        InitCallbacks();
 
         scene_->OnViewportResize(width_, height_);
-
-        InitCallbacks();
-        glfwMakeContextCurrent(nullptr);
 
         // Physics world must exist before layers attach so asynchronous
         // component creation can safely reference it
@@ -78,6 +60,21 @@ namespace GLStudy
         render_running_ = true;
         render_thread_ = std::thread([this]() {
             glfwMakeContextCurrent(window_.get());
+            if (!InitGLAD())
+            {
+                render_running_ = false;
+                return;
+            }
+
+            const GLubyte* renderer = glGetString(GL_RENDERER);
+            const GLubyte* vendor   = glGetString(GL_VENDOR);
+            const GLubyte* version  = glGetString(GL_VERSION);
+
+            std::cout << "Vendor:   " << vendor   << std::endl;
+            std::cout << "Renderer: " << renderer << std::endl;
+            std::cout << "Version:  " << version  << std::endl;
+
+            renderer_->Init();
             while (render_running_ && !glfwWindowShouldClose(window_.get()))
             {
                 {
@@ -181,7 +178,6 @@ namespace GLStudy
             std::cout << "Failed to create GLFW window" << std::endl;
             return nullptr;
         }
-        glfwMakeContextCurrent(window);
         window_.reset(window);
 
         return window_.get();
