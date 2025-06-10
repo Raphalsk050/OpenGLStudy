@@ -4,7 +4,8 @@
 #include "RigidBody.h"
 #include "Core/engine.h"
 #include "Core/Scene/Components.h"
-#include <boost/thread/future.hpp>
+#include <future>
+#include <memory>
 #include "Core/Utils.h"
 #include <glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -15,11 +16,11 @@ namespace GLStudy
 {
     PhysicsWorld::PhysicsWorld()
     {
-        collisionConfiguration_ = new btDefaultCollisionConfiguration();
-        dispatcher_ = new btCollisionDispatcher(collisionConfiguration_);
-        overlapping_pair_cache_ = new btDbvtBroadphase();
-        solver_ = new btSequentialImpulseConstraintSolver();
-        dynamics_world_ = new btDiscreteDynamicsWorld(dispatcher_, overlapping_pair_cache_, solver_, collisionConfiguration_);
+        collisionConfiguration_ = std::make_unique<btDefaultCollisionConfiguration>();
+        dispatcher_ = std::make_unique<btCollisionDispatcher>(collisionConfiguration_.get());
+        overlapping_pair_cache_ = std::make_unique<btDbvtBroadphase>();
+        solver_ = std::make_unique<btSequentialImpulseConstraintSolver>();
+        dynamics_world_ = std::make_unique<btDiscreteDynamicsWorld>(dispatcher_.get(), overlapping_pair_cache_.get(), solver_.get(), collisionConfiguration_.get());
         dynamics_world_->setGravity(gravity_);
 
         // Setup all the rigidBody components in the scene
@@ -55,6 +56,21 @@ namespace GLStudy
                         rb.body->get()->setActivationState(DISABLE_DEACTIVATION);
                     break;
                 }
+            }
+        }
+    }
+
+    PhysicsWorld::~PhysicsWorld()
+    {
+        // Bullet objects are owned by unique_ptr, but ensure world is cleared first
+        if (dynamics_world_)
+        {
+            // Remove all rigid bodies to avoid dangling pointers
+            for (int i = dynamics_world_->getNumCollisionObjects() - 1; i >= 0; --i)
+            {
+                btCollisionObject* obj = dynamics_world_->getCollisionObjectArray()[i];
+                dynamics_world_->removeCollisionObject(obj);
+                delete obj;
             }
         }
     }
@@ -115,12 +131,12 @@ RigidBody* PhysicsWorld::CreateRigidBody(float mass, const btTransform& startTra
     return body;
 }
 
-boost::future<RigidBodyComponent> PhysicsWorld::AddRigidbodyAsync(EntityHandle entity, const RigidBodyComponent& spec)
+std::future<RigidBodyComponent> PhysicsWorld::AddRigidbodyAsync(EntityHandle entity, const RigidBodyComponent& spec)
 {
     // First add a placeholder component to the entity
     entity.AddComponent<RigidBodyComponent>(spec);
 
-    boost::packaged_task<RigidBodyComponent()> task([=, this]() mutable -> RigidBodyComponent {
+    std::packaged_task<RigidBodyComponent()> task([=, this]() mutable -> RigidBodyComponent {
         RigidBodyComponent rb = spec;
 
         auto transform = Engine::Get().GetScene()->GetWorldMatrix(entity.Raw());
@@ -149,7 +165,7 @@ boost::future<RigidBodyComponent> PhysicsWorld::AddRigidbodyAsync(EntityHandle e
         return rb;
     });
 
-    boost::future<RigidBodyComponent> future = task.get_future();
+    std::future<RigidBodyComponent> future = task.get_future();
     std::thread(std::move(task)).detach();
     return future;
 }

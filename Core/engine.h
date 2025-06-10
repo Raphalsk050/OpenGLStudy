@@ -4,6 +4,8 @@
 #include <glm.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <thread>
+#include <atomic>
 
 #include "Time.h"
 #include "Core/Layer/LayerStack.h"
@@ -56,9 +58,9 @@ namespace GLStudy
 
         Scene* GetScene() const { return scene_; }
 
-        GLFWwindow* GetWindow() const { return window_; }
+        GLFWwindow* GetWindow() const { return window_.get(); }
 
-        PhysicsWorld* GetPhysicsWorld() const { return physic_world_; }
+        PhysicsWorld* GetPhysicsWorld() const { return physic_world_.get(); }
 
     private:
         Engine(const Engine&)            = delete;
@@ -66,14 +68,21 @@ namespace GLStudy
         Engine(Engine&&)                 = delete;
         Engine& operator=(Engine&&)      = delete;
 
-        GLFWwindow* window_;
+        struct GLFWDeleter
+        {
+            void operator()(GLFWwindow* w) const { if (w) glfwDestroyWindow(w); }
+        };
+        std::unique_ptr<GLFWwindow, GLFWDeleter> window_;
         int width_ = 800, height_ = 600;
         LayerStack layer_stack_;
         Timestep timestep_;
         Time time_;
         float last_frame_time_ = 0.0f;
         std::unique_ptr<Renderer> renderer_;
-        PhysicsWorld* physic_world_;
+        std::unique_ptr<PhysicsWorld> physic_world_;
+
+        std::thread physics_thread_;
+        std::atomic<bool> physics_running_{false};
 
         // currently, the engine will have only one scene
         // TODO(rafael): in the future, the idea is to hold multiple scenes and the user can decide

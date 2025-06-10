@@ -10,7 +10,7 @@ namespace GLStudy
         glViewport(0, 0, width, height);
     }
 
-    Engine::Engine(): window_(nullptr)
+    Engine::Engine()
     {
         renderer_ = std::make_unique<Renderer>();
         scene_ = new Scene();
@@ -18,8 +18,10 @@ namespace GLStudy
 
     Engine::~Engine()
     {
+        physics_running_ = false;
+        if (physics_thread_.joinable())
+            physics_thread_.join();
         delete scene_;
-        delete physic_world_;
     }
 
     void Engine::Setup()
@@ -31,10 +33,10 @@ namespace GLStudy
             glfwTerminate();
             return;
         }
-        Input::Init(window_);
+        Input::Init(window_.get());
         if (!InitGLAD())
         {
-            glfwDestroyWindow(window_);
+            window_.reset();
             glfwTerminate();
             return;
         }
@@ -55,7 +57,19 @@ namespace GLStudy
 
         // Physics world must exist before layers attach so asynchronous
         // component creation can safely reference it
-        physic_world_ = new PhysicsWorld();
+        physic_world_ = std::make_unique<PhysicsWorld>();
+        physics_running_ = true;
+        physics_thread_ = std::thread([this]() {
+            float last = Time::GetTime();
+            while (physics_running_)
+            {
+                float now = Time::GetTime();
+                float dt = now - last;
+                last = now;
+                physic_world_->Update(dt);
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+        });
 
         initialization_state_ = EngineInitializationStates::INITIALIZED;
 
@@ -68,7 +82,7 @@ namespace GLStudy
         // TODO(rafael): Just to debug the engine for now. Take this off in the future
         Resume();
 
-        while (!glfwWindowShouldClose(window_))
+        while (!glfwWindowShouldClose(window_.get()))
         {
             float time = Time::GetTime();
             timestep_ = time - last_frame_time_;
@@ -78,7 +92,7 @@ namespace GLStudy
             scene_->Render(GetRenderer());
         }
 
-        glfwDestroyWindow(window_);
+        window_.reset();
         glfwTerminate();
     }
 
@@ -139,25 +153,25 @@ namespace GLStudy
         if (!window)
         {
             std::cout << "Failed to create GLFW window" << std::endl;
+            return nullptr;
         }
         glfwMakeContextCurrent(window);
-        window_ = window;
+        window_.reset(window);
 
-        return window;
+        return window_.get();
     }
 
     void Engine::Update(Timestep ts)
     {
         glfwPollEvents();
-        glfwSwapBuffers(window_);
+        glfwSwapBuffers(window_.get());
 
         if (state_ != EngineStates::RUNNING)
             return;
 
         scene_->OnUpdate(ts);
 
-        // TODO: move the physics to another thread to be more performant and don't freeze the main thread
-        physic_world_->Update(ts);
+        // Physics update happens on a separate thread
 
         UpdateLayers(ts);
     }
@@ -193,15 +207,15 @@ namespace GLStudy
 
     void Engine::InitCallbacks()
     {
-        glfwSetWindowUserPointer(window_, this);
+        glfwSetWindowUserPointer(window_.get(), this);
 
-        glfwSetFramebufferSizeCallback(window_, [](GLFWwindow* win, int w, int h) {
+        glfwSetFramebufferSizeCallback(window_.get(), [](GLFWwindow* win, int w, int h) {
             Engine* eng = static_cast<Engine*>(glfwGetWindowUserPointer(win));
             WindowResizeEvent ev(w, h);
             eng->OnEvent(ev);
         });
 
-        glfwSetKeyCallback(window_, [](GLFWwindow* win, int key, int scancode, int action, int mods) {
+        glfwSetKeyCallback(window_.get(), [](GLFWwindow* win, int key, int scancode, int action, int mods) {
             Engine* eng = static_cast<Engine*>(glfwGetWindowUserPointer(win));
             switch (action) {
             case GLFW_PRESS:
@@ -225,7 +239,7 @@ namespace GLStudy
             }
         });
 
-        glfwSetMouseButtonCallback(window_, [](GLFWwindow* win, int button, int action, int mods) {
+        glfwSetMouseButtonCallback(window_.get(), [](GLFWwindow* win, int button, int action, int mods) {
             Engine* eng = static_cast<Engine*>(glfwGetWindowUserPointer(win));
             if (action == GLFW_PRESS) {
                 MouseButtonPressedEvent e(button);
@@ -236,13 +250,13 @@ namespace GLStudy
             }
         });
 
-        glfwSetCursorPosCallback(window_, [](GLFWwindow* win, double xpos, double ypos) {
+        glfwSetCursorPosCallback(window_.get(), [](GLFWwindow* win, double xpos, double ypos) {
             Engine* eng = static_cast<Engine*>(glfwGetWindowUserPointer(win));
             MouseMovedEvent e(static_cast<float>(xpos), static_cast<float>(ypos));
             eng->OnEvent(e);
         });
 
-        glfwSetScrollCallback(window_, [](GLFWwindow* win, double xoff, double yoff) {
+        glfwSetScrollCallback(window_.get(), [](GLFWwindow* win, double xoff, double yoff) {
             Engine* eng = static_cast<Engine*>(glfwGetWindowUserPointer(win));
             MouseScrolledEvent e(static_cast<float>(xoff), static_cast<float>(yoff));
             eng->OnEvent(e);
