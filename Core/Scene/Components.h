@@ -117,7 +117,7 @@ namespace GLStudy {
     struct CharacterControllerComponent {
         CameraType camera_type{CameraType::FirstPerson};
         float move_speed{5.0f};
-        float jump_force{5.0f};
+        float jump_force{1.0f};
     };
 } // namespace GLStudy
 

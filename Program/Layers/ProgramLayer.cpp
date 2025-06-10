@@ -69,21 +69,23 @@ namespace GLStudy
             sphere_,
             RigidBodyComponent{
                 .mesh_type = MeshType::Sphere,
-                .size = btVector3(0.5, 0.5, 0.5),
+                .size = btVector3(1.0, 2.0, 1.0),
                 .mass = 1.0f,
-                .angular_factor = btVector3(0.0f, 0.0f, 0.0f),
+                .angular_factor = btVector3(0.0f, 1.0f, 0.0f),
                 .disable_sleep = true
             });
-        sphere_.AddComponent<CharacterControllerComponent>(CharacterControllerComponent{.camera_type = CameraType::ThirdPerson});
         sphere_.SetPosition({0.0f, 15.0f, 0.0f});
+        sphere_.AddComponent<CharacterControllerComponent>(CharacterControllerComponent{.camera_type = CameraType::ThirdPerson});
+
 
 
         camera_ = scene_.CreateEntity("MainCamera");
         camera_.AddComponent<CameraComponent>();
         camera_.AddComponent<CameraControllerComponent>();
+        camera_.SetPosition({0.0f, 1.0f, 5.0f});
         camera_.AddComponent<CameraBoomComponent>(CameraBoomComponent{5.0f, true, sphere_.Raw()});
 
-        camera_.SetPosition({0.0f, 1.0f, 5.0f});
+
 
         light_ = scene_.CreateEntity("Light");
         light_.AddComponent<LightComponent>(LightComponent{
