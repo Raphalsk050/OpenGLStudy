@@ -93,6 +93,7 @@ target_include_directories(openglStudy PUBLIC
         ThirdParty/stb
         ThirdParty/tinyexr
         ThirdParty/tinyexr/deps/miniz
+        ${CMAKE_SOURCE_DIR}/ThirdParty/boost_patch
 )
 
 target_link_libraries(openglStudy PUBLIC
