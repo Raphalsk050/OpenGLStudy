@@ -56,6 +56,12 @@ namespace GLStudy {
         MeshType mesh_type = MeshType::Cube;
         btVector3 size = btVector3(1.0f, 1.0f, 1.0f);
         float mass = 1.0f;
+        /** Angular factor used by Bullet to lock rotation axes. A value of 0.0
+         *  on an axis prevents the rigid body from rotating around it. */
+        btVector3 angular_factor = btVector3(1.0f, 1.0f, 1.0f);
+        /** When true the rigid body will never be deactivated by Bullet's
+         *  internal sleeping mechanism. Useful for player characters. */
+        bool disable_sleep = false;
         RigidBody* body = nullptr;
     };
 
@@ -95,6 +101,23 @@ namespace GLStudy {
 
     struct SkyboxComponent {
         std::shared_ptr<Skybox> skybox;
+    };
+
+    struct CameraBoomComponent {
+        float arm_length{5.0f};
+        bool collision_test{true};
+        entt::entity target{entt::null};
+    };
+
+    enum class CameraType {
+        FirstPerson = 0,
+        ThirdPerson = 1
+    };
+
+    struct CharacterControllerComponent {
+        CameraType camera_type{CameraType::FirstPerson};
+        float move_speed{5.0f};
+        float jump_force{1.0f};
     };
 } // namespace GLStudy
 

@@ -4,6 +4,8 @@
 #include "Core/Graphics/Model.h"
 #include "Core/Graphics/Skybox.h"
 #include "Core/Camera/CameraController.h"
+#include "Core/Camera/CameraBoom.h"
+#include "Core/Scene/CharacterController.h"
 #include <glad/glad.h>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
@@ -21,6 +23,8 @@ EntityHandle Scene::CreateEntity(const std::string& name) {
 
 void Scene::OnUpdate(Timestep ts) {
     CameraControllerSystem::OnUpdate(*this, ts);
+    CameraBoomSystem::OnUpdate(*this, ts);
+    CharacterControllerSystem::OnUpdate(*this, ts);
 }
 
 void Scene::OnEvent(Event& e) {

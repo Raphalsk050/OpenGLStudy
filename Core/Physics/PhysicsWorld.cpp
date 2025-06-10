@@ -37,6 +37,9 @@ namespace GLStudy
                     auto rb_transform = ConvertMat4ToBtTransform(transform);
 
                     rb.body = CreateRigidBody(rb.mass, rb_transform, CollisionShape::createSphereShape(rb.size.getX()));
+                    rb.body->get()->setAngularFactor(rb.angular_factor);
+                    if (rb.disable_sleep)
+                        rb.body->get()->setActivationState(DISABLE_DEACTIVATION);
                     break;
                 }
 
@@ -47,6 +50,9 @@ namespace GLStudy
                     auto rb_transform = ConvertMat4ToBtTransform(transform);
 
                     rb.body = CreateRigidBody(rb.mass, rb_transform, CollisionShape::createBoxShape(rb.size / 2.0f));
+                    rb.body->get()->setAngularFactor(rb.angular_factor);
+                    if (rb.disable_sleep)
+                        rb.body->get()->setActivationState(DISABLE_DEACTIVATION);
                     break;
                 }
             }
@@ -133,6 +139,9 @@ boost::future<RigidBodyComponent> PhysicsWorld::AddRigidbodyAsync(EntityHandle e
         }
 
         rb.body = CreateRigidBody(rb.mass, rb_transform, shape);
+        rb.body->get()->setAngularFactor(rb.angular_factor);
+        if (rb.disable_sleep)
+            rb.body->get()->setActivationState(DISABLE_DEACTIVATION);
 
         // Update the component in the registry
         auto& registry = Engine::Get().GetScene()->registry_;
