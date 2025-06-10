@@ -41,5 +41,12 @@ sudo apt install -y \
 sudo apt install -y \
     zlib1g-dev
 
+# Prebuilt physics and utility libraries
+sudo apt install -y \
+    libbullet-dev \
+    libassimp-dev \
+    libboost-thread-dev \
+    libboost-system-dev
+
 echo
 echo "Setup complete!"
