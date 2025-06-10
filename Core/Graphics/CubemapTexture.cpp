@@ -1,5 +1,6 @@
 #include "CubemapTexture.h"
 #include <stb_image.h>
+#include <zlib.h>
 #include <tinyexr.h>
 #include <glm.hpp>
 #include <gtc/constants.hpp>

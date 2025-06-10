@@ -12,6 +12,7 @@ sudo apt install -y \
     freeglut3-dev \
     mesa-utils
 
+
 # Wayland (wayland-scanner)
 sudo apt install -y \
     libwayland-dev \
@@ -40,6 +41,13 @@ sudo apt install -y \
 # zlib (necessário para Assimp)
 sudo apt install -y \
     zlib1g-dev
+
+# Prebuilt physics and utility libraries
+sudo apt install -y \
+    libbullet-dev \
+    libassimp-dev \
+    libboost-thread-dev \
+    libboost-system-dev
 
 echo
 echo "Setup complete!"

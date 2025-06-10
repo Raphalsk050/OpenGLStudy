@@ -26,8 +26,18 @@ namespace GLStudy
     {
         InitGLFW();
         CreateWindow(width_, height_, "OpenGL Study");
+        if (!window_)
+        {
+            glfwTerminate();
+            return;
+        }
         Input::Init(window_);
-        InitGLAD();
+        if (!InitGLAD())
+        {
+            glfwDestroyWindow(window_);
+            glfwTerminate();
+            return;
+        }
 
         const GLubyte* renderer = glGetString(GL_RENDERER);
         const GLubyte* vendor   = glGetString(GL_VENDOR);
@@ -43,6 +53,10 @@ namespace GLStudy
 
         InitCallbacks();
 
+        // Physics world must exist before layers attach so asynchronous
+        // component creation can safely reference it
+        physic_world_ = new PhysicsWorld();
+
         initialization_state_ = EngineInitializationStates::INITIALIZED;
 
         // Attach layers that were pushed before setup
@@ -50,9 +64,6 @@ namespace GLStudy
         {
             layer->OnAttach();
         }
-
-        // Physics
-        physic_world_ = new PhysicsWorld();
 
         // TODO(rafael): Just to debug the engine for now. Take this off in the future
         Resume();
@@ -66,6 +77,9 @@ namespace GLStudy
             Update(timestep_);
             scene_->Render(GetRenderer());
         }
+
+        glfwDestroyWindow(window_);
+        glfwTerminate();
     }
 
     void Engine::Pause()
@@ -107,14 +121,16 @@ namespace GLStudy
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     }
 
-    void Engine::InitGLAD()
+    bool Engine::InitGLAD()
     {
         if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
         {
             std::cout << "Failed to initialize GLAD" << std::endl;
+            return false;
         }
 
         glViewport(0, 0, width_, height_);
+        return true;
     }
 
     GLFWwindow* Engine::CreateWindow(int width, int height, const char* title)
@@ -151,7 +167,6 @@ namespace GLStudy
         for (Layer* layer : layer_stack_)
         {
             layer->OnUpdate(ts);
-            ;;std::cout << ts << std::endl;
         }
     }
 

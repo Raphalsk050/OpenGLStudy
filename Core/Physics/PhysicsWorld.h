@@ -27,6 +27,12 @@ namespace GLStudy
         // Create a RigidBodyComponent asynchronously for an entity using Boost futures
         boost::future<RigidBodyComponent> AddRigidbodyAsync(EntityHandle entity, const RigidBodyComponent& spec);
 
+        // Convenience wrapper matching typical AddComponent semantics
+        boost::future<RigidBodyComponent> AddRigidbody(EntityHandle entity, const RigidBodyComponent& spec)
+        {
+            return AddRigidbodyAsync(entity, spec);
+        }
+
 
     private:
         btScalar time_steps_ = 1.0f / 60.0f;
@@ -41,15 +47,6 @@ namespace GLStudy
         void Update(Timestep ts);
 
         void StepSimulation(float deltaTime) const;
-
-        void physicsDebugDraw(int debugFlags)
-        {
-            if (dynamics_world_ && dynamics_world_->getDebugDrawer())
-            {
-                dynamics_world_->getDebugDrawer()->setDebugMode(debugFlags);
-                dynamics_world_->debugDrawWorld();
-            }
-        }
 
         friend class Engine;
     };
