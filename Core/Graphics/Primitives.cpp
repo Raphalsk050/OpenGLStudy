@@ -51,6 +51,64 @@ void Sphere::Build() {
     static_cast<Mesh&>(*this) = std::move(tmp);
 }
 
+Cube::Cube(float size) : size_(size) { Build(); }
+
+void Cube::SetSize(float s) { size_ = s; Build(); }
+
+void Cube::Build()
+{
+    float h = size_ * 0.5f;
+    std::vector<Vertex> vertices = {
+        // Front
+        {{-h,-h, h}, {0.0f,0.0f,1.0f}, {1.0f,0.0f,0.0f}, {0.0f,0.0f}},
+        {{ h,-h, h}, {0.0f,0.0f,1.0f}, {1.0f,0.0f,0.0f}, {1.0f,0.0f}},
+        {{ h, h, h}, {0.0f,0.0f,1.0f}, {1.0f,0.0f,0.0f}, {1.0f,1.0f}},
+        {{-h, h, h}, {0.0f,0.0f,1.0f}, {1.0f,0.0f,0.0f}, {0.0f,1.0f}},
+
+        // Back
+        {{-h,-h,-h}, {0.0f,0.0f,-1.0f}, {-1.0f,0.0f,0.0f}, {1.0f,0.0f}},
+        {{-h, h,-h}, {0.0f,0.0f,-1.0f}, {-1.0f,0.0f,0.0f}, {1.0f,1.0f}},
+        {{ h, h,-h}, {0.0f,0.0f,-1.0f}, {-1.0f,0.0f,0.0f}, {0.0f,1.0f}},
+        {{ h,-h,-h}, {0.0f,0.0f,-1.0f}, {-1.0f,0.0f,0.0f}, {0.0f,0.0f}},
+
+        // Left
+        {{-h,-h,-h}, {-1.0f,0.0f,0.0f}, {0.0f,0.0f,-1.0f}, {0.0f,0.0f}},
+        {{-h,-h, h}, {-1.0f,0.0f,0.0f}, {0.0f,0.0f,-1.0f}, {1.0f,0.0f}},
+        {{-h, h, h}, {-1.0f,0.0f,0.0f}, {0.0f,0.0f,-1.0f}, {1.0f,1.0f}},
+        {{-h, h,-h}, {-1.0f,0.0f,0.0f}, {0.0f,0.0f,-1.0f}, {0.0f,1.0f}},
+
+        // Right
+        {{ h,-h, h}, {1.0f,0.0f,0.0f}, {0.0f,0.0f,1.0f}, {0.0f,0.0f}},
+        {{ h,-h,-h}, {1.0f,0.0f,0.0f}, {0.0f,0.0f,1.0f}, {1.0f,0.0f}},
+        {{ h, h,-h}, {1.0f,0.0f,0.0f}, {0.0f,0.0f,1.0f}, {1.0f,1.0f}},
+        {{ h, h, h}, {1.0f,0.0f,0.0f}, {0.0f,0.0f,1.0f}, {0.0f,1.0f}},
+
+        // Bottom
+        {{-h,-h,-h}, {0.0f,-1.0f,0.0f}, {1.0f,0.0f,0.0f}, {0.0f,0.0f}},
+        {{ h,-h,-h}, {0.0f,-1.0f,0.0f}, {1.0f,0.0f,0.0f}, {1.0f,0.0f}},
+        {{ h,-h, h}, {0.0f,-1.0f,0.0f}, {1.0f,0.0f,0.0f}, {1.0f,1.0f}},
+        {{-h,-h, h}, {0.0f,-1.0f,0.0f}, {1.0f,0.0f,0.0f}, {0.0f,1.0f}},
+
+        // Top
+        {{-h, h, h}, {0.0f,1.0f,0.0f}, {1.0f,0.0f,0.0f}, {0.0f,0.0f}},
+        {{ h, h, h}, {0.0f,1.0f,0.0f}, {1.0f,0.0f,0.0f}, {1.0f,0.0f}},
+        {{ h, h,-h}, {0.0f,1.0f,0.0f}, {1.0f,0.0f,0.0f}, {1.0f,1.0f}},
+        {{-h, h,-h}, {0.0f,1.0f,0.0f}, {1.0f,0.0f,0.0f}, {0.0f,1.0f}},
+    };
+
+    std::vector<unsigned int> indices = {
+        0,1,2, 2,3,0,       // front
+        4,5,6, 6,7,4,       // back
+        8,9,10, 10,11,8,    // left
+        12,13,14, 14,15,12, // right
+        16,17,18, 18,19,16, // bottom
+        20,21,22, 22,23,20  // top
+    };
+
+    Mesh tmp(vertices, indices, nullptr, nullptr, nullptr, nullptr);
+    static_cast<Mesh&>(*this) = std::move(tmp);
+}
+
 Cylinder::Cylinder(float radius, float height, unsigned int sectors)
     : radius_(radius), height_(height), sectors_(sectors) {
     Build();
@@ -81,11 +139,11 @@ void Cylinder::Build(){
         unsigned int k2 = k1 + sectors_ + 1;
         for(unsigned int j=0;j<sectors_;++j){
             indices.push_back(k1+j);
-            indices.push_back(k2+j);
-            indices.push_back(k1+j+1);
             indices.push_back(k1+j+1);
             indices.push_back(k2+j);
+            indices.push_back(k1+j+1);
             indices.push_back(k2+j+1);
+            indices.push_back(k2+j);
         }
     }
     // top cap
@@ -99,8 +157,8 @@ void Cylinder::Build(){
     }
     for(unsigned int j=0;j<sectors_;++j){
         indices.push_back(center_top);
-        indices.push_back(base_top+1+j);
         indices.push_back(base_top+1+j+1);
+        indices.push_back(base_top+1+j);
     }
     // bottom cap
     unsigned int base_bottom = vertices.size();
@@ -113,8 +171,8 @@ void Cylinder::Build(){
     }
     for(unsigned int j=0;j<sectors_;++j){
         indices.push_back(center_bottom);
-        indices.push_back(base_bottom+1+j+1);
         indices.push_back(base_bottom+1+j);
+        indices.push_back(base_bottom+1+j+1);
     }
     Mesh tmp(vertices, indices, nullptr, nullptr, nullptr, nullptr);
     static_cast<Mesh&>(*this) = std::move(tmp);
@@ -183,11 +241,11 @@ void Capsule::Build(){
         unsigned int k2=k1+(sectors_+1);
         for(unsigned int j=0;j<sectors_;j++){
             indices.push_back(k1+j);
-            indices.push_back(k2+j);
-            indices.push_back(k1+j+1);
             indices.push_back(k1+j+1);
             indices.push_back(k2+j);
+            indices.push_back(k1+j+1);
             indices.push_back(k2+j+1);
+            indices.push_back(k2+j);
         }
     }
     Mesh tmp2(vertices, indices, nullptr, nullptr, nullptr, nullptr);
@@ -206,7 +264,7 @@ void Plane::Build(){
         {{ h,0.0f, h}, {0.0f,1.0f,0.0f}, {1.0f,0.0f,0.0f}, {1.0f,1.0f}},
         {{-h,0.0f, h}, {0.0f,1.0f,0.0f}, {1.0f,0.0f,0.0f}, {0.0f,1.0f}}
     };
-    std::vector<unsigned int> indices = {0,1,2,2,3,0};
+    std::vector<unsigned int> indices = {0,1,2, 0,3,2};
     Mesh tmp3(vertices, indices, nullptr, nullptr, nullptr, nullptr);
     static_cast<Mesh&>(*this) = std::move(tmp3);
 }
