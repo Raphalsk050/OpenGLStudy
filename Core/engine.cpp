@@ -97,7 +97,6 @@ namespace GLStudy
                     scene_->Render(GetRenderer());
                 }
                 glfwSwapBuffers(window_.get());
-                glfwPollEvents();
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         });
@@ -111,6 +110,7 @@ namespace GLStudy
             timestep_ = time - last_frame_time_;
             last_frame_time_ = time;
 
+            glfwPollEvents();
             Update(timestep_);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
