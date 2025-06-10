@@ -139,11 +139,11 @@ void Cylinder::Build(){
         unsigned int k2 = k1 + sectors_ + 1;
         for(unsigned int j=0;j<sectors_;++j){
             indices.push_back(k1+j);
-            indices.push_back(k1+j+1);
             indices.push_back(k2+j);
             indices.push_back(k1+j+1);
+            indices.push_back(k1+j+1);
+            indices.push_back(k2+j);
             indices.push_back(k2+j+1);
-            indices.push_back(k2+j);
         }
     }
     // top cap
@@ -189,63 +189,70 @@ void Capsule::SetHeight(float h){ height_ = h; Build(); }
 void Capsule::Build(){
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
+
+    // bottom hemisphere
     for(unsigned int i=0;i<=stacks_;++i){
-        float stackAngle = glm::pi<float>()/2.0f + (glm::pi<float>()/2.0f)*(float)i/stacks_;
-        float xy = cos(stackAngle);
-        float y = -0.5f*height_ + radius_*sin(stackAngle);
+        float phi = -glm::half_pi<float>() + (float)i/stacks_ * glm::half_pi<float>();
+        float xy = cos(phi);
+        float y = -0.5f*height_ + radius_*sin(phi);
         for(unsigned int j=0;j<=sectors_;++j){
-            float sectorAngle = 2.0f*glm::pi<float>()*j/sectors_;
-            float x = radius_*xy*cos(sectorAngle);
-            float z = radius_*xy*sin(sectorAngle);
+            float theta = 2.0f*glm::pi<float>()*j/sectors_;
+            float x = radius_*xy*cos(theta);
+            float z = radius_*xy*sin(theta);
             Vertex v{};
             v.position = glm::vec3(x,y,z);
-            v.normal = glm::normalize(glm::vec3(x, y+0.5f*height_, z));
-            v.tangent = glm::vec3(-sin(sectorAngle),0.0f,cos(sectorAngle));
+            v.normal = glm::normalize(glm::vec3(x, y + 0.5f*height_, z));
+            v.tangent = glm::vec3(-sin(theta),0.0f,cos(theta));
             v.texcoord = glm::vec2((float)j/sectors_, (float)i/stacks_*0.5f);
             vertices.push_back(v);
         }
     }
+
+    // cylinder body
     for(unsigned int i=0;i<=1;++i){
         float y = -0.5f*height_ + i*height_;
         for(unsigned int j=0;j<=sectors_;++j){
-            float sectorAngle=2.0f*glm::pi<float>()*j/sectors_;
-            float x=radius_*cos(sectorAngle);
-            float z=radius_*sin(sectorAngle);
+            float theta=2.0f*glm::pi<float>()*j/sectors_;
+            float x=radius_*cos(theta);
+            float z=radius_*sin(theta);
             Vertex v{};
             v.position=glm::vec3(x,y,z);
             v.normal=glm::normalize(glm::vec3(x,0.0f,z));
-            v.tangent=glm::vec3(-sin(sectorAngle),0.0f,cos(sectorAngle));
+            v.tangent=glm::vec3(-sin(theta),0.0f,cos(theta));
             v.texcoord=glm::vec2((float)j/sectors_,0.5f+0.5f*i);
             vertices.push_back(v);
         }
     }
+
+    // top hemisphere
     for(unsigned int i=0;i<=stacks_;++i){
-        float stackAngle = (glm::pi<float>()/2.0f)*(1.0f - (float)i/stacks_);
-        float xy = cos(stackAngle);
-        float y = 0.5f*height_ + radius_*sin(stackAngle);
+        float phi = (float)i/stacks_ * glm::half_pi<float>();
+        float xy = cos(phi);
+        float y = 0.5f*height_ + radius_*sin(phi);
         for(unsigned int j=0;j<=sectors_;++j){
-            float sectorAngle=2.0f*glm::pi<float>()*j/sectors_;
-            float x=radius_*xy*cos(sectorAngle);
-            float z=radius_*xy*sin(sectorAngle);
+            float theta=2.0f*glm::pi<float>()*j/sectors_;
+            float x=radius_*xy*cos(theta);
+            float z=radius_*xy*sin(theta);
             Vertex v{};
             v.position=glm::vec3(x,y,z);
             v.normal=glm::normalize(glm::vec3(x, y-0.5f*height_, z));
-            v.tangent=glm::vec3(-sin(sectorAngle),0.0f,cos(sectorAngle));
+            v.tangent=glm::vec3(-sin(theta),0.0f,cos(theta));
             v.texcoord=glm::vec2((float)j/sectors_,0.5f+0.5f*i/stacks_);
             vertices.push_back(v);
         }
     }
-    unsigned int rings = stacks_*2 + 1;
-    for(unsigned int i=0;i<rings;i++){
+
+    unsigned int ringCount = (stacks_+1) + 2 + (stacks_+1);
+    for(unsigned int i=0;i<ringCount-1;i++){
         unsigned int k1=i*(sectors_+1);
         unsigned int k2=k1+(sectors_+1);
         for(unsigned int j=0;j<sectors_;j++){
             indices.push_back(k1+j);
-            indices.push_back(k1+j+1);
             indices.push_back(k2+j);
             indices.push_back(k1+j+1);
+            indices.push_back(k1+j+1);
+            indices.push_back(k2+j);
             indices.push_back(k2+j+1);
-            indices.push_back(k2+j);
         }
     }
     Mesh tmp2(vertices, indices, nullptr, nullptr, nullptr, nullptr);
