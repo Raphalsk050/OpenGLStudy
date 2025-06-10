@@ -22,7 +22,7 @@ namespace GLStudy
         floor_ = scene_.CreateEntity("Floor");
         sphere_ = scene_.CreateEntity("Sphere");
 
-        std::shared_ptr<Sphere> sphere_mesh(new Sphere(0.5));
+        std::shared_ptr<Capsule> sphere_mesh(new Capsule(0.5));
         std::shared_ptr<Plane> plane_mesh(new Plane(100.0f));
 
         RendererComponent cube_renderer_spec{
