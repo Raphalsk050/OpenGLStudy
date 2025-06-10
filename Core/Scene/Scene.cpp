@@ -23,7 +23,7 @@ EntityHandle Scene::CreateEntity(const std::string& name) {
 
 void Scene::OnUpdate(Timestep ts) {
     CameraControllerSystem::OnUpdate(*this, ts);
-    CameraBoomSystem::OnUpdate(*this, ts);
+    //CameraBoomSystem::OnUpdate(*this, ts);
     CharacterControllerSystem::OnUpdate(*this, ts);
 }
 

@@ -17,7 +17,7 @@ namespace GLStudy
     void ProgramLayer::OnAttach()
     {
         Layer::OnAttach();
-        cube_ = scene_.CreateEntity("Cube");
+        //cube_ = scene_.CreateEntity("Cube");
         floor_ = scene_.CreateEntity("Floor");
         sphere_ = scene_.CreateEntity("Sphere");
 
@@ -26,7 +26,7 @@ namespace GLStudy
 
         RendererComponent cube_renderer_spec{
             .mesh = MeshType::Cube,
-            .color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
+            .color = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)
         };
 
         RendererComponent sphere_renderer_spec{
@@ -51,11 +51,15 @@ namespace GLStudy
             .mesh_ptr = plane_mesh
         };
 
-        cube_.AddComponent<RendererComponent>(cube_renderer_spec);
-        auto cube_rigidbody_future = engine_->GetPhysicsWorld()->AddRigidbody(
-            cube_,
-            RigidBodyComponent{.mesh_type = MeshType::Cube, .size = btVector3(1.0f, 1.0f, 1.0f), .mass = 1.0f});
-        cube_.SetPosition({0.0f, 5.0f, 0.0f});
+        for (int i = 0; i < 50; i++)
+        {
+            auto cube = scene_.CreateEntity("Cube");
+            cube.AddComponent<RendererComponent>(cube_renderer_spec);
+            auto cube_rigidbody_future = engine_->GetPhysicsWorld()->AddRigidbody(
+                cube,
+                RigidBodyComponent{.mesh_type = MeshType::Cube, .size = btVector3(1.0f, 1.0f, 1.0f), .mass = 1.0f});
+            cube.SetPosition({0.0f, 1.0 * i + 1.0f, 0.0f});
+        }
 
         floor_.AddComponent<RendererComponent>(plane_renderer_spec);
         auto floor_rigidbody_future = engine_->GetPhysicsWorld()->AddRigidbody(
@@ -70,10 +74,10 @@ namespace GLStudy
                 .mesh_type = MeshType::Sphere,
                 .size = btVector3(1.0, 2.0, 1.0),
                 .mass = 1.0f,
-                .angular_factor = btVector3(0.0f, 1.0f, 0.0f),
+                .angular_factor = btVector3(0.0f, 0.0f, 0.0f),
                 .disable_sleep = true
             });
-        sphere_.SetPosition({0.0f, 15.0f, 0.0f});
+        sphere_.SetPosition({2.0f, 15.0f, 0.0f});
         sphere_.AddComponent<CharacterControllerComponent>(CharacterControllerComponent{.camera_type = CameraType::ThirdPerson});
 
 
