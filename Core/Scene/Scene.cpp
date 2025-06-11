@@ -6,6 +6,7 @@
 #include "Core/Camera/CameraController.h"
 #include "Core/Camera/CameraBoom.h"
 #include "Core/Scene/CharacterController.h"
+#include "Core/engine.h"
 #include <glad/glad.h>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
@@ -48,6 +49,7 @@ void Scene::Render(Renderer* renderer) {
     glm::mat4 view_matrix(1.0f);
     glm::mat4 projection(1.0f);
     glm::vec3 cam_pos{0.0f};
+    float alpha = Engine::Get().GetInterpolationFactor();
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -59,18 +61,20 @@ void Scene::Render(Renderer* renderer) {
         const auto& tr = camera_view.get<TransformComponent>(entity);
         if (registry_.all_of<CameraControllerComponent>(entity)) {
             const auto& ctrl = registry_.get<CameraControllerComponent>(entity);
+            glm::vec3 interp_pos = glm::mix(tr.prev_position, tr.position, alpha);
             glm::vec3 front{
                 cos(glm::radians(ctrl.yaw)) * cos(glm::radians(ctrl.pitch)),
                 sin(glm::radians(ctrl.pitch)),
                 sin(glm::radians(ctrl.yaw)) * cos(glm::radians(ctrl.pitch))};
             front = glm::normalize(front);
-            view_matrix = glm::lookAt(tr.position, tr.position + front, glm::vec3(0.0f, 1.0f, 0.0f));
+            view_matrix = glm::lookAt(interp_pos, interp_pos + front, glm::vec3(0.0f, 1.0f, 0.0f));
         } else {
-            view_matrix = glm::inverse(GetWorldMatrix(entity));
+            float alpha = Engine::Get().GetInterpolationFactor();
+            view_matrix = glm::inverse(GetInterpolatedWorldMatrix(entity, alpha));
         }
         projection = cc.camera.GetProjection();
         view_projection = projection * view_matrix;
-        cam_pos = tr.position;
+        cam_pos = glm::mix(tr.prev_position, tr.position, alpha);
         break;
     }
     std::vector<Renderer::LightData> lights;
@@ -80,7 +84,7 @@ void Scene::Render(Renderer* renderer) {
         const auto& tr = light_view.get<TransformComponent>(entity);
         Renderer::LightData data{};
         data.type = lt.type;
-        data.position = tr.position;
+        data.position = glm::mix(tr.prev_position, tr.position, alpha);
         data.direction = lt.direction;
         data.color = lt.color;
         data.intensity = lt.intensity;
@@ -125,7 +129,7 @@ void Scene::Render(Renderer* renderer) {
         auto& rc = render_view.get<RendererComponent>(entity);
 
         if (rc.mesh_ptr) {
-            glUniformMatrix4fv(glGetUniformLocation(renderer->GetShaderProgram(), "u_Model"), 1, GL_FALSE, glm::value_ptr(GetWorldMatrix(entity)));
+            glUniformMatrix4fv(glGetUniformLocation(renderer->GetShaderProgram(), "u_Model"), 1, GL_FALSE, glm::value_ptr(GetInterpolatedWorldMatrix(entity, alpha)));
             glm::mat4 identity(1.0f);
             glVertexAttrib4fv(4, glm::value_ptr(identity[0]));
             glVertexAttrib4fv(5, glm::value_ptr(identity[1]));
@@ -138,24 +142,24 @@ void Scene::Render(Renderer* renderer) {
 
         switch (rc.mesh) {
         case MeshType::Cube:
-            renderer->DrawCube(GetWorldMatrix(entity), rc.color);
+            renderer->DrawCube(GetInterpolatedWorldMatrix(entity, alpha), rc.color);
             break;
         case MeshType::Sphere:
-            renderer->DrawSphere(GetWorldMatrix(entity), rc.color);
+            renderer->DrawSphere(GetInterpolatedWorldMatrix(entity, alpha), rc.color);
             break;
         case MeshType::Cylinder:
-            renderer->DrawCylinder(GetWorldMatrix(entity), rc.color);
+            renderer->DrawCylinder(GetInterpolatedWorldMatrix(entity, alpha), rc.color);
             break;
         case MeshType::Capsule:
-            renderer->DrawCapsule(GetWorldMatrix(entity), rc.color);
+            renderer->DrawCapsule(GetInterpolatedWorldMatrix(entity, alpha), rc.color);
             break;
         case MeshType::Model:
             if (rc.model)
-                rc.model->Draw(renderer->GetShaderProgram(), GetWorldMatrix(entity));
+                rc.model->Draw(renderer->GetShaderProgram(), GetInterpolatedWorldMatrix(entity, alpha));
             break;
         case MeshType::Triangle:
         default:
-            renderer->DrawTriangle(GetWorldMatrix(entity), rc.color);
+            renderer->DrawTriangle(GetInterpolatedWorldMatrix(entity, alpha), rc.color);
             break;
         }
     }
@@ -167,6 +171,22 @@ glm::mat4 Scene::GetWorldMatrix(entt::entity entity) const {
     glm::mat4 mat = tr.LocalMatrix();
     if (tr.parent != entt::null) {
         mat = GetWorldMatrix(tr.parent) * mat;
+    }
+    return mat;
+}
+
+glm::mat4 Scene::GetInterpolatedWorldMatrix(entt::entity entity, float alpha) const {
+    const auto& tr = registry_.get<TransformComponent>(entity);
+    glm::vec3 pos = glm::mix(tr.prev_position, tr.position, alpha);
+    glm::vec3 rot = glm::mix(tr.prev_rotation, tr.rotation, alpha);
+    glm::mat4 mat(1.0f);
+    mat = glm::translate(mat, pos);
+    mat = glm::rotate(mat, rot.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    mat = glm::rotate(mat, rot.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    mat = glm::rotate(mat, rot.z, glm::vec3(0.0f, 0.0f, 1.0f));
+    mat = glm::scale(mat, tr.scale);
+    if (tr.parent != entt::null) {
+        mat = GetInterpolatedWorldMatrix(tr.parent, alpha) * mat;
     }
     return mat;
 }

@@ -59,6 +59,9 @@ namespace GLStudy
 
         Scene* GetScene() const { return scene_; }
 
+        /** Current interpolation factor used for render smoothing */
+        float GetInterpolationFactor() const { return interpolation_factor_.load(); }
+
         GLFWwindow* GetWindow() const { return window_.get(); }
 
         PhysicsWorld* GetPhysicsWorld() const { return physic_world_.get(); }
@@ -85,9 +88,11 @@ namespace GLStudy
         std::unique_ptr<PhysicsWorld> physic_world_;
 
         std::thread render_thread_;
-        std::thread physics_thread_;
         std::atomic<bool> render_running_{false};
-        std::atomic<bool> physics_running_{false};
+
+        double physics_accumulator_{0.0};
+        double physics_fixed_dt_{1.0 / 60.0};
+        std::atomic<float> interpolation_factor_{0.0f};
 
         std::mutex scene_mutex_;
 

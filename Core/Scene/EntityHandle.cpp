@@ -61,7 +61,8 @@ std::vector<EntityHandle> EntityHandle::GetChildren() const {
 }
 
 void EntityHandle::SetPosition(const glm::vec3& position) {
-    GetComponent<TransformComponent>().position = position;
+    auto& tr = GetComponent<TransformComponent>();
+    tr.prev_position = tr.position = position;
 }
 
 glm::vec3 EntityHandle::GetPosition() const {
@@ -69,7 +70,8 @@ glm::vec3 EntityHandle::GetPosition() const {
 }
 
 void EntityHandle::SetRotation(const glm::vec3& rotation) {
-    GetComponent<TransformComponent>().rotation = rotation;
+    auto& tr = GetComponent<TransformComponent>();
+    tr.prev_rotation = tr.rotation = rotation;
 }
 
 glm::vec3 EntityHandle::GetRotation() const {

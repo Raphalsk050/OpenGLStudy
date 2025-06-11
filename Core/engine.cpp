@@ -19,11 +19,8 @@ namespace GLStudy
     Engine::~Engine()
     {
         render_running_ = false;
-        physics_running_ = false;
         if (render_thread_.joinable())
             render_thread_.join();
-        if (physics_thread_.joinable())
-            physics_thread_.join();
         if (scene_)
         {
             delete scene_;
@@ -66,18 +63,6 @@ namespace GLStudy
         // Physics world must exist before layers attach so asynchronous
         // component creation can safely reference it
         physic_world_ = std::make_unique<PhysicsWorld>();
-        physics_running_ = true;
-        physics_thread_ = std::thread([this]() {
-            float last = Time::GetTime();
-            while (physics_running_)
-            {
-                float now = Time::GetTime();
-                float dt = now - last;
-                last = now;
-                physic_world_->Update(dt);
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-        });
 
         initialization_state_ = EngineInitializationStates::INITIALIZED;
 
@@ -107,6 +92,7 @@ namespace GLStudy
 
         // TODO(rafael): Just to debug the engine for now. Take this off in the future
         Resume();
+        last_frame_time_ = Time::GetTime();
 
         while (render_running_ && !glfwWindowShouldClose(window_.get()))
         {
@@ -115,16 +101,22 @@ namespace GLStudy
             last_frame_time_ = time;
 
             glfwPollEvents();
+
+            physics_accumulator_ += timestep_;
+            while (physics_accumulator_ >= physics_fixed_dt_)
+            {
+                physic_world_->Update(physics_fixed_dt_);
+                physics_accumulator_ -= physics_fixed_dt_;
+            }
+            interpolation_factor_ = static_cast<float>(physics_accumulator_ / physics_fixed_dt_);
+
             Update(timestep_);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
         render_running_ = false;
-        physics_running_ = false;
         if (render_thread_.joinable())
             render_thread_.join();
-        if (physics_thread_.joinable())
-            physics_thread_.join();
 
         if (scene_)
         {

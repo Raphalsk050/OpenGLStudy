@@ -25,6 +25,10 @@ namespace GLStudy {
         glm::vec3 rotation{0.0f};
         glm::vec3 scale{1.0f};
 
+        /** Previous transform used for render interpolation */
+        glm::vec3 prev_position{0.0f};
+        glm::vec3 prev_rotation{0.0f};
+
         entt::entity parent{entt::null};
         entt::entity first_child{entt::null};
         entt::entity next_sibling{entt::null};
