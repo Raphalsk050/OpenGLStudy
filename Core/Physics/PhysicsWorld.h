@@ -59,6 +59,11 @@ namespace GLStudy
 
         mutable std::mutex world_mutex_;
 
+    public:
+        /** Expose the internal world mutex so external systems can safely
+         *  modify Bullet objects concurrently with the physics thread. */
+        std::mutex& GetWorldMutex() { return world_mutex_; }
+
     private:
         void Update(Timestep ts);
 
