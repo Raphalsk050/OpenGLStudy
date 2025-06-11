@@ -51,15 +51,16 @@ void CharacterControllerSystem::OnUpdate(Scene& scene, Timestep ts) {
         if (rb.body) {
             PhysicsWorld* world = Engine::Get().GetPhysicsWorld();
             if (world) {
-                std::scoped_lock lock(world->GetWorldMutex());
-                auto currentVel = rb.body->get()->getLinearVelocity();
-                glm::vec3 desired = move_dir * cc.move_speed;
-                rb.body->get()->setLinearVelocity(btVector3(desired.x, currentVel.getY(), desired.z));
-                rb.body->get()->activate();
-                if (Input::IsKeyPressed(Key::Space)) {
-                    rb.body->get()->applyCentralImpulse(btVector3(0, cc.jump_force, 0));
+                world->RunLocked([&]() {
+                    auto currentVel = rb.body->get()->getLinearVelocity();
+                    glm::vec3 desired = move_dir * cc.move_speed;
+                    rb.body->get()->setLinearVelocity(btVector3(desired.x, currentVel.getY(), desired.z));
                     rb.body->get()->activate();
-                }
+                    if (Input::IsKeyPressed(Key::Space)) {
+                        rb.body->get()->applyCentralImpulse(btVector3(0, cc.jump_force, 0));
+                        rb.body->get()->activate();
+                    }
+                });
             }
         }
     }
