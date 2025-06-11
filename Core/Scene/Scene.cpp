@@ -171,4 +171,14 @@ glm::mat4 Scene::GetWorldMatrix(entt::entity entity) const {
     return mat;
 }
 
+void Scene::SyncTransformBuffer() {
+    auto view = registry_.view<TransformComponent>();
+    for (auto entity : view) {
+        auto& tr = view.get<TransformComponent>(entity);
+        tr.position = tr.next_position;
+        tr.rotation = tr.next_rotation;
+        tr.scale = tr.next_scale;
+    }
+}
+
 } // namespace GLStudy

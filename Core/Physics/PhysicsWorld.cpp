@@ -95,10 +95,11 @@ namespace GLStudy
                 btTransform trans;
                 rb.body->body_->getMotionState()->getWorldTransform(trans);
                 btVector3 pos = trans.getOrigin();
-                tr.position = glm::vec3(pos.getX(), pos.getY(), pos.getZ());
+                tr.next_position = glm::vec3(pos.getX(), pos.getY(), pos.getZ());
                 btQuaternion rot = trans.getRotation();
                 glm::quat q(rot.getW(), rot.getX(), rot.getY(), rot.getZ());
-                tr.rotation = glm::eulerAngles(q);
+                tr.next_rotation = glm::eulerAngles(q);
+                tr.next_scale = tr.scale; // scale is not affected by physics
             }
         }
 

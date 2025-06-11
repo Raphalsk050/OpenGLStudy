@@ -25,6 +25,13 @@ namespace GLStudy {
         glm::vec3 rotation{0.0f};
         glm::vec3 scale{1.0f};
 
+        // Buffer written by the physics thread. Copied into the current
+        // transform at the start of each frame so rendering sees a
+        // consistent state from the previous physics step.
+        glm::vec3 next_position{0.0f};
+        glm::vec3 next_rotation{0.0f};
+        glm::vec3 next_scale{1.0f};
+
         entt::entity parent{entt::null};
         entt::entity first_child{entt::null};
         entt::entity next_sibling{entt::null};
