@@ -47,6 +47,10 @@ namespace GLStudy
 
         bool Raycast(const glm::vec3& from, const glm::vec3& to, RaycastHit& outHit) const;
 
+        /** Expose the internal mutex used to guard Bullet state so external
+         *  systems can safely interact with rigid bodies from other threads. */
+        std::mutex& GetWorldMutex() const { return world_mutex_; }
+
 
     private:
         btScalar time_steps_ = 1.0f / 60.0f;
