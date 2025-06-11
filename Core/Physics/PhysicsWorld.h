@@ -5,12 +5,21 @@
 #include <future>
 #include <memory>
 #include <mutex>
+#include <glm.hpp>
 #include "Core/Scene/EntityHandle.h"
 #include "Core/Scene/Components.h"
 
 namespace GLStudy
 {
     class RigidBody;
+
+    struct RaycastHit
+    {
+        EntityHandle entity;
+        glm::vec3 hitPoint{0.0f};
+        glm::vec3 hitNormal{0.0f};
+        float distance{0.0f};
+    };
 
     class PhysicsWorld
     {
@@ -35,6 +44,8 @@ namespace GLStudy
         {
             return AddRigidbodyAsync(entity, spec);
         }
+
+        bool Raycast(const glm::vec3& from, const glm::vec3& to, RaycastHit& outHit) const;
 
 
     private:

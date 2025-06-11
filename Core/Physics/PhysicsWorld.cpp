@@ -166,6 +166,7 @@ std::future<RigidBodyComponent> PhysicsWorld::AddRigidbodyAsync(EntityHandle ent
         }
 
         rb.body = CreateRigidBody(rb.mass, rb_transform, shape);
+        rb.body->get()->setUserIndex(static_cast<int>(entity.Raw()));
         rb.body->get()->setAngularFactor(rb.angular_factor);
         if (rb.disable_sleep)
             rb.body->get()->setActivationState(DISABLE_DEACTIVATION);
@@ -176,5 +177,36 @@ std::future<RigidBodyComponent> PhysicsWorld::AddRigidbodyAsync(EntityHandle ent
     };
 
     return std::async(std::launch::async, std::move(task));
+}
+
+bool PhysicsWorld::Raycast(const glm::vec3& from, const glm::vec3& to, RaycastHit& outHit) const
+{
+    if (!dynamics_world_)
+        return false;
+
+    btVector3 start(from.x, from.y, from.z);
+    btVector3 end(to.x, to.y, to.z);
+
+    btCollisionWorld::ClosestRayResultCallback cb(start, end);
+
+    {
+        std::scoped_lock lock(world_mutex_);
+        dynamics_world_->rayTest(start, end, cb);
+    }
+
+    if (cb.hasHit())
+    {
+        outHit.hitPoint = glm::vec3(cb.m_hitPointWorld.x(), cb.m_hitPointWorld.y(), cb.m_hitPointWorld.z());
+        outHit.hitNormal = glm::vec3(cb.m_hitNormalWorld.x(), cb.m_hitNormalWorld.y(), cb.m_hitNormalWorld.z());
+        outHit.distance = cb.m_closestHitFraction;
+
+        entt::entity e = entt::null;
+        if (cb.m_collisionObject)
+            e = static_cast<entt::entity>(cb.m_collisionObject->getUserIndex());
+        outHit.entity = EntityHandle(e, Engine::Get().GetScene());
+        return true;
+    }
+
+    return false;
 }
 } // GLStudy
