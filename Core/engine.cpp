@@ -5,6 +5,11 @@
 
 namespace GLStudy
 {
+    static void GLFWErrorCallback(int error, const char* description)
+    {
+        std::cerr << "[GLFW ERROR] (" << error << ") " << description << "\n";
+    }
+
     static void SizeCallback(GLFWwindow* window, int width, int height)
     {
         glViewport(0, 0, width, height);
@@ -165,14 +170,18 @@ namespace GLStudy
 
     void Engine::InitGLFW()
     {
+        glfwSetErrorCallback(GLFWErrorCallback);
         if (!glfwInit())
         {
             std::cout << "Failed to initialize GLFW" << std::endl;
         }
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        #ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        #endif
     }
 
     bool Engine::InitGLAD()

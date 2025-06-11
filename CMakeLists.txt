@@ -67,7 +67,92 @@ if(WIN32)
         target_link_libraries(openglStudy PUBLIC ${BULLET_LIBRARIES})
     endif()
 
+elseif(APPLE)
+    # macOS specific configuration
+    
+    # Set macOS deployment target
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum macOS deployment version")
+    
+    # Find macOS frameworks
+    find_package(OpenGL REQUIRED)
+    
+    # Add Homebrew paths if available
+    if(EXISTS "/opt/homebrew")
+        # Apple Silicon Macs
+        list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew")
+        include_directories("/opt/homebrew/include")
+        link_directories("/opt/homebrew/lib")
+    elseif(EXISTS "/usr/local")
+        # Intel Macs
+        list(APPEND CMAKE_PREFIX_PATH "/usr/local")
+        include_directories("/usr/local/include")
+        link_directories("/usr/local/lib")
+    endif()
+    
+    # Find packages (installed via Homebrew)
+    find_package(assimp REQUIRED)
+    find_package(Boost REQUIRED COMPONENTS thread system)
+    find_package(ZLIB REQUIRED)
+    if(USE_BULLET)
+        find_package(Bullet REQUIRED)
+    endif()
+    
+    # Third-party submodules
+    add_subdirectory(ThirdParty/glfw)
+    add_subdirectory(ThirdParty/glad)
+    add_subdirectory(ThirdParty/glm)
+    add_subdirectory(ThirdParty/entt)
+    
+    # Gather sources
+    file(GLOB_RECURSE SRC_FILES
+            Program/*.cpp Program/*.h
+            Core/*.cpp Core/*.h
+    )
+    
+    add_executable(openglStudy ${SRC_FILES})
+    
+    # macOS frameworks
+    find_library(COCOA_LIBRARY Cocoa)
+    find_library(IOKIT_LIBRARY IOKit)
+    find_library(COREVIDEO_LIBRARY CoreVideo)
+    
+    target_include_directories(openglStudy PUBLIC
+            ThirdParty/glfw/include
+            ThirdParty/glad/include
+            ThirdParty/glm
+            ThirdParty/stb
+            ThirdParty/tinyexr
+            ThirdParty/tinyexr/deps/miniz
+    )
+    
+    target_link_libraries(openglStudy PUBLIC
+            glfw
+            glad
+            glm
+            Entt
+            ${OPENGL_LIBRARIES}
+            ${COCOA_LIBRARY}
+            ${IOKIT_LIBRARY}
+            ${COREVIDEO_LIBRARY}
+            assimp
+            Boost::thread
+            Boost::system
+            ZLIB::ZLIB
+    )
+    
+    if(USE_BULLET)
+        target_include_directories(openglStudy PUBLIC ${BULLET_INCLUDE_DIRS})
+        target_link_libraries(openglStudy PUBLIC ${BULLET_LIBRARIES})
+    endif()
+    
+    # Enable high DPI support
+    set_target_properties(openglStudy PROPERTIES
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+    )
+
 else()
+    # Linux configuration
     add_subdirectory(ThirdParty/glfw)
     add_subdirectory(ThirdParty/glad)
     add_subdirectory(ThirdParty/glm)
@@ -188,6 +273,11 @@ target_compile_definitions(openglStudy PRIVATE
         BOOST_THREAD_VERSION=5
         TINYEXR_USE_MINIZ=0
 )
+
+# Platform-specific definitions
+if(APPLE)
+    target_compile_definitions(openglStudy PRIVATE GL_SILENCE_DEPRECATION)
+endif()
 
 add_custom_command(
         TARGET openglStudy POST_BUILD
