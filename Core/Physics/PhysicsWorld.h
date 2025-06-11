@@ -59,6 +59,19 @@ namespace GLStudy
 
         mutable std::mutex world_mutex_;
 
+    public:
+        /**
+         * Execute a callable while holding the internal world mutex. This
+         * allows game code to safely interact with Bullet objects without
+         * exposing the mutex itself.
+         */
+        template <typename Fn>
+        auto RunLocked(Fn&& fn) const -> decltype(fn())
+        {
+            std::scoped_lock lock(world_mutex_);
+            return fn();
+        }
+
     private:
         void Update(Timestep ts);
 
