@@ -97,7 +97,8 @@ namespace GLStudy
             while (render_running_ && !glfwWindowShouldClose(window_.get()))
             {
                 {
-                    std::scoped_lock lock(scene_mutex_);
+                    std::scoped_lock lock(scene_mutex_,
+                                         physic_world_->GetWorldMutex());
                     scene_->Render(GetRenderer());
                 }
                 glfwSwapBuffers(window_.get());

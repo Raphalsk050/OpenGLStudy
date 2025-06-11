@@ -81,7 +81,7 @@ namespace GLStudy
         StepSimulation(ts);
 
         Engine& engine = Engine::Get();
-        std::scoped_lock lock(engine.GetSceneMutex());
+        std::scoped_lock lock(engine.GetSceneMutex(), world_mutex_);
         Scene* scene = engine.GetScene();
 
         // synchronize entity transforms with Bullet rigid bodies
