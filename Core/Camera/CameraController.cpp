@@ -110,11 +110,13 @@ void CameraControllerSystem::OnUpdate(Scene& scene, Timestep ts) {
         if (cc.down)     position -= up * velocity;
 
         tr.position = position;
+        tr.next_position = position;
 
         // build orientation matrix applying yaw then pitch
         glm::mat4 rotMat = glm::yawPitchRoll(glm::radians(cc.yaw), glm::radians(cc.pitch), 0.0f);
         glm::quat orient = glm::quat_cast(rotMat);
         tr.rotation = glm::eulerAngles(orient);
+        tr.next_rotation = tr.rotation;
     }
 }
 

@@ -30,6 +30,7 @@ void CameraBoomSystem::OnUpdate(Scene& scene, Timestep /*ts*/) {
         }
 
         tr.position = target_tr.position - forward * boom.arm_length;
+        tr.next_position = tr.position;
     }
 }
 

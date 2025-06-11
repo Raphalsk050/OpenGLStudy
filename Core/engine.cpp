@@ -207,7 +207,8 @@ namespace GLStudy
             return;
 
         {
-            std::scoped_lock lock(scene_mutex_);
+            std::scoped_lock lock(scene_mutex_,
+                                 physic_world_->GetWorldMutex());
             scene_->SyncTransformBuffer();
             scene_->OnUpdate(ts);
             UpdateLayers(ts);

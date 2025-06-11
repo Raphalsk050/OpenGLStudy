@@ -46,6 +46,7 @@ void EntityHandle::SetParent(EntityHandle parent, bool keep_world_position) {
         glm::mat4 parent_world = new_parent != entt::null ? scene_->GetWorldMatrix(new_parent) : glm::mat4(1.0f);
         glm::vec4 local = glm::inverse(parent_world) * glm::vec4(world_pos, 1.0f);
         tr.position = glm::vec3(local);
+        tr.next_position = tr.position;
     }
 }
 
